@@ -14,25 +14,19 @@ An unofficial, local save editor for **Resident Evil 4 (2023 remake), Steam, Win
 - **Merchant requests**, **treasures**, **achievements** (read-only hints) and an **Advanced** raw field view (asks for a one-time confirmation).
 - **Safety**: a "game is running" warning, a summary of every change before writing, writes that are decrypted back and compared before they replace the file, a backup manager and restore, copying one slot into another.
 
-## Which file to download
+## Download
 
-Nothing needs to be installed in any of them: the save encryption is built in, and Node.js is either bundled or downloaded once by the start script (official portable build from nodejs.org, checked against a fixed SHA-256).
-
-| File | For whom |
-|---|---|
-| `RE4SaveEditor-0.9.0-windows-allinone.zip` (36.9 MB) | **Easiest.** Extract anywhere and double-click `RE4SaveEditor.exe`. Node.js is inside. |
-| `RE4SaveEditor-0.9.0-github.zip` (3.4 MB) | Double-click `start.bat` (or `start.js`). Uses the Node.js 20+ you have, or asks once to download the portable one. |
-| `RE4SaveEditor-0.9.0-nexus.zip` (3.4 MB) | The same without any `.exe`, `.dll` or `.bat` (what Nexus Mods accepts): double-click `start.js`. |
+**`RE4SaveEditor-0.9.0-windows-allinone.zip`** (36.9 MB): extract it anywhere and double-click `RE4SaveEditor.exe`. Nothing to install: Node.js is inside and the save encryption is built in.
 
 SHA-256:
 
 ```text
 cd697d8c6597ab0b563079217134d45fa88aa338b956cef5fde58fb920b2e7a9  RE4SaveEditor-0.9.0-windows-allinone.zip
-b6482de2f3ef0148f6ae8e3ea47998f427a8f828d93f2c7fa63772d63ba9f9ef  RE4SaveEditor-0.9.0-github.zip
-176e401099f6d3c2ed0fa557b98ff9512897b057943009cc0a470c8499b8afe5  RE4SaveEditor-0.9.0-nexus.zip
 ```
 
-**Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 100 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). With `start.js`, Windows may ask once whether to run the script (it came from the internet): choose Open / Run.
+Prefer not to run an `.exe`? Everything is plain JavaScript: download the source code (or `git clone`), run `build.bat` once (it needs Node.js and builds the name dictionary), then double-click `start.bat`. Without Node.js on the PC, `start.js` asks once to download the official portable build from nodejs.org (checked against a fixed SHA-256). A script-only package (`start.js`, no executables) is also published on Nexus Mods.
+
+**Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 100 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). 
 
 ## Quick start
 
