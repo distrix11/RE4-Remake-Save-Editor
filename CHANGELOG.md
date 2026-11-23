@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0
 - Settings window: choose the save folder or Steam account from inside the editor.
 - Safer writes: the new file is written to a temporary name, decrypted back and compared, then moved into place.
 - Backup manager, plus an automatic first-run copy of every slot that is never deleted by the editor.
