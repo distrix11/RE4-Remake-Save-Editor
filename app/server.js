@@ -1,6 +1,6 @@
 'use strict';
 // Local web server for the RE4 Remake save editor.
-// Decrypt/encrypt is delegated to the LimebrellaSharp CLI (ref/LimebrellaSharp), the rest is done here.
+// Decryption and encryption of the save files is done in JavaScript (lime.js, a port of LimebrellaSharp): no .NET or other program is needed.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -9,6 +9,7 @@ const { execFile, spawn } = require('child_process');
 const { parse, readValue, writeValue, isEditable } = require('./parser');
 const INV = require('./inventory');
 const { hashName } = require('./murmur');
+const LIME = require('./lime');
 const STEAM = require('./steam');
 const { buildHints } = require('./achievements');
 const QUEST_INFO = JSON.parse(fs.readFileSync(path.join(__dirname, 'quests.json'), 'utf8'));
@@ -22,12 +23,6 @@ const CFG_PATH = path.join(__dirname, 'config.json');
 const SAVE_RE = /^data[0-9-]+(Slot)?\.bin$/;
 const DEFAULT_CFG = {
   saveDir: null, // auto-detected when empty, see detectSaveDir()
-  // portable SDK from build.bat if present, otherwise the system-wide .NET 10 runtime
-  dotnet: fs.existsSync(path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe')) ? path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe') : 'dotnet',
-  // release layout (encryptor/) first, then the build.bat layout (ref/)
-  cli: ['encryptor/limebrella-sharp-cli.exe', 'encryptor/limebrella-sharp-cli.dll']
-    .map((p) => path.join(ROOT, p)).find((p) => fs.existsSync(p))
-    || path.join(ROOT, 'ref', 'LimebrellaSharp', 'limebrella-sharp-cli', 'bin', 'Release', 'net10.0', 'limebrella-sharp-cli.dll'),
   port: 4784,
 };
 
@@ -68,38 +63,6 @@ const OUTPUT = path.join(ROOT, 'output');
 const sessions = new Map(); // file name -> {buf, parsed, loadedAt}
 
 // ---------------------------------------------------------------- CLI helpers
-function runCli(mode, dir, steam) {
-  if (!fs.existsSync(cfg.cli)) return Promise.reject(new Error('The encryptor was not found (' + path.basename(path.dirname(cfg.cli)) + '). Run build.bat or use a release package.'));
-  const outRoot = path.join(path.dirname(cfg.cli), '_OUTPUT');
-  const before = new Set(fs.existsSync(outRoot) ? fs.readdirSync(outRoot) : []);
-  return new Promise((resolve, reject) => {
-    const direct = /\.exe$/i.test(cfg.cli); // self-contained build: no separate .NET runtime needed
-    const cliArgs = ['-m', mode, '-p', dir, '-s', steam, '-q'];
-    execFile(direct ? cfg.cli : cfg.dotnet, direct ? cliArgs : [cfg.cli, ...cliArgs],
-      { env: Object.assign({}, process.env, !direct && path.isAbsolute(cfg.dotnet) ? { DOTNET_ROOT: path.dirname(cfg.dotnet) } : {}, { DOTNET_CLI_TELEMETRY_OPTOUT: '1' }), timeout: 300000, windowsHide: true },
-      (err, stdout, stderr) => {
-        if (err) {
-          const text = String(stdout || '') + String(stderr || '');
-          const hint = 'Install the .NET 10 Runtime (x64) from https://dotnet.microsoft.com/download/dotnet/10.0 and restart the editor.';
-          if (err.code === 'ENOENT') return reject(new Error('.NET was not found. ' + hint));
-          if (/You must install|framework.*(was )?not found|No frameworks were found/i.test(text)) return reject(new Error('The required .NET 10 Runtime is missing. ' + hint));
-          return reject(new Error('CLI: ' + err.message));
-        }
-        if (/\[(Error|Critical)\]/.test(stdout)) return reject(new Error('CLI: ' + stdout.split('\n').filter((l) => /Error|Critical/.test(l)).join(' ')));
-        const fresh = fs.readdirSync(outRoot).filter((d) => !before.has(d));
-        if (fresh.length !== 1) return reject(new Error('CLI: result folder not found'));
-        resolve(path.join(outRoot, fresh[0]));
-      });
-  });
-}
-function findFile(dir, name) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) { const r = findFile(p, name); if (r) return r; }
-    else if (e.name === name) return p;
-  }
-  return null;
-}
 function rmrf(p) { try { fs.rmSync(p, { recursive: true, force: true }); } catch { /* ignore */ } }
 
 const unpackCache = new Map(); // name -> {mtime, buf}
@@ -127,27 +90,16 @@ async function unpackCached(name) {
   unpackCache.set(name, { mtime, buf: Buffer.from(buf) });
   return buf;
 }
+function needAccount() {
+  if (!accountId || !/^\d+$/.test(accountId)) throw new Error('The Steam account of this folder is unknown (the folder must look like <Steam>/userdata/<account>/2050650/remote/win64_save)');
+  return accountId;
+}
 async function unpackFile(name, srcPath) {
   const src = srcPath || path.join(cfg.saveDir, name);
-  const tmp = path.join(WORK, 'in-' + Date.now());
-  fs.mkdirSync(tmp, { recursive: true });
-  fs.copyFileSync(src, path.join(tmp, name));
-  let out;
-  try { out = await runCli('u', tmp, steamId64); } finally { rmrf(tmp); }
-  const plain = fs.readFileSync(findFile(out, name));
-  rmrf(out);
-  return plain;
+  try { return LIME.unpack(fs.readFileSync(src), needAccount()); }
+  catch (e) { throw new Error('Cannot decrypt ' + name + ': ' + e.message); }
 }
-async function packBuffer(name, plain) {
-  const tmp = path.join(WORK, 'pack-' + Date.now());
-  fs.mkdirSync(tmp, { recursive: true });
-  fs.writeFileSync(path.join(tmp, name), plain);
-  let out;
-  try { out = await runCli('p', tmp, steamId64); } finally { rmrf(tmp); }
-  const packed = fs.readFileSync(findFile(out, name));
-  rmrf(out);
-  return packed;
-}
+async function packBuffer(name, plain) { return LIME.pack(plain, needAccount()); }
 // Writes `packed` to `dest` only after proving it decrypts back to exactly `plain`; the swap is atomic (temp file + rename).
 async function writeVerified(name, plain, packed, dest) {
   const tmp = path.join(WORK, 'verify-' + Date.now()); fs.mkdirSync(tmp, { recursive: true });
@@ -199,21 +151,16 @@ function mask(text) {
   return t;
 }
 function diagnostics() {
-  return new Promise((resolve) => {
-    execFile(/\.exe$/i.test(cfg.cli) ? 'cmd' : cfg.dotnet, /\.exe$/i.test(cfg.cli) ? ['/c', 'echo', '(self-contained encryptor)'] : ['--list-runtimes'], { windowsHide: true }, (err, out) => {
-      const lines = [
-        'RE4 Save Editor ' + VERSION, 'Node ' + process.version + ' on ' + os.platform() + ' ' + os.release() + ' ' + os.arch(),
-        'Encryptor: ' + (/\.exe$/i.test(cfg.cli) ? 'self-contained exe' : 'dotnet + dll') + (fs.existsSync(cfg.cli) ? '' : ' (MISSING)'),
-        '.NET: ' + (err ? 'not available (' + err.code + ')' : String(out).trim().split(/\r?\n/).slice(0, 6).join(' | ')),
-        'Save folder: ' + mask(cfg.saveDir || '(not found)'),
-        'Files: ' + (cfg.saveDir ? fileList().map((x) => x.name + ' ' + x.size).join(', ') : '-'),
-        'Known-format sections: ' + Object.keys(KNOWN).length + ', allowUnknownFormat: ' + !!cfg.allowUnknownFormat,
-        'Open sessions: ' + ([...sessions.values()].map((x) => x.name + (x.warnings && x.warnings.length ? ' [' + x.warnings.join('; ') + ']' : '')).join(', ') || 'none'),
-        '', '--- last log lines ---', ...LOG.slice(-60),
-      ];
-      resolve(mask(lines.join('\n')));
-    });
-  });
+  const lines = [
+    'RE4 Save Editor ' + VERSION, 'Node ' + process.version + ' on ' + os.platform() + ' ' + os.release() + ' ' + os.arch(),
+    'Encryption: built-in (JavaScript)',
+    'Save folder: ' + mask(cfg.saveDir || '(not found)'),
+    'Files: ' + (cfg.saveDir ? fileList().map((x) => x.name + ' ' + x.size).join(', ') : '-'),
+    'Known-format sections: ' + Object.keys(KNOWN).length + ', allowUnknownFormat: ' + !!cfg.allowUnknownFormat,
+    'Open sessions: ' + ([...sessions.values()].map((x) => x.name + (x.warnings && x.warnings.length ? ' [' + x.warnings.join('; ') + ']' : '')).join(', ') || 'none'),
+    '', '--- last log lines ---', ...LOG.slice(-60),
+  ];
+  return Promise.resolve(mask(lines.join('\n')));
 }
 
 // ---------------------------------------------------------------- model building
@@ -583,14 +530,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 fs.mkdirSync(WORK, { recursive: true });
-function checkRuntime() {
-  execFile(cfg.dotnet, ['--list-runtimes'], { windowsHide: true }, (err, out) => {
-    if (err || !/Microsoft\.NETCore\.App 10\./.test(String(out))) {
-      console.log('\n[WARNING] The .NET 10 Runtime was not found. Install it from https://dotnet.microsoft.com/download/dotnet/10.0');
-      console.log('          (the Runtime for Windows x64, not the SDK) and restart the editor.\n');
-    }
-  });
-}
 server.on('error', (e) => {
   if (e.code === 'EADDRINUSE') console.log('\n[ERROR] Port ' + cfg.port + ' is already in use. The editor may already be running: open http://localhost:' + cfg.port + ' or close the other window.\n');
   else console.log('\n[ERROR] ' + e.message + '\n');
@@ -600,7 +539,6 @@ server.listen(cfg.port, '127.0.0.1', () => {
   const url = 'http://localhost:' + cfg.port;
   console.log('RE4 Save Editor: ' + url + (cfg.saveDir ? '' : '  (save folder not found, see README)'));
   console.log('Close this window to stop the editor.');
-  checkRuntime();
   setTimeout(() => { if (cfg.updateCheck !== false) UPD.check(VERSION, false).catch(() => {}); }, 4000);
   setInterval(() => { if (cfg.updateCheck !== false) UPD.check(VERSION, false).catch(() => {}); }, 6 * 3600 * 1000).unref();
   if (!process.env.NO_BROWSER) { // open the default browser (set NO_BROWSER=1 to disable)

@@ -3,7 +3,7 @@
 // and writes app/footprints.json. The result is an UPPER BOUND: no other item's anchor may lie inside the rectangle.
 //
 // Usage: node scripts/make-footprints.js <folder with decrypted *Slot.bin files>
-// (decrypt your saves with the LimebrellaSharp CLI first; never commit them)
+// (decrypt your saves first, e.g. with require("../app/lime").unpack(file, accountId); never commit them)
 const fs = require('fs');
 const path = require('path');
 const P = require('../app/parser');

@@ -3,6 +3,7 @@
 The editor can only verify that a save decrypts, parses and round-trips. Whether the game accepts an edit has to be checked in the game.
 Use a spare slot (Copy slot… in the editor) and keep Steam Cloud off while testing. Please report results in an issue.
 
+0. **Encryption changed in this build (now built in, JavaScript).** Change something small (e.g. Pesetas), save to the game, start the game and load that slot: does it load, is the change there? Do this first, with a backup.
 1. Money: set pesetas to a new value, Save to game, start the game, load the slot. Value shown?
 2. Add an item (e.g. First Aid Spray). Does it appear, usable, in the right place?
 3. Drag an item to another place in the Case view, save, load. Is the position kept, no overlap?

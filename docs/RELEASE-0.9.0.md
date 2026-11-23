@@ -16,21 +16,23 @@ An unofficial, local save editor for **Resident Evil 4 (2023 remake), Steam, Win
 
 ## Which file to download
 
+Nothing needs to be installed in any of them: the save encryption is built in, and Node.js is either bundled or downloaded once by the start script (official portable build from nodejs.org, checked against a fixed SHA-256).
+
 | File | For whom |
 |---|---|
-| `RE4SaveEditor-0.9.0-windows-allinone.zip` (67.7 MB) | **Most people.** Extract anywhere and double-click `RE4SaveEditor.exe`. Nothing to install. |
-| `RE4SaveEditor-0.9.0-github.zip` (3.6 MB) | You already have [Node.js](https://nodejs.org) LTS and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). Double-click `start.bat`. |
-| `RE4SaveEditor-0.9.0-nexus.zip` (3.6 MB) | Same as above, without any launcher file: run `node app/server.js` from the folder. |
+| `RE4SaveEditor-0.9.0-windows-allinone.zip` (36.9 MB) | **Easiest.** Extract anywhere and double-click `RE4SaveEditor.exe`. Node.js is inside. |
+| `RE4SaveEditor-0.9.0-github.zip` (3.4 MB) | Double-click `start.bat` (or `start.js`). Uses the Node.js 20+ you have, or asks once to download the portable one. |
+| `RE4SaveEditor-0.9.0-nexus.zip` (3.4 MB) | The same without any `.exe`, `.dll` or `.bat` (what Nexus Mods accepts): double-click `start.js`. |
 
 SHA-256:
 
 ```text
-c85041bb07e149b03c5b8cd6a4ccdb04828a5819149f43ac00bbc5acd37711f1  RE4SaveEditor-0.9.0-windows-allinone.zip
-880e79790bfe451fa3fc5f330df84b66d2cd62781b0488c5f9b7ff8883073318  RE4SaveEditor-0.9.0-github.zip
-a9cfd0cdcfc6aec5a94c3fcd76823aef64a6ca93be3120b0408fd49f11b8b432  RE4SaveEditor-0.9.0-nexus.zip
+5d026f511cd5a1908d99ae25641f2ec5699e11bb8df1cb2abed84dde93f67a00  RE4SaveEditor-0.9.0-windows-allinone.zip
+ba47507107013e754915a27e576dad18f0e3509debb866d29df699c4f43e5a3d  RE4SaveEditor-0.9.0-github.zip
+23b402c0b64e7611f219119d16a177badede8be70095579f55c9c890184c20ff  RE4SaveEditor-0.9.0-nexus.zip
 ```
 
-**Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 40 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT).
+**Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 100 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). With `start.js`, Windows may ask once whether to run the script (it came from the internet): choose Open / Run.
 
 ## Quick start
 

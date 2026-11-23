@@ -1,13 +1,12 @@
 'use strict';
-// Builds two archives into dist/ (not committed). Both contain the editor, the generated name dictionary and the
-// encryptor as framework-dependent .NET libraries (encryptor/*.dll). Neither contains an .exe.
+// Builds the release archives into dist/ (not committed). All of them are plain JavaScript: the save encryption is built in (app/lime.js),
+// so nothing but Node.js is needed, and Node.js itself can be downloaded by start.js on first start.
 //
-//   nexus   NO launcher file at all (.bat/.cmd/.ps1 uploads are quarantined by Nexus Mods).
-//           Start: open a terminal in the folder and run  node app/server.js  (README-FIRST.txt explains it).
-//   github  the same plus start.bat for a double-click start (for GitHub Releases).
+//   nexus      start.js (double-click, Windows Script Host) and no .exe, .dll, .bat, .cmd, .ps1 at all: Nexus Mods does not accept them.
+//   github     the same plus start.bat.
+//   allinone   (--allinone yes) RE4SaveEditor.exe + the official Node.js in runtime/: nothing to install and nothing to download.
 //
-// Usage: node scripts/make-dist.js --ref <folder containing LimebrellaSharp/ and rsz/rszre4.json>
-//                                  [--dotnet <path to dotnet.exe>] [--version 0.1.0]
+// Usage: node scripts/make-dist.js [--ref <folder with rsz/rszre4.json>] [--version 0.9.0] [--allinone yes]
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -18,21 +17,21 @@ const args = {};
 for (let i = 2; i < process.argv.length; i += 2) args[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
 const ROOT = path.resolve(__dirname, '..');
 const ref = args.ref ? path.resolve(args.ref) : path.join(ROOT, 'ref');
-const dotnet = args.dotnet || (fs.existsSync(path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe')) ? path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe') : 'dotnet');
 const version = args.version || 'test';
 const DIST = path.join(ROOT, 'dist');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 're4dist-'));
 const FOLDER = 'RE4-Save-Editor';
-const FORBIDDEN = /\.(exe|msi|scr|com|bat|cmd|ps1|vbs|lnk)$/i; // anything a launcher or installer could be
+const FORBIDDEN = /\.(exe|dll|msi|scr|com|bat|cmd|ps1|vbs|lnk)$/i; // anything a launcher or installer could be
 
 const run = (cmd, a, opts = {}) => execFileSync(cmd, a, Object.assign({ stdio: 'pipe', windowsHide: true, maxBuffer: 1 << 26 }, opts));
 const walk = (d, out = []) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); e.isDirectory() ? walk(p, out) : out.push(p); } return out; };
 
-function stageSnapshot(dir, withLauncher) {
+// the committed files of the repository, without the development-only ones
+function stageSnapshot(dir, withBat) {
   const files = run('git', ['ls-files', '-z'], { cwd: ROOT }).toString('utf8').split('\0').filter(Boolean);
   for (const f of files) {
-    if (f === 'scripts/make-dist.js' || f === 'scripts/allinone.js' || f.startsWith('.github/') || f.startsWith('icons/models/') || f.startsWith('docs/') || f === 'build.bat') continue; // dev-only files
-    if (f === 'start.bat' && !withLauncher) continue;
+    if (f.startsWith('scripts/') || f.startsWith('.github/') || f.startsWith('icons/models/') || f.startsWith('docs/') || f.startsWith('launcher/') || f === 'build.bat') continue;
+    if (f === 'start.bat' && !withBat) continue;
     const dest = path.join(dir, f); fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(path.join(ROOT, f), dest);
   }
 }
@@ -46,66 +45,47 @@ function zip(stagingParent, name) {
   return { name, size: buf.length, sha256: crypto.createHash('sha256').update(buf).digest('hex') };
 }
 
-const REQ = `Requirements (install once, both are official installers):
-  1. Node.js, LTS version:            https://nodejs.org
-  2. .NET Runtime 10, Windows x64:    https://dotnet.microsoft.com/download/dotnet/10.0   (the "Runtime", not the SDK)
-`;
 const FOOT = `
-This package contains no .exe files. The encryptor in the encryptor/ folder is the open-source
-LimebrellaSharp (MIT) compiled as .NET libraries; the rest is plain JavaScript you can read.
+Everything in this package is plain JavaScript you can read. The save encryption (app/lime.js) is a JavaScript port of the
+open-source LimebrellaSharp (MIT); see THIRD_PARTY_NOTICES.md.
 Source code and details: https://github.com/distrix11/RE4-Remake-Save-Editor
 
 Unofficial fan tool, not affiliated with Capcom or Valve. Use at your own risk and keep backups.
 `;
-const NEXUS_START = `${REQ}
-How to start (there is no launcher file in this package on purpose):
+const START = (bat) => `How to start:
   1. Close Resident Evil 4. Consider turning off Steam Cloud for the game.
-  2. Open this folder in Windows Explorer, click the address bar, type  cmd  and press Enter.
-  3. In the black window type:   node app/server.js   and press Enter.
-     Your browser opens the editor at http://localhost:4784. Close the black window to stop the editor.
+  2. Extract the whole zip anywhere and double-click ${bat ? 'start.bat (or start.js)' : 'start.js'}.
+     The editor opens in its own window. Closing that window stops the editor.
+     - Windows may ask once whether you want to run the script (it came from the internet): choose Open / Run.
+     - If start.js opens in a text editor instead, right-click it, "Open with", "Microsoft Windows Based Script Host".
+  3. If this PC has no Node.js (version 20 or newer), a message offers to download the official portable Node.js (about 37 MB)
+     from nodejs.org. The download is checked against a fixed SHA-256 and only unpacked into the "runtime" folder next to start.js;
+     nothing is installed. If you decline, install Node.js LTS from https://nodejs.org yourself and start again.
 
-Optional, to start with a double-click: create a text file in this folder, save it as start.bat
-(choose "All files" as the type) with these three lines:
-
-    @echo off
-    node app\\server.js
-    pause
-${FOOT}`;
-const GITHUB_START = `${REQ}
-How to start:
-  1. Close Resident Evil 4. Consider turning off Steam Cloud for the game.
-  2. Extract this folder anywhere and double-click start.bat. The editor opens in your browser at http://localhost:4784.
-${FOOT}`;
+If you have Node.js and prefer a terminal:  node app/server.js   (the editor opens in your browser at http://localhost:4784).
+`;
 
 fs.mkdirSync(DIST, { recursive: true });
-
-// the encryptor and the name dictionary are shared by both variants
-const pub = path.join(TMP, 'publish');
-const env = Object.assign({}, process.env, { DOTNET_CLI_TELEMETRY_OPTOUT: '1' }, path.isAbsolute(dotnet) ? { DOTNET_ROOT: path.dirname(dotnet) } : {});
-run(dotnet, ['publish', path.join(ref, 'LimebrellaSharp', 'limebrella-sharp-cli'), '-c', 'Release', '--self-contained', 'false', '-p:UseAppHost=false', '-p:DebugType=None', '-o', pub, '-v', 'quiet'], { env });
 const names = path.join(TMP, 'names.json');
 run(process.execPath, [path.join(ROOT, 'app', 'build-names.js'), path.join(ref, 'rsz', 'rszre4.json'), names]);
 
-function build(variant, withLauncher, readme, zipName) {
+function build(variant, withBat, readme, zipName) {
   const stage = path.join(TMP, variant); const root = path.join(stage, FOLDER);
-  stageSnapshot(root, withLauncher);
-  const enc = path.join(root, 'encryptor'); fs.mkdirSync(enc, { recursive: true });
-  for (const f of fs.readdirSync(pub)) if (/\.(dll|json)$/i.test(f)) fs.copyFileSync(path.join(pub, f), path.join(enc, f));
-  fs.copyFileSync(path.join(ref, 'LimebrellaSharp', 'LICENSE'), path.join(enc, 'LICENSE-LimebrellaSharp.txt'));
+  stageSnapshot(root, withBat);
   fs.copyFileSync(names, path.join(root, 'app', 'names.json'));
-  fs.writeFileSync(path.join(root, 'README-FIRST.txt'), `RE4 Save Editor (unofficial)\n\n${readme}`);
+  fs.writeFileSync(path.join(root, 'README-FIRST.txt'), `RE4 Save Editor (unofficial)\n\n${readme}${FOOT}`);
   const all = walk(stage);
-  const bad = all.filter((f) => FORBIDDEN.test(f) && !(withLauncher && /[\\/]start\.bat$/i.test(f)));
+  const bad = all.filter((f) => FORBIDDEN.test(f) && !(withBat && /[\\/]start\.bat$/i.test(f)));
   if (bad.length) throw new Error(`${variant} must not contain: ${bad.join(', ')}`);
-  return { ...zip(stage, zipName), files: all.map((f) => path.relative(stage, f).replace(/\\/g, '/').replace(FOLDER + '/', '')) };
+  return { ...zip(stage, zipName), files: all.map((f) => path.relative(stage, f).split(path.sep).join('/').replace(FOLDER + '/', '')) };
 }
 
-const nexus = build('nexus', false, NEXUS_START, `RE4SaveEditor-${version}-nexus.zip`);
-const github = build('github', true, GITHUB_START, `RE4SaveEditor-${version}-github.zip`);
+const nexus = build('nexus', false, START(false), `RE4SaveEditor-${version}-nexus.zip`);
+const github = build('github', true, START(true), `RE4SaveEditor-${version}-github.zip`);
 (async () => {
-  // --allinone yes  also builds the Windows archive with launcher exe + bundled Node.js (needs internet and the .NET SDK)
+  // --allinone yes  also builds the Windows archive with launcher exe + bundled Node.js (needs internet and the C# compiler of Windows)
   const extra = args.allinone === 'yes'
-    ? [await require('./allinone')({ args, ROOT, DIST, TMP, FOLDER, ref, dotnet, env, run, walk, stageSnapshot, zip, names, version })] : [];
+    ? [await require('./allinone')({ args, ROOT, DIST, TMP, FOLDER, run, walk, stageSnapshot, zip, names, version })] : [];
   fs.rmSync(TMP, { recursive: true, force: true });
   for (const r of [nexus, github, ...extra]) {
     const ext = {}; for (const f of r.files) { const e = path.extname(f).toLowerCase() || '(none)'; ext[e] = (ext[e] || 0) + 1; }

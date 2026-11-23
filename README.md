@@ -52,7 +52,7 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 ## Requirements
 
 - Windows 10 / 11, Steam version of Resident Evil 4 (2023)
-- Release archive: nothing else (the all-in-one archive bundles Node.js and the encryptor)
+- Release archive: nothing else. The all-in-one archive bundles Node.js; the other two download the official portable Node.js once if the PC has none (or use the Node.js 20+ you have).
 - Building from source: [Node.js](https://nodejs.org) 20 or newer, [git](https://git-scm.com) and internet access for the first build
 
 ## Quick start
@@ -61,13 +61,14 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 
 Download from GitHub Releases, extract anywhere and pick one:
 
-- `...-windows-allinone.zip` (recommended): double-click `RE4SaveEditor.exe`. Nothing to install. The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
-  The launcher is about 40 lines of C# (`launcher/Launcher.cs`) that starts the bundled `runtime/node.exe` with `app/server.js`.
+- `...-windows-allinone.zip` (recommended on GitHub): double-click `RE4SaveEditor.exe`. Nothing to install and nothing to download.
+  The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
+  The launcher is about 100 lines of C# (`launcher/Launcher.cs`) that starts the bundled `runtime/node.exe` with `app/server.js`.
   Windows SmartScreen may warn because it is not code-signed. SHA-256 sums are published with each release.
-- `...-github.zip`: needs [Node.js](https://nodejs.org) LTS and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0); double-click `start.bat`.
-- `...-nexus.zip` (Nexus Mods): like the previous one but without any launcher file. Open the folder in Explorer, type `cmd` in the address bar, run `node app/server.js`.
+- `...-github.zip`: double-click `start.bat` (or `start.js`). Uses the Node.js 20+ you have; if there is none, it asks once and downloads the official portable Node.js from nodejs.org (about 37 MB, checked against a fixed SHA-256) into the `runtime` folder. Nothing is installed.
+- `...-nexus.zip` (Nexus Mods): the same without `start.bat` (Nexus does not accept `.bat`, `.exe` or `.dll` files): double-click `start.js`. Windows may ask once whether to run it; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
 
-The editor opens in your browser at http://localhost:4784. Close the black window to stop it.
+If you prefer a terminal: `node app/server.js` opens the editor in your browser at http://localhost:4784 (close the black window to stop it).
 `scripts/make-dist.js` builds the archives (`--allinone yes` adds the all-in-one one); a GitHub Actions workflow does it for tags.
 
 ### Option B: build from source
@@ -75,8 +76,8 @@ The editor opens in your browser at http://localhost:4784. Close the black windo
 ```text
 git clone https://github.com/distrix11/RE4-Remake-Save-Editor.git
 cd RE4-Remake-Save-Editor
-build.bat     (one time: downloads and builds the encryption helper)
-start.bat     (opens http://localhost:4784 in your browser)
+build.bat     (one time: downloads the field name templates and builds the name dictionary)
+start.bat     (opens the editor in its own window)
 ```
 
 > [!IMPORTANT]
@@ -94,8 +95,8 @@ The save folder (`<Steam>/userdata/<account>/2050650/remote/win64_save`) is dete
 
 ## How it works
 
-Steam save files are encrypted with the account's SteamID. Decryption and encryption are delegated to
-[LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp). The decrypted data is a reflection-style
+Steam save files are encrypted with the account's SteamID. Decryption and encryption are done in JavaScript (`app/lime.js`),
+a port of [LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp) that was checked byte for byte against the original. The decrypted data is a reflection-style
 binary format; field names are hashed and are resolved with the class templates from
 [RE_RSZ](https://github.com/alphazolam/RE_RSZ). See [FORMAT.md](FORMAT.md) for what is known about the format.
 Edits are applied in place, and structural changes (adding or removing items) re-emit the file with the

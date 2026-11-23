@@ -9,7 +9,9 @@ These notes come from reverse engineering a handful of saves and may be incomple
   A segment is 4 key banks (0x80 each), 4096 data bytes and a 32-byte checksum.
 - The key depends on the SteamID64: `76561197960265728 + <account id>` (the account id is the folder name under `userdata`).
 - The last 4 bytes of the file are a Murmur3 signature that is recomputed when packing.
-- Decryption, encryption and re-signing: [LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp).
+- Decryption, encryption and re-signing: `app/lime.js`, a JavaScript port of [LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp)
+  (checked byte for byte against the original on real saves). The data of a segment is AES-128 in OFB mode; its key and IV come from the key banks
+  (modular exponentiation with the account id on a fixed 256-bit number); the segment checksum is SHA3-256 of the plain data.
 - One header word of `data000.bin` is non-standard and is reset by the packer.
 
 ## Layer 2: the decrypted data (reflection-style serialization)

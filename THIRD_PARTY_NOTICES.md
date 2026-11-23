@@ -1,19 +1,15 @@
 # Third-party notices
 
-This project does **not** include the code or data of the projects below in the repository.
-`build.bat` downloads them at build time. If you redistribute a build that contains them
-(for example a release archive with the compiled encryptor), you must ship these notices with it.
+The save encryption in `app/lime.js` is a JavaScript port of the algorithm of LimebrellaSharp (below), so its MIT notice applies to that file.
+The other projects are not part of the repository: the class templates are downloaded by `build.bat` at build time.
 
 ## LimebrellaSharp
 
-Used to decrypt / encrypt / re-sign the Steam save files (the "Lime" container).
+The algorithm to decrypt / encrypt / re-sign the Steam save files (the "Lime" container) was ported to JavaScript from
+LimebrellaSharp (`app/lime.js`); no code or binary of it is shipped any more.
 Source: https://github.com/mi5hmash/LimebrellaSharp
 
-MIT License, Copyright (c) 2026 Michał Gębicki
-
-The NuGet packages used by LimebrellaSharp (Mi5hmasH.ConsoleHelper, Mi5hmasH.Converters, Mi5hmasH.GameLaunchers,
-Mi5hmasH.Logger, Mi5hmasH.Progress) are published by the same author under the MIT license.
-Release archives that include the compiled encryptor (`encryptor/*.dll`) contain these libraries; their license is the MIT text below.
+MIT License, Copyright (c) 2026 Michał Gębicki (see the license text below).
 
 ## RE_RSZ
 
@@ -30,9 +26,9 @@ The weapon pictures in `icons/weapons` are renders of the CC0 3D models from the
 
 The all-in-one release archive bundles the unmodified official Node.js Windows build as `runtime/node.exe`
 (downloaded from https://nodejs.org and checked against the published SHA-256 list). Its license is included as `runtime/LICENSE-Node.txt`.
-The self-contained encryptor `encryptor/limebrella-sharp-cli.exe` also contains the Microsoft .NET runtime (MIT license, https://github.com/dotnet/runtime).
+The Nexus and GitHub archives do not contain Node.js; `start.js` can download the same official build from nodejs.org (checked against a fixed SHA-256) into `runtime/` if the PC has none.
 
-## MIT License text (applies to both projects above)
+## MIT License text (applies to the MIT-licensed projects above)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
