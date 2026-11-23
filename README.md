@@ -1,32 +1,44 @@
+<p align="center"><img src="docs/banner.png" alt="RE4 Save Editor" width="100%"></p>
+
 # RE4 Remake Save Editor
 
 An unofficial, local web-based save editor for **Resident Evil 4 (2023 remake) on Steam** (Windows).
-It runs on your own computer, opens in your browser and never sends anything over the network.
+It runs on your own computer, opens in your browser or its own window and never sends your data anywhere.
 
+> [!WARNING]
 > **Not affiliated with Capcom or Valve. Use at your own risk.**
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
+> [!NOTE]
+> This is an early version (0.2.0). It has been tested on a limited set of saves; please report what you find.
+
 ## Features
 
-- **Money**: Pesetas and Spinel.
-- **Inventory** (attaché case, key items, treasures, recipes/charms):
+- <img src="icons/items/gold_bar.png" height="26" align="top"> **Money**: Pesetas and Spinel.
+- <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
   **add** items from a catalog of ~220 items, **duplicate**, **delete**;
-  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrade levels**.
-- **Merchant requests**: shows the goals of every request and can mark the goals as completed.
-- **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
-- **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
+  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), and a **Sort** button that tidies the case.
+- <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
+- <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
+- <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
   It cannot unlock achievements.
-- **Safety**: a "game is running" warning, an unsaved-changes indicator, a summary of every change before writing,
+- <img src="icons/items/first_aid_spray.png" height="26" align="top"> **Safety**: a "game is running" warning, an unsaved-changes indicator, a summary of every change before writing,
   automatic backups, restore from a backup or from your own file, and copying one slot into another.
-- **Settings**: choose the save folder or Steam account inside the editor, backup manager, "Copy diagnostics" for bug reports (no personal data).
-- **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.
+- <img src="icons/items/wrench.png" height="26" align="top"> **Settings**: choose the save folder or Steam account inside the editor, backup manager, "Copy diagnostics" for bug reports (no personal data).
+- <img src="icons/items/key_gold.png" height="26" align="top"> **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
-- **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with 3D-rendered item icons.
+- <img src="icons/items/herb_green.png" height="26" align="top"> **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with 3D-rendered item icons.
   The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models rendered by `scripts/icon-render`; guns use renders of CC0 models); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view.
-- **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
-- **Advanced**: a raw tree view of every field in the save file with search.
+- <img src="icons/items/compass.png" height="26" align="top"> **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
+- <img src="icons/items/cog.png" height="26" align="top"> **Advanced**: a raw tree view of every field in the save file with search.
+
+## Item icons
+
+<p align="center"><img src="docs/icon-gallery.png" alt="Item icons" width="100%"></p>
+
+Every item of the catalogue has its own icon. They are rendered from original 3D models written for this project (`scripts/icon-render`), so there is nothing from the game in the repository.
 
 ## Screenshots
 
@@ -67,12 +79,18 @@ build.bat     (one time: downloads and builds the encryption helper)
 start.bat     (opens http://localhost:4784 in your browser)
 ```
 
-1. **Close the game** and consider turning off Steam Cloud for RE4 (otherwise Steam may restore the old file).
+> [!IMPORTANT]
+> **Close the game** before saving, and consider turning off Steam Cloud for RE4 (otherwise Steam may restore the old file).
+
+1. Start the editor (see above).
 2. Pick a slot in the drop-down list at the top, edit, then press **Save to game**. A summary of the changes is shown first.
-3. Use **Restore from copy...** to undo a write at any time.
+3. Use **Restore from backup...** to undo a write at any time.
 
 The save folder (`<Steam>/userdata/<account>/2050650/remote/win64_save`) is detected automatically.
-If detection fails (or you have several Steam accounts), use the gear button in the editor. See `docs/TESTING.md` for an in-game test checklist.
+
+> [!TIP]
+> If detection fails (or you have several Steam accounts), use the gear button in the editor.
+> See `docs/TESTING.md` for an in-game test checklist.
 
 ## How it works
 
@@ -86,11 +104,11 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 ## Known limitations
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
-- The maximum valid weapon upgrade level depends on the weapon and is not enforced.
+- Weapon upgrade levels are limited to 0-4 (the highest seen in real saves). Some weapons have fewer upgrades; the editor does not know which.
 - Weapons cannot be added (copy an existing one instead); the exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
 - The item catalog is community-compiled and may contain mistakes.
-- Tested on a limited set of saves and one game version. Game patches may change the save format.
+- Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.
 - Windows and the Steam version only.
 
 ## Contributing
