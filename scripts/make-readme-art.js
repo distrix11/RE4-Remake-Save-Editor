@@ -47,6 +47,12 @@ const shot = (name, html, w, h) => {
   spawnSync(EDGE, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1.5', `--window-size=${w},${h}`, `--screenshot=${out}`, 'file:///' + f.split(path.sep).join('/')], { stdio: 'ignore' });
   console.log(fs.existsSync(out) ? 'wrote ' + out : 'FAILED ' + name);
 };
+// download buttons (solid background so they look the same on light and dark GitHub themes)
+const button = (label, sub, color, bg, icon) => `<!doctype html><meta charset="utf-8"><style>${css}
+body{width:360px;height:76px;display:flex;align-items:center;gap:14px;padding:0 20px;background:${bg};border:3px solid ${color}}
+.l{font-size:25px;font-weight:800;color:${color};letter-spacing:1px;line-height:1.1}.s{font-size:14px;color:#cfd9c1;margin-top:3px}</style><body>${icon}<div><div class="l">${label}</div><div class="s">${sub}</div></div>`;
+shot('btn-github', button('DOWNLOAD', 'from GitHub Releases (Windows)', '#a9c58a', '#1d2a17', img('herb_green', 46)), 360, 76);
+shot('btn-nexus', button('DOWNLOAD', 'from Nexus Mods', '#e8a24a', '#2a2114', img('case_gold', 46)), 360, 76);
 shot('banner', banner, 1280, 320);
 shot('icon-gallery', gallery, 1280, 790);
 fs.rmSync(tmp, { recursive: true, force: true });

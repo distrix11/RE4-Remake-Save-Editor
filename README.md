@@ -1,5 +1,8 @@
 <p align="center"><img src="docs/banner.png" alt="RE4 Save Editor" width="100%"></p>
 
+<p align="center"><a href="https://github.com/distrix11/RE4-Remake-Save-Editor/releases"><img src="docs/btn-github.png" alt="Download from GitHub Releases" height="56"></a></p>
+<p align="center">Windows, nothing to install: extract the zip and double-click <code>RE4SaveEditor.exe</code>.</p>
+
 # RE4 Remake Save Editor
 
 An unofficial, local web-based save editor for **Resident Evil 4 (2023 remake) on Steam** (Windows).
