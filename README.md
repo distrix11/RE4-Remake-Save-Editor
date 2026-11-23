@@ -68,6 +68,7 @@ Download from [GitHub Releases](https://github.com/distrix11/RE4-Remake-Save-Edi
   The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
   The launcher is about 110 lines of C# (`launcher/Launcher.cs`, a window program without a console) that starts the bundled `runtime/node.exe` with `app/server.js`.
   Windows SmartScreen may warn because it is not code-signed. SHA-256 sums are published with each release.
+  VirusTotal: [4 of 63 engines](https://www.virustotal.com/gui/file/ed1f5de97e5e441604a63e4f9d888e2e00a67731e3dcb333d6f66e0b7a00d8ec) flag the archive with generic heuristics only (details in the release notes); the launcher source is in `launcher/Launcher.cs`.
 - Nexus Mods, script-only package (it has no `.exe`, `.dll` or `.bat` because Nexus does not accept them): double-click `start.js`. It needs [Node.js](https://nodejs.org) 20 or newer (install the LTS version once); if it is missing, a message offers to open the download page. Windows may ask once whether to run the script; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
 
 If you prefer a terminal: `node app/server.js` opens the editor in your browser at http://localhost:4784 (close the black window to stop it).
