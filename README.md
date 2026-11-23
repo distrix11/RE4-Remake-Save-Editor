@@ -87,7 +87,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
 - The maximum valid weapon upgrade level depends on the weapon and is not enforced.
-- Weapons cannot be added (copy an existing one instead); exclusive upgrades are not editable.
+- Weapons cannot be added (copy an existing one instead); the exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
 - The item catalog is community-compiled and may contain mistakes.
 - Tested on a limited set of saves and one game version. Game patches may change the save format.
