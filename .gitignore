@@ -13,6 +13,9 @@ tools/
 app/names.json
 node_modules/
 
+# Release archives built by scripts/make-dist.js
+dist/
+
 # Logs and OS files
 *.log
 Thumbs.db

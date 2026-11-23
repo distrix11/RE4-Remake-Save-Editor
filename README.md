@@ -37,6 +37,16 @@ It runs on your own computer, opens in your browser and never sends anything ove
 
 ## Quick start
 
+### Option A: release archive (no build)
+
+1. Install [Node.js](https://nodejs.org) (LTS) and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64; the *Runtime*, not the SDK).
+2. Download the `...-with-dlls.zip` archive, extract it anywhere and double-click `start.bat`.
+
+The archive contains no `.exe` files: the encryptor is shipped as .NET libraries (`encryptor/*.dll`) and everything else is plain JavaScript.
+`scripts/make-dist.js` builds the archives.
+
+### Option B: build from source
+
 ```text
 git clone https://github.com/distrix11/RE4-Remake-Save-Editor.git
 cd RE4-Remake-Save-Editor

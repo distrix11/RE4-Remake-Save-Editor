@@ -17,8 +17,12 @@ const CFG_PATH = path.join(__dirname, 'config.json');
 const SAVE_RE = /^data[0-9-]+(Slot)?\.bin$/;
 const DEFAULT_CFG = {
   saveDir: null, // auto-detected when empty, see detectSaveDir()
-  dotnet: path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe'),
-  cli: path.join(ROOT, 'ref', 'LimebrellaSharp', 'limebrella-sharp-cli', 'bin', 'Release', 'net10.0', 'limebrella-sharp-cli.dll'),
+  // portable SDK from build.bat if present, otherwise the system-wide .NET 10 runtime
+  dotnet: fs.existsSync(path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe')) ? path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe') : 'dotnet',
+  // release layout (encryptor/) first, then the build.bat layout (ref/)
+  cli: fs.existsSync(path.join(ROOT, 'encryptor', 'limebrella-sharp-cli.dll'))
+    ? path.join(ROOT, 'encryptor', 'limebrella-sharp-cli.dll')
+    : path.join(ROOT, 'ref', 'LimebrellaSharp', 'limebrella-sharp-cli', 'bin', 'Release', 'net10.0', 'limebrella-sharp-cli.dll'),
   port: 4784,
 };
 
@@ -59,13 +63,20 @@ const sessions = new Map(); // file name -> {buf, parsed, loadedAt}
 
 // ---------------------------------------------------------------- CLI helpers
 function runCli(mode, dir, steam) {
+  if (!fs.existsSync(cfg.cli)) return Promise.reject(new Error('The encryptor was not found (' + path.basename(path.dirname(cfg.cli)) + '). Run build.bat or use a release package.'));
   const outRoot = path.join(path.dirname(cfg.cli), '_OUTPUT');
   const before = new Set(fs.existsSync(outRoot) ? fs.readdirSync(outRoot) : []);
   return new Promise((resolve, reject) => {
     execFile(cfg.dotnet, [cfg.cli, '-m', mode, '-p', dir, '-s', steam, '-q'],
-      { env: Object.assign({}, process.env, { DOTNET_ROOT: path.dirname(cfg.dotnet), DOTNET_CLI_TELEMETRY_OPTOUT: '1' }), timeout: 300000, windowsHide: true },
-      (err, stdout) => {
-        if (err) return reject(new Error('CLI: ' + err.message));
+      { env: Object.assign({}, process.env, path.isAbsolute(cfg.dotnet) ? { DOTNET_ROOT: path.dirname(cfg.dotnet) } : {}, { DOTNET_CLI_TELEMETRY_OPTOUT: '1' }), timeout: 300000, windowsHide: true },
+      (err, stdout, stderr) => {
+        if (err) {
+          const text = String(stdout || '') + String(stderr || '');
+          const hint = 'Install the .NET 10 Runtime (x64) from https://dotnet.microsoft.com/download/dotnet/10.0 and restart the editor.';
+          if (err.code === 'ENOENT') return reject(new Error('.NET was not found. ' + hint));
+          if (/You must install|framework.*(was )?not found|No frameworks were found/i.test(text)) return reject(new Error('The required .NET 10 Runtime is missing. ' + hint));
+          return reject(new Error('CLI: ' + err.message));
+        }
         if (/\[(Error|Critical)\]/.test(stdout)) return reject(new Error('CLI: ' + stdout.split('\n').filter((l) => /Error|Critical/.test(l)).join(' ')));
         const fresh = fs.readdirSync(outRoot).filter((d) => !before.has(d));
         if (fresh.length !== 1) return reject(new Error('CLI: result folder not found'));

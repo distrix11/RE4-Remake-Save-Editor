@@ -11,6 +11,10 @@ Source: https://github.com/mi5hmash/LimebrellaSharp
 
 MIT License, Copyright (c) 2026 Michał Gębicki
 
+The NuGet packages used by LimebrellaSharp (Mi5hmasH.ConsoleHelper, Mi5hmasH.Converters, Mi5hmasH.GameLaunchers,
+Mi5hmasH.Logger, Mi5hmasH.Progress) are published by the same author under the MIT license.
+Release archives that include the compiled encryptor (`encryptor/*.dll`) contain these libraries; their license is the MIT text below.
+
 ## RE_RSZ
 
 The class and field name templates (`rszre4.json`) are used to turn the hashed field names
