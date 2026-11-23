@@ -27,3 +27,21 @@ app/update-state.json
 icons/user/*
 !icons/user/README.txt
 icons/images/
+
+# AI-generated icon sheets used only for experiments (their terms of use are unchecked): never publish
+icons/presets/
+
+# Editors, tools and local settings
+.vscode/
+.idea/
+*.swp
+.claude/
+.env
+.env.*
+
+# More OS and temporary files
+desktop.ini
+ehthumbs.db
+*.tmp
+*.re4tmp
+*.zip
