@@ -311,6 +311,28 @@ function moveItem(S, invIdx, idx, x, y, dir) {
   if (dir !== undefined) { const dn = F(S, entry, 'CurrDirection'); if (dn) writeValue(S.buf, dn, String(rot)); }
   return { ok: true };
 }
+// The look of the attaché case: the skin item chosen in the skin settings (character 100000). A skin the player does not own yet is added to the
+// "recipes, cases, charms" inventory first, so the game lists it as unlocked.
+const CASE_SKIN_IDS = [124176000, 124177600, 124179200, 124192000, 124193600];
+function skinEntry(S) {
+  const host = sections(S).find((x) => F(S, x, 'SkinSettingSaveData'));
+  const arr = host && F(S, F(S, host, 'SkinSettingSaveData'), 'Settings');
+  if (arr) for (const i of arr.items) {
+    const e = S.parsed.nodes[i]; const cid = scalar(S, F(S, e, 'CharacterID'));
+    if (cid && Number(cid.value) === 100000) return F(S, e, 'ItemId');
+  }
+  return null;
+}
+function setCaseSkin(S, skinId) {
+  skinId = Number(skinId);
+  if (!CASE_SKIN_IDS.includes(skinId)) throw new Error('Unknown case skin');
+  if (!skinEntry(S)) throw new Error('This slot has no skin settings');
+  const m = model(S)[HOME.special];
+  const owned = !!(m && m.items.some((i) => String(i.itemId.value) === String(skinId)));
+  if (!owned) addItem(S, { itemId: skinId, count: 1 }); // rebuilds the tree: look the skin node up again afterwards
+  writeValue(S.buf, skinEntry(S), String(skinId));
+  return { ok: true, added: !owned };
+}
 // Change the attaché case size level; every item must still fit.
 function setCaseSize(S, level) {
   level = Number(level);
@@ -596,6 +618,6 @@ function weaponStatus(S) {
 module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
-  CASE_DIMS, MAX_UPG, sortCase, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
+  CASE_DIMS, MAX_UPG, sortCase, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
   moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
 };

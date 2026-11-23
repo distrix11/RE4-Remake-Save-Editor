@@ -40,7 +40,15 @@ function renderCaseBar(root, inv) {
     const b = document.createElement('button'); b.className = ui.view === k ? 'on' : ''; b.innerHTML = ic(icon) + t;
     b.onclick = () => { ui.view = k; render(); }; seg.append(b);
   }
-  cb.append(lab, sel, Object.assign(document.createElement('span'), { className: 'sp' }), seg);
+  const skinLab = document.createElement('span'); skinLab.className = 'dim'; skinLab.style.marginLeft = '14px'; skinLab.textContent = 'Case look';
+  const skinSel = document.createElement('select'); skinSel.title = 'The skin of your attaché case. A skin you do not own yet is unlocked (added to the recipes, cases and charms inventory).';
+  skinSel.innerHTML = [[124176000, 'Silver'], [124177600, 'Black'], [124179200, 'Leather'], [124192000, 'Gold'], [124193600, 'Classic']].map(([id, n]) => `<option value="${id}">${n}</option>`).join('');
+  skinSel.value = String((data.overview && data.overview.caseSkin) || 124176000);
+  skinSel.onchange = async () => {
+    try { const r = await api('case-skin', { name: cur, skin: skinSel.value }); applyFresh(r); setButtons(); render(); toast(r.added ? 'Case look changed (the skin was unlocked too)' : 'Case look changed', 'ok'); }
+    catch (e) { toast(e.message, 'err'); skinSel.value = String((data.overview && data.overview.caseSkin) || 124176000); }
+  };
+  cb.append(lab, sel, skinLab, skinSel, Object.assign(document.createElement('span'), { className: 'sp' }), seg);
   root.append(cb);
 }
 

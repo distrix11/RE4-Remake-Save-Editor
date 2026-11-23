@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const view = $('#view');
 let cfg = null, cur = null, data = null, tab = 'money';
 const ui = { inv: 0, q: '', cat: 'all', sort: 'game', dir: 1, view: 'list', sel: null, upg: {} };
-const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-size', 'upgrade', 'upgrade-all', 'quest-complete']);
+const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'quest-complete']);
 const LS = 'RE4_item_names';
 const userNames = (() => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch { return {}; } })();
 const summaries = {};
