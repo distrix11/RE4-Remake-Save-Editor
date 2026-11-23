@@ -79,7 +79,7 @@ function unpack(file, accountId) {
     if (s === 0) for (let i = 0; i < 4; i++) if (seg.readBigUInt64LE(i * 8) !== SEGMENT_MAGIC[i]) throw new Error('Invalid segment header');
     const plain = ofb(seg.subarray(BANKS * BANK_SIZE, BANKS * BANK_SIZE + DATA_SIZE), segmentKey(seg, notUser));
     if (s === 0 && !checksum(plain).equals(seg.subarray(BANKS * BANK_SIZE + DATA_SIZE, SEGMENT_SIZE))) {
-      throw new Error('Decryption failed (checksum mismatch): this save belongs to another Steam account');
+      throw new Error('Decryption failed (checksum mismatch): the file is damaged or belongs to another Steam account');
     }
     parts.push(plain);
   }

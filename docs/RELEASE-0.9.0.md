@@ -27,9 +27,9 @@ Nothing needs to be installed in any of them: the save encryption is built in, a
 SHA-256:
 
 ```text
-5d026f511cd5a1908d99ae25641f2ec5699e11bb8df1cb2abed84dde93f67a00  RE4SaveEditor-0.9.0-windows-allinone.zip
-ba47507107013e754915a27e576dad18f0e3509debb866d29df699c4f43e5a3d  RE4SaveEditor-0.9.0-github.zip
-23b402c0b64e7611f219119d16a177badede8be70095579f55c9c890184c20ff  RE4SaveEditor-0.9.0-nexus.zip
+cd697d8c6597ab0b563079217134d45fa88aa338b956cef5fde58fb920b2e7a9  RE4SaveEditor-0.9.0-windows-allinone.zip
+b6482de2f3ef0148f6ae8e3ea47998f427a8f828d93f2c7fa63772d63ba9f9ef  RE4SaveEditor-0.9.0-github.zip
+176e401099f6d3c2ed0fa557b98ff9512897b057943009cc0a470c8499b8afe5  RE4SaveEditor-0.9.0-nexus.zip
 ```
 
 **Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 100 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). With `start.js`, Windows may ask once whether to run the script (it came from the internet): choose Open / Run.
