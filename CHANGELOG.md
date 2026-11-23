@@ -6,7 +6,10 @@
 - Backup manager, plus an automatic first-run copy of every slot that is never deleted by the editor.
 - Format guard: if a game update changes the save layout, structural edits are disabled and a banner explains it.
 - Copy diagnostics (no personal data) for bug reports.
-- Pale-green colour scheme closer to the original game, and a pseudo-3D view of the attaché case.
+- Pale-green colour scheme closer to the original game.
+- Static case view with vector item icons; the case takes the look of the skin chosen in the save.
+- Daily update check (switch in the new About dialog, opened with the ? button). It never downloads anything.
+- The launcher opens the editor in its own app-style window and stops the server when the window is closed.
 - Small launcher `RE4SaveEditor.exe` and an all-in-one Windows archive with bundled Node.js and encryptor.
 
 ## 0.1.0

@@ -23,7 +23,9 @@ It runs on your own computer, opens in your browser and never sends anything ove
 - **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
-- **Case view**: pale-green theme in the spirit of the original game and a pseudo-3D case you can turn with the mouse (selection only; move items on the flat map).
+- **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with vector item icons.
+  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Items are moved on the flat map.
+- **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - **Advanced**: a raw tree view of every field in the save file with search.
 
 ## Screenshots
@@ -47,7 +49,7 @@ It runs on your own computer, opens in your browser and never sends anything ove
 
 Download from GitHub Releases, extract anywhere and pick one:
 
-- `...-windows-allinone.zip` (recommended): double-click `RE4SaveEditor.exe`. Nothing to install.
+- `...-windows-allinone.zip` (recommended): double-click `RE4SaveEditor.exe`. Nothing to install. The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
   The launcher is about 40 lines of C# (`launcher/Launcher.cs`) that starts the bundled `runtime/node.exe` with `app/server.js`.
   Windows SmartScreen may warn because it is not code-signed. SHA-256 sums are published with each release.
 - `...-github.zip`: needs [Node.js](https://nodejs.org) LTS and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0); double-click `start.bat`.
