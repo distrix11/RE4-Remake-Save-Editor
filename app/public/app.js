@@ -59,7 +59,7 @@ $('#slot').onchange = (e) => { if (e.target.value) openFile(e.target.value); };
 async function openFile(name) {
   view.innerHTML = '<div class="empty">Decrypting…</div>';
   try {
-    data = await api('open', { name }); cur = name; tab = data.isSlot ? 'money' : 'tree'; ui.inv = 0; ui.q = ''; ui.cat = 'all'; treeState.id = null; treeState.q = '';
+    data = await api('open', { name }); cur = name; showWarnings(data.warnings); tab = data.isSlot ? 'money' : 'tree'; ui.inv = 0; ui.q = ''; ui.cat = 'all'; treeState.id = null; treeState.q = '';
     $('#slot').value = name; setButtons(); render();
   } catch (e) { toast(e.message, 'err'); view.innerHTML = '<div class="empty">Error: ' + esc(e.message) + '</div>'; }
 }
@@ -140,6 +140,7 @@ function renderInventory(root) {
   top.append(chips); root.append(top);
   if (inv.index === 0 && inv.sizes && inv.size) renderCaseBar(root, inv);
   const mapMode = ui.view === 'map' && inv.index === 0 && !!inv.grid;
+  const view3 = ui.view === '3d' && inv.index === 0 && !!inv.grid;
 
   const bar = document.createElement('div'); bar.className = 'toolbar';
   const q = document.createElement('input'); q.placeholder = 'Search by name or ID'; q.value = ui.q;
@@ -155,8 +156,8 @@ function renderInventory(root) {
   root.append(bar);
 
   const holder = document.createElement('div'); root.append(holder);
-  bar.style.display = mapMode ? 'none' : '';
-  const draw = () => (mapMode ? drawMap(holder, inv) : drawItems(holder, inv));
+  bar.style.display = mapMode || view3 ? 'none' : '';
+  const draw = () => (view3 ? drawCase3D(holder, inv) : mapMode ? drawMap(holder, inv) : drawItems(holder, inv));
   q.oninput = () => { ui.q = q.value; draw(); };
   sel.onchange = () => { ui.cat = sel.value; draw(); };
   sortSel.onchange = () => { ui.sort = sortSel.value; ui.dir = 1; draw(); };

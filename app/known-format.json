@@ -1,0 +1,192 @@
+{
+ "share.GameClock.GameSaveData": {
+  "hashes": [
+   "-754622453"
+  ]
+ },
+ "chainsaw.GlobalUserDataManager.SaveData": {
+  "hashes": [
+   "1715070850"
+  ]
+ },
+ "chainsaw.CharacterManager.GameSaveData": {
+  "hashes": [
+   "1329230962"
+  ]
+ },
+ "chainsaw.GimmickManager.SaveData": {
+  "hashes": [
+   "-1018264129"
+  ]
+ },
+ "chainsaw.DropItemManager.SaveData": {
+  "hashes": [
+   "-801328908"
+  ]
+ },
+ "chainsaw.ScenarioFlagManager.SaveData": {
+  "hashes": [
+   "1747694274"
+  ]
+ },
+ "chainsaw.CampaignManager.GameData": {
+  "hashes": [
+   "60430928"
+  ]
+ },
+ "chainsaw.InventoryManager.GameSaveData": {
+  "hashes": [
+   "-45468530"
+  ]
+ },
+ "chainsaw.FileManager.GameSaveData": {
+  "hashes": [
+   "-837224425"
+  ]
+ },
+ "chainsaw.CommonSaveDataManager.SaveData": {
+  "hashes": [
+   "1"
+  ]
+ },
+ "chainsaw.TutorialManager.GameSaveData": {
+  "hashes": [
+   "-735003742"
+  ]
+ },
+ "chainsaw.MapManager.GameSaveData": {
+  "hashes": [
+   "1723763128"
+  ]
+ },
+ "chainsaw.EffectRecordManager.GameSaveData": {
+  "hashes": [
+   "-175189413"
+  ]
+ },
+ "chainsaw.CommonParamManager.SaveData": {
+  "hashes": [
+   "-99676381"
+  ]
+ },
+ "chainsaw.TimelineEventMotionManager.SaveData": {
+  "hashes": [
+   "-514988061"
+  ]
+ },
+ "chainsaw.InGameShopManager.GameSaveData": {
+  "hashes": [
+   "1604004172"
+  ]
+ },
+ "chainsaw.LevelMapDataManager.SaveData": {
+  "hashes": [
+   "-581871037"
+  ]
+ },
+ "chainsaw.ClapperboardMediator.SaveData": {
+  "hashes": [
+   "1265375075"
+  ]
+ },
+ "chainsaw.GameOccurrenceManager.SaveData": {
+  "hashes": [
+   "-1627151393"
+  ]
+ },
+ "chainsaw.GameRankSystem.GameSaveData": {
+  "hashes": [
+   "199474462"
+  ]
+ },
+ "chainsaw.DialogManager.GameSaveData": {
+  "hashes": [
+   "-1796479978"
+  ]
+ },
+ "chainsaw.TimerManager.TimerSaveData": {
+  "hashes": [
+   "-212146305"
+  ]
+ },
+ "chainsaw.ArmouryManager.GameSaveData": {
+  "hashes": [
+   "1486003109"
+  ]
+ },
+ "chainsaw.QuestManager.GameSaveData": {
+  "hashes": [
+   "1777420983"
+  ]
+ },
+ "chainsaw.AttacheCaseGameSaveData": {
+  "hashes": [
+   "132506448"
+  ]
+ },
+ "chainsaw.CharmManager.GameSaveData": {
+  "hashes": [
+   "-2044086659"
+  ]
+ },
+ "chainsaw.StatusEffectManagerSaveData": {
+  "hashes": [
+   "885410325"
+  ]
+ },
+ "chainsaw.NewMarkGuiManagerGameSaveData": {
+  "hashes": [
+   "951170156"
+  ]
+ },
+ "chainsaw.gui.AppAugustModule.GameSaveData": {
+  "hashes": [
+   "1231883812"
+  ]
+ },
+ "chainsaw.CharacterTalkManager.GameSaveData": {
+  "hashes": [
+   "-1255582778"
+  ]
+ },
+ "chainsaw.ShootingGalleryManager.GameSaveData": {
+  "hashes": [
+   "659850528"
+  ]
+ },
+ "chainsaw.GameStatsManager.GameSaveData": {
+  "hashes": [
+   "1018479689"
+  ]
+ },
+ "chainsaw.GuiCostumeManager.GameSaveData": {
+  "hashes": [
+   "-957730790"
+  ]
+ },
+ "chainsaw.GameRecordManager.GameSaveData": {
+  "hashes": [
+   "1471051766"
+  ]
+ },
+ "chainsaw.IngameCustomManager.SaveData": {
+  "hashes": [
+   "-205048116"
+  ]
+ },
+ "chainsaw.ExtraContentsDialogManager.GameSaveData": {
+  "hashes": [
+   "-1305626576"
+  ]
+ },
+ "chainsaw.UDSManagerApp.GameSaveData": {
+  "hashes": [
+   "-1496198050"
+  ]
+ },
+ "chainsaw.AdditionalManager.GameData": {
+  "hashes": [
+   "850352314"
+  ]
+ }
+}

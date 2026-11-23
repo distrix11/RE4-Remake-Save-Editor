@@ -22,6 +22,12 @@ in the save data into readable names. Source: https://github.com/alphazolam/RE_R
 
 MIT License, Copyright (c) 2021 alphazolam
 
+## Node.js
+
+The all-in-one release archive bundles the unmodified official Node.js Windows build as `runtime/node.exe`
+(downloaded from https://nodejs.org and checked against the published SHA-256 list). Its license is included as `runtime/LICENSE-Node.txt`.
+The self-contained encryptor `encryptor/limebrella-sharp-cli.exe` also contains the Microsoft .NET runtime (MIT license, https://github.com/dotnet/runtime).
+
 ## MIT License text (applies to both projects above)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -31,7 +31,7 @@ const walk = (d, out = []) => { for (const e of fs.readdirSync(d, { withFileType
 function stageSnapshot(dir, withLauncher) {
   const files = run('git', ['ls-files', '-z'], { cwd: ROOT }).toString('utf8').split('\0').filter(Boolean);
   for (const f of files) {
-    if (f === 'scripts/make-dist.js' || f.startsWith('docs/') || f === 'build.bat') continue; // dev-only files
+    if (f === 'scripts/make-dist.js' || f === 'scripts/allinone.js' || f.startsWith('.github/') || f.startsWith('docs/') || f === 'build.bat') continue; // dev-only files
     if (f === 'start.bat' && !withLauncher) continue;
     const dest = path.join(dir, f); fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(path.join(ROOT, f), dest);
   }
@@ -102,8 +102,13 @@ function build(variant, withLauncher, readme, zipName) {
 
 const nexus = build('nexus', false, NEXUS_START, `RE4SaveEditor-${version}-nexus.zip`);
 const github = build('github', true, GITHUB_START, `RE4SaveEditor-${version}-github.zip`);
-fs.rmSync(TMP, { recursive: true, force: true });
-for (const r of [nexus, github]) {
-  const ext = {}; for (const f of r.files) { const e = path.extname(f).toLowerCase() || '(none)'; ext[e] = (ext[e] || 0) + 1; }
-  console.log(`${r.name}\n   ${(r.size / 1048576).toFixed(2)} MB   sha256 ${r.sha256}\n   ${r.files.length} files by type: ${JSON.stringify(ext)}`);
-}
+(async () => {
+  // --allinone yes  also builds the Windows archive with launcher exe + bundled Node.js (needs internet and the .NET SDK)
+  const extra = args.allinone === 'yes'
+    ? [await require('./allinone')({ args, ROOT, DIST, TMP, FOLDER, ref, dotnet, env, run, walk, stageSnapshot, zip, names, version })] : [];
+  fs.rmSync(TMP, { recursive: true, force: true });
+  for (const r of [nexus, github, ...extra]) {
+    const ext = {}; for (const f of r.files) { const e = path.extname(f).toLowerCase() || '(none)'; ext[e] = (ext[e] || 0) + 1; }
+    console.log(`${r.name}\n   ${(r.size / 1048576).toFixed(2)} MB   sha256 ${r.sha256}\n   ${r.files.length} files by type: ${JSON.stringify(ext)}`);
+  }
+})().catch((e) => { console.error(e.message); process.exit(1); });

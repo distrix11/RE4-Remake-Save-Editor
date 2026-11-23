@@ -4,6 +4,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { execFile, spawn } = require('child_process');
 const { parse, readValue, writeValue, isEditable } = require('./parser');
 const INV = require('./inventory');
@@ -11,6 +12,9 @@ const { hashName } = require('./murmur');
 const STEAM = require('./steam');
 const { buildHints } = require('./achievements');
 const QUEST_INFO = JSON.parse(fs.readFileSync(path.join(__dirname, 'quests.json'), 'utf8'));
+const readJsonSafe = (p, dflt) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return dflt; } };
+const KNOWN = readJsonSafe(path.join(__dirname, 'known-format.json'), {}); // class name -> { hashes: [...] } of the supported save layouts
+const VERSION = (readJsonSafe(path.join(__dirname, '..', 'package.json'), {}).version) || '0.0.0';
 
 const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(__dirname, 'config.json');
@@ -20,43 +24,44 @@ const DEFAULT_CFG = {
   // portable SDK from build.bat if present, otherwise the system-wide .NET 10 runtime
   dotnet: fs.existsSync(path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe')) ? path.join(ROOT, 'tools', 'dotnet', 'dotnet.exe') : 'dotnet',
   // release layout (encryptor/) first, then the build.bat layout (ref/)
-  cli: fs.existsSync(path.join(ROOT, 'encryptor', 'limebrella-sharp-cli.dll'))
-    ? path.join(ROOT, 'encryptor', 'limebrella-sharp-cli.dll')
-    : path.join(ROOT, 'ref', 'LimebrellaSharp', 'limebrella-sharp-cli', 'bin', 'Release', 'net10.0', 'limebrella-sharp-cli.dll'),
+  cli: ['encryptor/limebrella-sharp-cli.exe', 'encryptor/limebrella-sharp-cli.dll']
+    .map((p) => path.join(ROOT, p)).find((p) => fs.existsSync(p))
+    || path.join(ROOT, 'ref', 'LimebrellaSharp', 'limebrella-sharp-cli', 'bin', 'Release', 'net10.0', 'limebrella-sharp-cli.dll'),
   port: 4784,
 };
 
-// Find <Steam>/userdata/<account>/2050650/remote/win64_save (RE4 Remake); newest save folder wins if several accounts exist.
-function detectSaveDir() {
+// Find every <Steam>/userdata/<account>/2050650/remote/win64_save that contains saves (newest first).
+function detectSaveDirs() {
   const roots = [];
   try {
     const out = require('child_process').execFileSync('reg', ['query', 'HKCU\\Software\\Valve\\Steam', '/v', 'SteamPath'], { encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] });
     const m = /SteamPath\s+REG_SZ\s+(.+)/.exec(out); if (m) roots.push(m[1].trim());
   } catch { /* Steam not registered */ }
   roots.push('C:/Program Files (x86)/Steam', 'C:/Program Files/Steam');
-  const found = [];
+  const found = []; const seen = new Set();
   for (const r of roots) {
     const ud = path.join(r, 'userdata'); if (!fs.existsSync(ud)) continue;
     for (const acc of fs.readdirSync(ud)) {
       const dir = path.join(ud, acc, '2050650', 'remote', 'win64_save');
+      if (seen.has(dir.toLowerCase())) continue;
       try {
         const files = fs.readdirSync(dir).filter((x) => SAVE_RE.test(x));
-        if (files.length) found.push({ dir, mtime: Math.max(...files.map((x) => fs.statSync(path.join(dir, x)).mtimeMs)) });
+        if (files.length) { seen.add(dir.toLowerCase()); found.push({ dir, account: acc, mtime: Math.max(...files.map((x) => fs.statSync(path.join(dir, x)).mtimeMs)) }); }
       } catch { /* no saves for this account */ }
     }
   }
-  found.sort((x, y) => y.mtime - x.mtime);
-  return found.length ? found[0].dir : null;
+  return found.sort((x, y) => y.mtime - x.mtime);
 }
+function detectSaveDir() { const f = detectSaveDirs(); return f.length ? f[0].dir : null; }
 
-const cfg = Object.assign({}, DEFAULT_CFG, fs.existsSync(CFG_PATH) ? JSON.parse(fs.readFileSync(CFG_PATH, 'utf8')) : {});
+const cfg = Object.assign({}, DEFAULT_CFG, readJsonSafe(CFG_PATH, {}));
 if (process.env.PORT) cfg.port = Number(process.env.PORT);
 if (!cfg.saveDir) cfg.saveDir = detectSaveDir();
 const STEAM_BASE = 76561197960265728n;
-const accountId = cfg.saveDir ? path.basename(path.resolve(cfg.saveDir, '..', '..', '..')) : null;
-const steamId64 = accountId && /^\d+$/.test(accountId) ? String(STEAM_BASE + BigInt(accountId)) : null;
+let accountId = null, steamId64 = null;
 const WORK = path.join(ROOT, 'work');
 const BACKUPS = path.join(ROOT, 'backup', 'auto');
+const INITIAL_ROOT = path.join(ROOT, 'backup', 'initial');
 const OUTPUT = path.join(ROOT, 'output');
 
 const sessions = new Map(); // file name -> {buf, parsed, loadedAt}
@@ -67,8 +72,10 @@ function runCli(mode, dir, steam) {
   const outRoot = path.join(path.dirname(cfg.cli), '_OUTPUT');
   const before = new Set(fs.existsSync(outRoot) ? fs.readdirSync(outRoot) : []);
   return new Promise((resolve, reject) => {
-    execFile(cfg.dotnet, [cfg.cli, '-m', mode, '-p', dir, '-s', steam, '-q'],
-      { env: Object.assign({}, process.env, path.isAbsolute(cfg.dotnet) ? { DOTNET_ROOT: path.dirname(cfg.dotnet) } : {}, { DOTNET_CLI_TELEMETRY_OPTOUT: '1' }), timeout: 300000, windowsHide: true },
+    const direct = /\.exe$/i.test(cfg.cli); // self-contained build: no separate .NET runtime needed
+    const cliArgs = ['-m', mode, '-p', dir, '-s', steam, '-q'];
+    execFile(direct ? cfg.cli : cfg.dotnet, direct ? cliArgs : [cfg.cli, ...cliArgs],
+      { env: Object.assign({}, process.env, !direct && path.isAbsolute(cfg.dotnet) ? { DOTNET_ROOT: path.dirname(cfg.dotnet) } : {}, { DOTNET_CLI_TELEMETRY_OPTOUT: '1' }), timeout: 300000, windowsHide: true },
       (err, stdout, stderr) => {
         if (err) {
           const text = String(stdout || '') + String(stderr || '');
@@ -95,6 +102,22 @@ function findFile(dir, name) {
 function rmrf(p) { try { fs.rmSync(p, { recursive: true, force: true }); } catch { /* ignore */ } }
 
 const unpackCache = new Map(); // name -> {mtime, buf}
+// Switch to another save folder: recompute the Steam id, drop open files and make the one-time first-run backup.
+function applySaveDir(dir) {
+  cfg.saveDir = dir || null;
+  accountId = dir ? path.basename(path.resolve(dir, '..', '..', '..')) : null;
+  steamId64 = accountId && /^\d+$/.test(accountId) ? String(STEAM_BASE + BigInt(accountId)) : null;
+  sessions.clear(); unpackCache.clear();
+  if (!dir || !accountId) return;
+  const ini = path.join(INITIAL_ROOT, accountId);
+  if (fs.existsSync(ini)) return;
+  try { // one-time copy of every save file, so there is always a way back to how things were before the first edit
+    fs.mkdirSync(ini, { recursive: true });
+    for (const f of fs.readdirSync(dir).filter((x) => SAVE_RE.test(x))) fs.copyFileSync(path.join(dir, f), path.join(ini, f));
+    console.log('First run: a copy of all your save files was made in backup/initial.');
+  } catch (e) { console.log('[WARNING] Could not make the first-run backup: ' + e.message); }
+}
+applySaveDir(cfg.saveDir);
 async function unpackCached(name) {
   const mtime = fs.statSync(path.join(cfg.saveDir, name)).mtimeMs;
   const c = unpackCache.get(name);
@@ -124,12 +147,70 @@ async function packBuffer(name, plain) {
   rmrf(out);
   return packed;
 }
+// Writes `packed` to `dest` only after proving it decrypts back to exactly `plain`; the swap is atomic (temp file + rename).
+async function writeVerified(name, plain, packed, dest) {
+  const tmp = path.join(WORK, 'verify-' + Date.now()); fs.mkdirSync(tmp, { recursive: true });
+  try {
+    const probe = path.join(tmp, name); fs.writeFileSync(probe, packed);
+    const back = await unpackFile(name, probe);
+    if (Buffer.compare(back, plain) !== 0) throw new Error('Safety check failed: the encrypted file does not decrypt back to the edited data. Nothing was written.');
+  } finally { rmrf(tmp); }
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  const part = dest + '.re4tmp'; fs.writeFileSync(part, packed); fs.renameSync(part, dest);
+  if (Buffer.compare(fs.readFileSync(dest), packed) !== 0) throw new Error('Safety check failed: the written file differs from the prepared one. Restore it from the backup.');
+}
 let gameCache = { t: 0, v: false };
 function gameRunning() {
   if (Date.now() - gameCache.t < 2000) return Promise.resolve(gameCache.v);
   return new Promise((resolve) => {
     execFile('tasklist', ['/FI', 'IMAGENAME eq re4.exe', '/NH'], { windowsHide: true }, (e, so) => {
       const v = !e && /re4\.exe/i.test(so); gameCache = { t: Date.now(), v }; resolve(v);
+    });
+  });
+}
+
+// ---------------------------------------------------------------- format guard
+function formatWarnings(S) {
+  if (!Object.keys(KNOWN).length) return [];
+  const out = [];
+  for (const o of INV.sections(S)) {
+    const k = KNOWN[o.c]; const label = o.c.split('.').slice(-2).join('.');
+    if (!k) { out.push('New section: ' + label); continue; }
+    const h = o.f.find((x) => x[0] === 'HashValue');
+    if (h && !k.hashes.includes(String(readValue(S.buf, S.parsed.nodes[h[1]])))) out.push('Changed layout: ' + label);
+  }
+  return out.slice(0, 12);
+}
+function guard(S) {
+  if (S.warnings && S.warnings.length && !cfg.allowUnknownFormat) {
+    throw new Error('This save has an unrecognised format version (' + S.warnings[0] + '). Adding, moving and removing items is disabled to protect your file. ' +
+      'Money and simple values can still be edited. To override, set "allowUnknownFormat": true in app/config.json.');
+  }
+}
+
+// ---------------------------------------------------------------- diagnostics (no personal data)
+const LOG = [];
+for (const m of ['log', 'error']) { const orig = console[m].bind(console); console[m] = (...a) => { LOG.push(a.map(String).join(' ')); if (LOG.length > 300) LOG.shift(); orig(...a); }; }
+function mask(text) {
+  let t = String(text).replace(/(userdata[\\/])\d+/gi, '$1<account>').replace(/(Users[\\/])[^\\/\s"']+/gi, '$1<user>');
+  if (steamId64) t = t.split(steamId64).join('<steamid>');
+  for (const r of [ROOT, ROOT.split('\\').join('/')]) t = t.split(r).join('<editor>'); // the folder the editor is installed in
+  return t;
+}
+function diagnostics() {
+  return new Promise((resolve) => {
+    execFile(/\.exe$/i.test(cfg.cli) ? 'cmd' : cfg.dotnet, /\.exe$/i.test(cfg.cli) ? ['/c', 'echo', '(self-contained encryptor)'] : ['--list-runtimes'], { windowsHide: true }, (err, out) => {
+      const lines = [
+        'RE4 Save Editor ' + VERSION, 'Node ' + process.version + ' on ' + os.platform() + ' ' + os.release() + ' ' + os.arch(),
+        'Encryptor: ' + (/\.exe$/i.test(cfg.cli) ? 'self-contained exe' : 'dotnet + dll') + (fs.existsSync(cfg.cli) ? '' : ' (MISSING)'),
+        '.NET: ' + (err ? 'not available (' + err.code + ')' : String(out).trim().split(/\r?\n/).slice(0, 6).join(' | ')),
+        'Save folder: ' + mask(cfg.saveDir || '(not found)'),
+        'Files: ' + (cfg.saveDir ? fileList().map((x) => x.name + ' ' + x.size).join(', ') : '-'),
+        'Known-format sections: ' + Object.keys(KNOWN).length + ', allowUnknownFormat: ' + !!cfg.allowUnknownFormat,
+        'Open sessions: ' + ([...sessions.values()].map((x) => x.name + (x.warnings && x.warnings.length ? ' [' + x.warnings.join('; ') + ']' : '')).join(', ') || 'none'),
+        '', '--- last log lines ---', ...LOG.slice(-60),
+      ];
+      resolve(mask(lines.join('\n')));
     });
   });
 }
@@ -202,12 +283,36 @@ function listBackups(name) {
       const p = path.join(BACKUPS, d, name);
       if (!fs.existsSync(p)) continue;
       const st = fs.statSync(p);
-      out.push({ id: 'auto/' + d, label: d.endsWith('_before-restore') ? 'State before restore' : 'Backup before writing to the game', when: st.mtimeMs, size: st.size, path: p });
+      out.push({ id: 'auto/' + d, label: backupLabel(d), when: st.mtimeMs, size: st.size, path: p });
     }
   }
-  const o = path.join(ROOT, 'backup', 'original', name);
-  if (fs.existsSync(o)) { const st = fs.statSync(o); out.push({ id: 'original', label: 'Original file (first backup)', when: st.mtimeMs, size: st.size, path: o }); }
+  const o = path.join(INITIAL_ROOT, accountId || '_', name);
+  if (fs.existsSync(o)) { const st = fs.statSync(o); out.push({ id: 'initial', label: 'First-run copy (state before any edit)', when: st.mtimeMs, size: st.size, path: o }); }
   return out;
+}
+function backupLabel(d) {
+  return d.endsWith('_before-restore') ? 'State before restore' : d.endsWith('_before-copy') ? 'State before slot copy' : 'Backup before writing to the game';
+}
+// every backup of every file, newest first (for the backup manager)
+function allBackups() {
+  const out = [];
+  if (fs.existsSync(BACKUPS)) {
+    for (const d of fs.readdirSync(BACKUPS)) {
+      const dp = path.join(BACKUPS, d);
+      let isDir = false; try { isDir = fs.statSync(dp).isDirectory(); } catch { /* ignore */ }
+      if (!isDir) continue;
+      for (const file of fs.readdirSync(dp).filter((x) => SAVE_RE.test(x))) {
+        const st = fs.statSync(path.join(dp, file));
+        out.push({ id: 'auto/' + d, file, label: backupLabel(d), when: st.mtimeMs, size: st.size, protected: false });
+      }
+    }
+  }
+  const ini = path.join(INITIAL_ROOT, accountId || '_');
+  if (fs.existsSync(ini)) for (const file of fs.readdirSync(ini).filter((x) => SAVE_RE.test(x))) {
+    const st = fs.statSync(path.join(ini, file));
+    out.push({ id: 'initial', file, label: 'First-run copy (state before any edit)', when: st.mtimeMs, size: st.size, protected: true });
+  }
+  return out.sort((x, y) => y.when - x.when);
 }
 async function restoreFrom(name, srcPath, force) {
   if (!force && await gameRunning()) return { running: true };
@@ -219,7 +324,7 @@ async function restoreFrom(name, srcPath, force) {
   const bk = path.join(BACKUPS, stamp);
   fs.mkdirSync(bk, { recursive: true });
   if (fs.existsSync(dest)) fs.copyFileSync(dest, path.join(bk, name));
-  fs.copyFileSync(srcPath, dest);
+  const part = dest + '.re4tmp'; fs.copyFileSync(srcPath, part); fs.renameSync(part, dest); // atomic swap
   sessions.delete(name); unpackCache.delete(name);
   return { ok: true, backup: bk };
 }
@@ -259,7 +364,7 @@ async function copySlot(from, to, force) {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-') + '_before-copy';
   const bk = path.join(BACKUPS, stamp); fs.mkdirSync(bk, { recursive: true });
   fs.copyFileSync(dest, path.join(bk, to));
-  fs.writeFileSync(dest, packed);
+  await writeVerified(to, plain, packed, dest);
   sessions.delete(to); unpackCache.delete(to);
   return { ok: true, backup: bk };
 }
@@ -283,9 +388,9 @@ const routes = {
     const changes = INV.describeChanges(S, S.orig, (id) => (QUEST_INFO[id] ? QUEST_INFO[id].n.replace(/ \(.*\)$/, '') : ''));
     return { changes, dirty: !!S.dirty, rawEdits: Object.keys(S.edits || {}).length };
   },
-  'POST /api/move': async (b) => { const S = need(b.name); INV.moveItem(S, Number(b.inv), Number(b.idx), b.x, b.y, b.dir); S.dirty = true; return fresh(S); },
-  'POST /api/case-size': async (b) => { const S = need(b.name); INV.setCaseSize(S, b.level); S.dirty = true; return fresh(S); },
-  'POST /api/upgrade': async (b) => { const S = need(b.name); INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return fresh(S); },
+  'POST /api/move': async (b) => { const S = need(b.name); guard(S); INV.moveItem(S, Number(b.inv), Number(b.idx), b.x, b.y, b.dir); S.dirty = true; return fresh(S); },
+  'POST /api/case-size': async (b) => { const S = need(b.name); guard(S); INV.setCaseSize(S, b.level); S.dirty = true; return fresh(S); },
+  'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return fresh(S); },
   'POST /api/backups': async (b) => {
     if (!SAVE_RE.test(b.name || '')) throw new Error('Invalid file name');
     return { backups: listBackups(b.name).map(({ path: _p, ...rest }) => rest) };
@@ -306,8 +411,52 @@ const routes = {
     catch (e) { throw new Error('The file does not fit (another Steam account or corrupted): ' + e.message); }
     finally { rmrf(tmp); }
   },
+  'GET /api/settings': async () => ({ saveDir: cfg.saveDir, candidates: detectSaveDirs().map((c) => ({ dir: c.dir, account: c.account, mtime: c.mtime })), configFile: CFG_PATH, version: VERSION }),
+  'POST /api/settings': async (b) => {
+    const dir = path.resolve(String(b.saveDir || ''));
+    let ok = false; try { ok = fs.statSync(dir).isDirectory() && fs.readdirSync(dir).some((x) => SAVE_RE.test(x)); } catch { /* not a folder */ }
+    if (!ok) throw new Error('That folder does not exist or contains no RE4 save files (data001Slot.bin and similar).');
+    const conf = readJsonSafe(CFG_PATH, {}); conf.saveDir = dir; fs.writeFileSync(CFG_PATH, JSON.stringify(conf, null, 2));
+    applySaveDir(dir);
+    return { ok: true, saveDir: dir };
+  },
+  'POST /api/browse': async () => new Promise((resolve, reject) => { // native folder dialog
+    const ps = "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = 'Select the folder that contains your RE4 save files (data001Slot.bin ...)'; $d.ShowNewFolderButton = $false; if ($d.ShowDialog() -eq 'OK') { $d.SelectedPath }";
+    execFile('powershell', ['-NoProfile', '-STA', '-Command', ps], { timeout: 300000 }, (e, out) => (e ? reject(new Error('Could not open the folder dialog: ' + e.message)) : resolve({ dir: String(out).trim() || null })));
+  }),
+  'GET /api/diagnostics': async () => ({ text: await diagnostics() }),
+  'GET /api/backups-all': async () => {
+    const list = allBackups();
+    return { backups: list, total: list.reduce((a, x) => a + x.size, 0) };
+  },
+  'POST /api/backup-delete': async (b) => {
+    if (!SAVE_RE.test(b.file || '') || !/^auto\/[A-Za-z0-9._-]+$/.test(b.id || '')) throw new Error('This backup cannot be deleted (the first-run copy is protected).');
+    const dir = path.resolve(BACKUPS, b.id.slice(5)); const p = path.join(dir, b.file);
+    if (!dir.startsWith(path.resolve(BACKUPS) + path.sep) || !fs.existsSync(p)) throw new Error('Backup not found');
+    fs.rmSync(p, { force: true });
+    if (!fs.readdirSync(dir).length) fs.rmSync(dir, { recursive: true, force: true });
+    return { ok: true };
+  },
+  'POST /api/backup-cleanup': async (b) => { // keep the newest N automatic backups of every file
+    const keep = Math.max(1, Math.min(100, Number(b.keep) || 5)); const perFile = {}; let removed = 0;
+    for (const x of allBackups().filter((y) => !y.protected)) {
+      const n = (perFile[x.file] = (perFile[x.file] || 0) + 1);
+      if (n > keep) {
+        const dir = path.resolve(BACKUPS, x.id.slice(5)); fs.rmSync(path.join(dir, x.file), { force: true }); removed++;
+        if (fs.existsSync(dir) && !fs.readdirSync(dir).length) fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+    return { removed };
+  },
+  'POST /api/open-folder': async (b) => {
+    const dir = b.which === 'save' ? cfg.saveDir : path.join(ROOT, 'backup');
+    if (!dir) throw new Error('Folder not found');
+    fs.mkdirSync(dir, { recursive: true });
+    spawn('explorer.exe', [dir], { detached: true, stdio: 'ignore' }).unref();
+    return { ok: true };
+  },
   'GET /api/status': async () => ({ gameRunning: await gameRunning() }),
-  'GET /api/config': async () => ({ noSaveDir: !cfg.saveDir, steamId64, files: fileList(), catalog: INV.CATALOG, categories: INV.CATEGORIES, questInfo: QUEST_INFO }),
+  'GET /api/config': async () => ({ version: VERSION, noSaveDir: !cfg.saveDir, files: fileList(), catalog: INV.CATALOG, categories: INV.CATEGORIES, questInfo: QUEST_INFO }),
   'POST /api/summary': async (b) => {
     if (!/Slot.bin$/.test(b.name || '') || !SAVE_RE.test(b.name)) throw new Error('Invalid file name');
     const S = { buf: await unpackCached(b.name) }; S.parsed = parse(S.buf);
@@ -319,9 +468,10 @@ const routes = {
     const buf = await unpackCached(b.name);
     const parsed = parse(buf);
     const S = { name: b.name, buf, orig: Buffer.from(buf), parsed, dirty: false, edits: {} };
+    S.warnings = /Slot\.bin$/.test(b.name) ? formatWarnings(S) : [];
     sessions.set(b.name, S);
     const isSlot = /Slot\.bin$/.test(b.name);
-    return { name: b.name, isSlot, size: buf.length, nodes: parsed.nodes.length, root: parsed.root,
+    return { name: b.name, isSlot, warnings: S.warnings, size: buf.length, nodes: parsed.nodes.length, root: parsed.root,
       overview: isSlot ? INV.overview(S) : {}, inventories: isSlot ? INV.model(S) : [], quests: isSlot ? INV.quests(S) : [], treasures: isSlot ? INV.treasures(S) : null };
   },
   'POST /api/node': async (b) => { const S = need(b.name); return describe(S, b.id); },
@@ -360,9 +510,9 @@ const routes = {
     }
     return { results: out };
   },
-  'POST /api/add': async (b) => { const S = need(b.name); const r = INV.addItem(S, { itemId: b.itemId, count: b.count }); S.dirty = true; return { ...r, ...fresh(S) }; },
-  'POST /api/remove': async (b) => { const S = need(b.name); INV.removeItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return fresh(S); },
-  'POST /api/dup': async (b) => { const S = need(b.name); const r = INV.duplicateItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/add': async (b) => { const S = need(b.name); guard(S); const r = INV.addItem(S, { itemId: b.itemId, count: b.count }); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/remove': async (b) => { const S = need(b.name); guard(S); INV.removeItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return fresh(S); },
+  'POST /api/dup': async (b) => { const S = need(b.name); guard(S); const r = INV.duplicateItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/quest-complete': async (b) => { const S = need(b.name); const r = INV.completeQuest(S, b.idx === 'all' ? 'all' : Number(b.idx)); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/refresh': async (b) => fresh(need(b.name)),
   'POST /api/save': async (b) => {
@@ -378,18 +528,19 @@ const routes = {
       const bk = path.join(BACKUPS, stamp);
       fs.mkdirSync(bk, { recursive: true });
       fs.copyFileSync(dest, path.join(bk, b.name));
-      fs.writeFileSync(dest, packed);
+      await writeVerified(b.name, S.buf, packed, dest);
       S.orig = Buffer.from(S.buf); S.dirty = false; S.edits = {};
       unpackCache.set(b.name, { mtime: fs.statSync(dest).mtimeMs, buf: Buffer.from(S.buf) });
       return { ok: true, path: dest, backup: bk };
     }
     fs.mkdirSync(OUTPUT, { recursive: true });
     const dest = path.join(OUTPUT, b.name);
-    fs.writeFileSync(dest, packed);
+    await writeVerified(b.name, S.buf, packed, dest);
     return { ok: true, path: dest };
   },
 };
 
+const NO_SAVE_OK = new Set(['GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
   try {
@@ -397,7 +548,7 @@ const server = http.createServer(async (req, res) => {
     if (req.headers.host && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host)) return send(res, 403, { error: 'forbidden' });
     const key = req.method + ' ' + url.pathname;
     if (routes[key]) {
-      if (!cfg.saveDir && key !== 'GET /api/config' && key !== 'GET /api/status') throw new Error('Save folder not found. Set it in app/config.json (field saveDir).');
+      if (!cfg.saveDir && !NO_SAVE_OK.has(key)) throw new Error('Save folder not found. Choose it in Settings (gear button) or set saveDir in app/config.json.');
       if (req.method === 'POST' && !(req.headers['content-type'] || '').startsWith('application/json')) return send(res, 415, { error: 'json only' });
       const body = req.method === 'POST' ? await readJson(req) : {};
       return send(res, 200, await routes[key](body));
@@ -406,6 +557,7 @@ const server = http.createServer(async (req, res) => {
     if (!f.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(f)) return send(res, 404, 'not found', 'text/plain');
     send(res, 200, fs.readFileSync(f), MIME[path.extname(f)] || 'application/octet-stream');
   } catch (e) {
+    console.error('[api] ' + e.message);
     send(res, 400, { error: e.message });
   }
 });

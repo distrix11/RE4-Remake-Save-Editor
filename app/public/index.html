@@ -8,18 +8,18 @@
 <style>
 /* Theme: survival-horror olive / herb green with brass accents (original palette, no game assets) */
 :root{
-  --bg:#0f120d;--bg2:#141910;--panel:#1a2015;--panel2:#232b1c;--panel3:#2b3522;
-  --line:#34402b;--line2:#46553a;
-  --text:#e6e9d9;--dim:#8f9b7e;
-  --green:#7fb35a;--green2:#5e8f3f;--brass:#c9a24a;--brass2:#a8832f;
-  --accent:var(--green);--danger:#c0503f;--ok:#8cc152;--warn:#d9a441;
+    --bg:#12150f;--bg2:#171b13;--panel:#1d2218;--panel2:#272e21;--panel3:#313a29;
+  --line:#3b4631;--line2:#515f43;
+  --text:#e4e9d6;--dim:#97a487;
+  --green:#a9c58a;--green2:#7f9d63;--brass:#c9ad6a;--brass2:#a8883a;
+  --accent:var(--green);--danger:#c0503f;--ok:#a9c58a;--warn:#d9a441;
   --mono:ui-monospace,Consolas,monospace;
   --head:"Bahnschrift","Segoe UI Semibold","Arial Narrow",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
 html{color-scheme:dark}
 body{margin:0;color:var(--text);font:14px/1.45 system-ui,Segoe UI,sans-serif;background-color:var(--bg);
-  background-image:linear-gradient(rgba(127,179,90,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(127,179,90,.045) 1px,transparent 1px),radial-gradient(ellipse at 50% -10%,rgba(127,179,90,.12),transparent 55%);
+  background-image:linear-gradient(rgba(169,197,138,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.045) 1px,transparent 1px),radial-gradient(ellipse at 50% -10%,rgba(169,197,138,.12),transparent 55%);
   background-size:36px 36px,36px 36px,100% 100%;background-attachment:fixed}
 .ic{width:1.15em;height:1.15em;vertical-align:-.22em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-right:.45em;flex:none}
 .sm .ic,button.icon .ic{margin-right:0}
@@ -28,7 +28,7 @@ body{margin:0;color:var(--text);font:14px/1.45 system-ui,Segoe UI,sans-serif;bac
 header{display:flex;gap:10px;align-items:center;padding:10px 18px;background:linear-gradient(180deg,#1d2418,#161b12);position:sticky;top:0;z-index:5;flex-wrap:wrap;
   border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(201,162,74,.35),0 6px 18px rgba(0,0,0,.35)}
 h1{font:600 17px var(--head);margin:0;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
-h1 .brand{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--green2);background:rgba(127,179,90,.12);color:var(--green)}
+h1 .brand{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--green2);background:rgba(169,197,138,.12);color:var(--green)}
 h1 .brand .ic{margin:0;width:18px;height:18px}
 h1 b{color:var(--green);font-weight:600}
 .sp{flex:1}
@@ -57,8 +57,8 @@ main{max-width:1040px;margin:0 auto;padding:18px}
 /* tabs */
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px}
 .tab{display:inline-flex;align-items:center;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:9px 18px;color:var(--dim);font:600 14px var(--head);letter-spacing:.08em;text-transform:uppercase}
-.tab:hover:not(:disabled){background:rgba(127,179,90,.07);color:var(--text)}
-.tab.on{color:var(--green);border-bottom-color:var(--brass);background:linear-gradient(180deg,transparent,rgba(127,179,90,.1))}
+.tab:hover:not(:disabled){background:rgba(169,197,138,.07);color:var(--text)}
+.tab.on{color:var(--green);border-bottom-color:var(--brass);background:linear-gradient(180deg,transparent,rgba(169,197,138,.1))}
 
 /* cards */
 .card{background:linear-gradient(180deg,rgba(35,43,28,.55),rgba(26,32,21,.85));border:1px solid var(--line);border-left:3px solid var(--brass2);border-radius:3px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
@@ -68,7 +68,7 @@ main{max-width:1040px;margin:0 auto;padding:18px}
 label.f{display:block}label.f>span{display:flex;align-items:center;color:var(--dim);font:600 12px var(--head);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
 label.f>span .ic{color:var(--green)}
 input{background:#0c0f09;color:var(--text);border:1px solid var(--line2);border-radius:3px;padding:6px 9px;font:inherit;width:100%}
-input.mono,.mono{font-family:var(--mono)}input:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(127,179,90,.25)}
+input.mono,.mono{font-family:var(--mono)}input:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(169,197,138,.25)}
 input.ok{border-color:var(--ok);box-shadow:0 0 0 2px rgba(140,193,82,.3)}input.bad{border-color:var(--danger);box-shadow:0 0 0 2px rgba(192,80,63,.3)}
 .quick{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 
@@ -76,7 +76,7 @@ input.ok{border-color:var(--ok);box-shadow:0 0 0 2px rgba(140,193,82,.3)}input.b
 table{width:100%;border-collapse:collapse}th,td{padding:7px 9px;border-bottom:1px solid rgba(52,64,43,.7);text-align:left;vertical-align:middle}
 tr:last-child td{border-bottom:0}
 th{color:var(--dim);font:600 11px var(--head);letter-spacing:.12em;text-transform:uppercase;user-select:none}th.s{cursor:pointer}th.s:hover{color:var(--brass)}
-tbody tr:hover td,table tr:not(:first-child):hover td{background:rgba(127,179,90,.045)}
+tbody tr:hover td,table tr:not(:first-child):hover td{background:rgba(169,197,138,.045)}
 td input{padding:4px 7px}
 .dim{color:var(--dim)}
 .tag{display:inline-flex;align-items:center;font-size:11px;padding:1px 8px;border:1px solid var(--line2);border-radius:2px;color:var(--dim);white-space:nowrap;background:rgba(0,0,0,.2)}
@@ -108,7 +108,7 @@ td input{padding:4px 7px}
 .dlg footer{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.18)}
 .dlg h3{font:600 15px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
 .pick{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;border:1px solid transparent;border-radius:2px;cursor:pointer}
-.pick:hover{background:rgba(127,179,90,.08)}.pick.on{border-color:var(--green);background:rgba(127,179,90,.14)}
+.pick:hover{background:rgba(169,197,138,.08)}.pick.on{border-color:var(--green);background:rgba(169,197,138,.14)}
 .note{font-size:12px;color:var(--dim);margin:6px 0 0}
 .st-done{color:var(--ok);border-color:var(--green2)}.st-part{color:var(--warn);border-color:#7a6026}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}::-webkit-scrollbar-track{background:var(--bg2)}
@@ -122,7 +122,7 @@ td input{padding:4px 7px}
 .upg .ugrid{display:flex;gap:14px;flex-wrap:wrap}.upg label{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim)}.upg input{width:64px}
 .cmap{position:relative;margin:0 auto;border:1px solid var(--line2);background-color:#0a0d08;touch-action:none;
   background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:var(--cell) var(--cell)}
-.mi{position:absolute;box-sizing:border-box;border:1px solid var(--line2);background:rgba(127,179,90,.1);display:flex;align-items:flex-start;gap:4px;padding:3px 4px;font-size:11px;line-height:1.15;overflow:hidden;cursor:grab;user-select:none;color:var(--text)}
+.mi{position:absolute;box-sizing:border-box;border:1px solid var(--line2);background:rgba(169,197,138,.1);display:flex;align-items:flex-start;gap:4px;padding:3px 4px;font-size:11px;line-height:1.15;overflow:hidden;cursor:grab;user-select:none;color:var(--text)}
 .mi .ic{margin:0;width:14px;height:14px;flex:none}.mi .nm{overflow:hidden;text-overflow:ellipsis}.mi .cn{position:absolute;right:3px;bottom:1px;font:600 10px var(--mono);color:var(--brass)}
 .mi.c-weapon{border-color:#6e5a2a;background:rgba(214,178,90,.13)}.mi.c-heal{border-color:#41602a;background:rgba(140,193,82,.13)}.mi.c-ammo{border-color:#6a5f3a;background:rgba(199,178,120,.1)}
 .mi.c-treasure{border-color:#2f6252;background:rgba(111,195,166,.12)}.mi.c-key{border-color:#6e5f2a;background:rgba(227,193,90,.12)}.mi.c-acc{border-color:#35606b;background:rgba(127,183,196,.12)}.mi.c-throw{border-color:#7a4a2a;background:rgba(217,138,82,.12)}
@@ -138,6 +138,21 @@ td input{padding:4px 7px}
 .hint{margin-top:5px;font-size:12px;padding:4px 8px;border-left:2px solid var(--line2);background:rgba(0,0,0,.15);color:var(--dim)}.hint.ok{border-left-color:var(--ok);color:#b9d99a}.hint.bad{border-left-color:var(--danger);color:#e5a398}
 .banner{display:flex;align-items:center;gap:10px;padding:9px 18px;background:linear-gradient(180deg,#4a3a12,#3a2d0e);color:#f3dd9b;border-bottom:1px solid #7a6026;font-weight:600}
 .banner[hidden]{display:none}.banner .ic{margin:0;color:#e0b94a}.banner span{font-weight:400}
+
+/* 3D case */
+.scene3d{perspective:1100px;perspective-origin:50% 30%;display:flex;justify-content:center;align-items:flex-start;padding-top:70px;overflow:hidden;cursor:grab;touch-action:none;
+  background:radial-gradient(ellipse at 50% 60%,rgba(169,197,138,.10),transparent 65%);border:1px solid var(--line);border-radius:3px}
+.scene3d.turning{cursor:grabbing}
+.case3d{position:relative;transform-style:preserve-3d;transition:transform .05s linear}
+.scene3d.turning .case3d{transition:none}
+.shell3d{position:absolute;inset:0;background:linear-gradient(160deg,#2b3324,#1a2015);border:1px solid #556646;border-radius:6px;transform-style:preserve-3d}
+.foam3d{position:absolute;background:#0d100a;border:1px solid #3b4631;background-image:linear-gradient(rgba(169,197,138,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.16) 1px,transparent 1px);background-size:var(--cell) var(--cell);box-shadow:inset 0 0 18px #000}
+.lid3d{position:absolute;left:0;right:0;bottom:100%;height:100%;transform-origin:50% 100%;transform:rotateX(-62deg);background:linear-gradient(180deg,#2a3223,#202718);border:1px solid #556646;border-radius:6px;margin-bottom:2px}
+.lidpad{position:absolute;inset:14px;background:repeating-linear-gradient(45deg,#1a2015 0 6px,#161b12 6px 12px);border:1px solid #3b4631;border-radius:3px}
+.strap{position:absolute;left:8px;right:8px;height:6px;background:#4a3d1c;border-top:1px solid #7a6026;border-radius:2px}
+.latches3d i{position:absolute;top:100%;margin-top:6px;width:26px;height:12px;margin-left:-13px;background:linear-gradient(180deg,var(--brass),var(--brass2));border-radius:2px;box-shadow:0 2px 0 #5a4818}
+.i3{transform:translateZ(7px);box-shadow:0 5px 0 rgba(0,0,0,.45),0 8px 10px rgba(0,0,0,.5);background:rgba(169,197,138,.22)}
+.i3.sel{outline:2px solid var(--brass);transform:translateZ(14px)}
 </style>
 </head>
 <body>
@@ -151,9 +166,44 @@ td input{padding:4px 7px}
   <button id="bCopy" data-ic="copy" disabled title="Copy this slot into another slot">Copy slot…</button>
   <button id="bOut" data-ic="export" disabled title="Save the encrypted file to the output/ folder; the game is not touched">Export to output/</button>
   <button id="bGame" data-ic="save" class="pri" disabled>Save to game</button>
+  <button id="bSettings" class="icon" data-ic="tools" title="Settings: save folder, backups, diagnostics"></button>
 </header>
 <div id="gameBanner" class="banner" role="alert" hidden></div>
+<div id="fmtBanner" class="banner" role="alert" hidden></div>
 <main id="view"><div class="empty">Loading…</div></main>
+<div class="modal" id="settingsModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="tools">Settings</h3><span class="sp"></span><button class="sm ghost icon" id="settingsClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <p class="note" style="margin-top:0">Save folder (the folder that contains data001Slot.bin and the other save files)</p>
+      <input id="setDir" class="mono" placeholder="C:/Program Files (x86)/Steam/userdata/&lt;account&gt;/2050650/remote/win64_save">
+      <div class="toolbar" style="margin-top:10px">
+        <button id="setBrowse" data-ic="file">Browse…</button>
+        <button class="pri" id="setApply" data-ic="check">Use this folder</button>
+        <button id="setOpenSave" data-ic="export">Open in Explorer</button>
+      </div>
+      <p class="note">Found on this PC (one entry per Steam account):</p>
+      <div id="setCands"></div>
+      <div class="toolbar" style="margin-top:14px">
+        <button id="setBackups" data-ic="restore">Manage backups…</button>
+        <button id="setDiag" data-ic="file">Copy diagnostics</button>
+      </div>
+      <p class="note" id="setVersion"></p>
+    </div>
+  </div>
+</div>
+<div class="modal" id="bkModal">
+  <div class="dlg" style="width:min(760px,100%)">
+    <header><h3 style="margin:0" data-ic="restore">Backups</h3><span class="sp"></span><button class="sm ghost icon" id="bkClose" data-ic="close" title="Close"></button></header>
+    <div class="body"><p class="note" style="margin-top:0" id="bkInfo"></p><div id="bkList"></div></div>
+    <footer>
+      <button id="bkOpen" data-ic="export">Open backup folder</button>
+      <span class="sp"></span>
+      <label style="display:flex;align-items:center;gap:6px">Keep newest <input id="bkKeep" type="number" min="1" max="100" value="5" style="width:70px"> per file</label>
+      <button id="bkClean" class="danger" data-ic="trash">Clean up</button>
+    </footer>
+  </div>
+</div>
 <div class="modal" id="addModal">
   <div class="dlg">
     <header><h3 style="margin:0" data-ic="plus">Add item</h3><span class="sp"></span><button class="sm ghost icon" id="addClose" data-ic="close" title="Close"></button></header>
@@ -209,7 +259,9 @@ td input{padding:4px 7px}
 <script src="icons.js"></script>
 <script src="app.js"></script>
 <script src="features.js"></script>
+<script src="case3d.js"></script>
 <script src="treasures.js"></script>
 <script src="achievements.js"></script>
+<script src="settings.js"></script>
 </body>
 </html>

@@ -1,0 +1,36 @@
+name: Build release archives
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: 10.0.x }
+      - name: Fetch the encryptor and the name dictionary sources
+        shell: bash
+        run: |
+          mkdir -p ref
+          git clone --depth 1 https://github.com/mi5hmash/LimebrellaSharp.git ref/LimebrellaSharp
+          mkdir -p ref/rsz
+          curl -fsSL -o ref/rsz/rszre4.json https://raw.githubusercontent.com/alphazolam/RE_RSZ/master/rszre4.json
+      - name: Syntax check
+        shell: bash
+        run: for f in app/*.js app/public/*.js scripts/*.js; do node --check "$f"; done
+      - name: Build archives
+        shell: bash
+        run: node scripts/make-dist.js --ref ref --version "${GITHUB_REF_NAME#v}" --allinone yes
+      - name: Checksums
+        shell: bash
+        run: cd dist && sha256sum *.zip | tee SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-archives
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt

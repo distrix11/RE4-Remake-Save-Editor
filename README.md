@@ -19,6 +19,11 @@ It runs on your own computer, opens in your browser and never sends anything ove
   It cannot unlock achievements.
 - **Safety**: a "game is running" warning, an unsaved-changes indicator, a summary of every change before writing,
   automatic backups, restore from a backup or from your own file, and copying one slot into another.
+- **Settings**: choose the save folder or Steam account inside the editor, backup manager, "Copy diagnostics" for bug reports (no personal data).
+- **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.
+  The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
+  adding, moving and removing items is disabled and a banner explains why.
+- **Case view**: pale-green theme in the spirit of the original game and a pseudo-3D case you can turn with the mouse (selection only; move items on the flat map).
 - **Advanced**: a raw tree view of every field in the save file with search.
 
 ## Screenshots
@@ -32,21 +37,23 @@ It runs on your own computer, opens in your browser and never sends anything ove
 ## Requirements
 
 - Windows 10 / 11, Steam version of Resident Evil 4 (2023)
-- [Node.js](https://nodejs.org) 20 or newer and [git](https://git-scm.com)
-- Internet access for the first build (downloads a portable .NET SDK, which is a few hundred MB)
+- Release archive: nothing else (the all-in-one archive bundles Node.js and the encryptor)
+- Building from source: [Node.js](https://nodejs.org) 20 or newer, [git](https://git-scm.com) and internet access for the first build
 
 ## Quick start
 
 ### Option A: release archive (no build)
 
-1. Install [Node.js](https://nodejs.org) (LTS) and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64; the *Runtime*, not the SDK).
-2. Download an archive and extract it anywhere:
-   - `...-github.zip` (GitHub Releases): double-click `start.bat`.
-   - `...-nexus.zip` (Nexus Mods): it has no launcher file. Open the folder in Explorer, click the address bar, type `cmd`, press Enter, then run `node app/server.js`.
-3. The editor opens in your browser at http://localhost:4784. Close the black window to stop it.
+Download from GitHub Releases, extract anywhere and pick one:
 
-The archives contain no `.exe` files: the encryptor is shipped as .NET libraries (`encryptor/*.dll`) and everything else is plain JavaScript.
-`scripts/make-dist.js` builds both archives.
+- `...-windows-allinone.zip` (recommended): double-click `RE4SaveEditor.exe`. Nothing to install.
+  The launcher is about 40 lines of C# (`launcher/Launcher.cs`) that starts the bundled `runtime/node.exe` with `app/server.js`.
+  Windows SmartScreen may warn because it is not code-signed. SHA-256 sums are published with each release.
+- `...-github.zip`: needs [Node.js](https://nodejs.org) LTS and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0); double-click `start.bat`.
+- `...-nexus.zip` (Nexus Mods): like the previous one but without any launcher file. Open the folder in Explorer, type `cmd` in the address bar, run `node app/server.js`.
+
+The editor opens in your browser at http://localhost:4784. Close the black window to stop it.
+`scripts/make-dist.js` builds the archives (`--allinone yes` adds the all-in-one one); a GitHub Actions workflow does it for tags.
 
 ### Option B: build from source
 
@@ -62,7 +69,7 @@ start.bat     (opens http://localhost:4784 in your browser)
 3. Use **Restore from copy...** to undo a write at any time.
 
 The save folder (`<Steam>/userdata/<account>/2050650/remote/win64_save`) is detected automatically.
-If detection fails, copy `app/config.example.json` to `app/config.json` and set `saveDir`.
+If detection fails (or you have several Steam accounts), use the gear button in the editor. See `docs/TESTING.md` for an in-game test checklist.
 
 ## How it works
 
