@@ -5,7 +5,7 @@ const REPO_URL = 'https://github.com/distrix11/RE4-Remake-Save-Editor';
 function showUpdate(u) {
   const el = $('#updBanner');
   if (!u || !u.enabled || !u.available || u.dismissed) { el.hidden = true; return; }
-  el.innerHTML = '<span>' + ic('export') + 'Version <b>' + esc(u.latest) + '</b> is available (you have ' + esc(u.current) + '). Open the download page?</span><span class="sp"></span>';
+  el.innerHTML = '<span>' + ic('export') + 'Version <b>' + esc(u.latest) + '</b>' + (u.prerelease ? ' (pre-release)' : '') + ' is available (you have ' + esc(u.current) + '). Open the download page?</span><span class="sp"></span>';
   const yes = document.createElement('button'); yes.className = 'pri sm'; yes.textContent = 'Yes, open';
   yes.onclick = () => { window.open(u.url || REPO_URL + '/releases', '_blank', 'noopener'); };
   const no = document.createElement('button'); no.className = 'sm'; no.textContent = 'Not now';

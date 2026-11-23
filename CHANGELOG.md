@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased (for 0.9.1)
+- Fixed: the update check did not see pre-releases (GitHub never reports a pre-release as "latest"), so it said that no release exists. It now looks at the list of releases and names a pre-release as such.
+- Issue templates are forms now (package, version, did the game load the save, diagnostics, a required "no save files attached" box).
+
 ## 0.9.0 (pre-release)
 - No more .NET and no separate encryptor: the save encryption is built in (`app/lime.js`, a JavaScript port of LimebrellaSharp checked byte for byte against the original on real saves in both directions). Opening a slot takes about 0.1 s instead of seconds.
 - New `start.js` (double-click, no console window) starts the editor in its own app-style window, using `runtime/node.exe` or the Node.js 20+ installed on the PC (if there is none, it offers to open the Node.js download page; the script downloads nothing itself). The Nexus archive contains no `.exe`, `.dll` or `.bat` any more. The all-in-one archive is half the size (about 37 MB).

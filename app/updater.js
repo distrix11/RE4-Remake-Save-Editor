@@ -1,12 +1,13 @@
 'use strict';
 // Looks for a newer release on GitHub at most once every 24 hours (and only if the user has not turned it off).
-// The only request is a plain GET to api.github.com for the latest release of this project. It sends no personal data
+// The only request is a plain GET to api.github.com for the releases of this project (pre-releases count too). It sends no personal data
 // (just a generic user agent) and never downloads or installs anything: the user is pointed to the release page.
 const fs = require('fs');
 const path = require('path');
 
 const REPO = 'distrix11/RE4-Remake-Save-Editor';
-const API = `https://api.github.com/repos/${REPO}/releases/latest`;
+// the list, not /releases/latest: GitHub never reports a pre-release as "latest" (that URL answers 404 while only pre-releases exist)
+const API = `https://api.github.com/repos/${REPO}/releases?per_page=10`;
 const PAGE_PREFIX = `https://github.com/${REPO}/`;
 const DAY = 24 * 3600 * 1000;
 const STATE = path.join(__dirname, 'update-state.json');
@@ -18,11 +19,20 @@ function isNewer(a, b) { const x = parts(a), y = parts(b); for (let i = 0; i < 3
 
 async function fetchLatest() {
   const r = await fetch(API, { headers: { 'User-Agent': 'RE4-Save-Editor-update-check', Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(6000) });
-  if (r.status === 404) return { none: true }; // no release published (yet)
+  if (r.status === 404) return { none: true }; // no such repository or no release published (yet)
   if (!r.ok) throw new Error('HTTP ' + r.status);
-  const j = await r.json();
-  const url = typeof j.html_url === 'string' && j.html_url.startsWith(PAGE_PREFIX) ? j.html_url : PAGE_PREFIX + 'releases';
-  return { version: String(j.tag_name || '').replace(/^v/i, ''), url, name: j.name || '' };
+  const list = await r.json();
+  let best = null; // the highest version among the published (not draft) releases
+  for (const j of Array.isArray(list) ? list : []) {
+    if (!j || j.draft) continue;
+    const version = String(j.tag_name || '').replace(/^v/i, '');
+    if (!/^\d+\.\d+/.test(version)) continue;
+    if (!best || isNewer(version, best.version)) {
+      const url = typeof j.html_url === 'string' && j.html_url.startsWith(PAGE_PREFIX) ? j.html_url : PAGE_PREFIX + 'releases';
+      best = { version, url, name: j.name || '', prerelease: !!j.prerelease };
+    }
+  }
+  return best || { none: true };
 }
 
 // force: ignore the 24 h gap (manual "Check now"); the on/off switch is honoured by the caller
@@ -31,7 +41,7 @@ async function check(current, force) {
   if (force || !st.checkedAt || Date.now() - st.checkedAt >= DAY) {
     try {
       const l = await fetchLatest();
-      Object.assign(st, { checkedAt: Date.now(), error: null }, l.none ? { latest: null, url: null } : { latest: l.version, url: l.url });
+      Object.assign(st, { checkedAt: Date.now(), error: null }, l.none ? { latest: null, url: null, prerelease: false } : { latest: l.version, url: l.url, prerelease: !!l.prerelease });
       writeState(st);
     } catch (e) { if (force) st.error = 'Could not reach GitHub (' + e.message + ')'; return summary(current, st); }
   }
@@ -39,7 +49,7 @@ async function check(current, force) {
 }
 function summary(current, st) {
   const available = !!(st.latest && isNewer(st.latest, current));
-  return { current, latest: st.latest || null, url: st.url || null, available, dismissed: available && st.dismissed === st.latest, checkedAt: st.checkedAt || null, error: st.error || null };
+  return { current, latest: st.latest || null, url: st.url || null, prerelease: !!st.prerelease, available, dismissed: available && st.dismissed === st.latest, checkedAt: st.checkedAt || null, error: st.error || null };
 }
 function dismiss(version) { const st = readState(); st.dismissed = String(version); writeState(st); }
 function cached(current) { return summary(current, readState()); }

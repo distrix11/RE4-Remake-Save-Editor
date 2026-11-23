@@ -1,0 +1,16 @@
+name: Feature request
+description: An idea for the editor
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like to be able to edit or see?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why? What is the use case?
+    validations:
+      required: false
