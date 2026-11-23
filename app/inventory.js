@@ -68,9 +68,12 @@ function upgradesOf(S, it) {
     const arr = F(S, cl, u.arr); if (!arr || !arr.items) continue;
     for (const cid of arr.items) {
       const c = S.parsed.nodes[cid]; const catN = F(S, c, u.catField);
-      if (catN && readValue(S.buf, catN) === u.cat) { const now = scalar(S, F(S, c, '_NowLevel')); if (now) res.push({ key: u.key, label: u.label, level: now }); }
+      if (catN && readValue(S.buf, catN) === u.cat) { const now = scalar(S, F(S, c, '_NowLevel')); if (now) res.push({ key: u.key, label: u.label, level: now, max: MAX_UPG }); }
     }
   }
+  // the exclusive upgrade (bought with Spinel) is a separate block: 0 = not bought, 1 = bought
+  const lb = F(S, cl, '_LimitBreakLevelInWeapon');
+  if (lb && lb.items && lb.items.length) { const now = scalar(S, F(S, S.parsed.nodes[lb.items[0]], '_NowLevel')); if (now) res.push({ key: 'excl', label: 'Exclusive', level: now, max: 1 }); }
   return res.length ? res : null;
 }
 function entryModel(S, entry, idx) {
@@ -356,24 +359,69 @@ function sortCase(S, invIdx) {
   }
   return { moved };
 }
-// Weapon upgrade level (0..MAX_UPG) for one upgrade category.
-function setUpgrade(S, invIdx, idx, key, level) {
-  level = Number(level);
-  if (!Number.isInteger(level) || level < 0 || level > MAX_UPG) throw new Error(`Level must be between 0 and ${MAX_UPG}`);
-  const u = UPG.find((x) => x.key === key); if (!u) throw new Error('Unknown upgrade');
+// Weapon upgrade levels. Every normal upgrade category entry holds a _NowLevel plus the effect fields it drives (which fields differ by weapon:
+// e.g. the Handcannon and the SR M1903 reload through _ReloadNumLevel, other guns through _ReloadSpeedRateLevel). The fields that are non-zero now are
+// the effect fields of that entry, so they are all written together with _NowLevel; only an entry that is all zero falls back to the defaults.
+const RELOAD_NUM = new Set(['275638656', '275475456']); // Handcannon, SR M1903
+const PUMP_RAPID = new Set(['275475456']);               // SR M1903 also has a bolt-action fire rate
+function effectFields(S, c) {
+  return c.f.filter(([name, id]) => /Level$/.test(name) && name !== '_NowLevel' && S.parsed.nodes[id] && S.parsed.nodes[id].k === 'v' && Number(readValue(S.buf, S.parsed.nodes[id])) !== 0).map(([name]) => name);
+}
+function weaponUpgradeNodes(S, invIdx, idx) {
   const arrN = itemList(S, inventories(S)[invIdx]); const entry = S.parsed.nodes[arrN.items[idx]];
+  if (!entry) throw new Error('No such item');
   const it = itemObj(S, entry); const cl = F(S, it, '_CustomLevelInWeapon');
-  const list = cl && F(S, cl, u.arr);
-  if (!list) throw new Error('This item has no upgrades');
-  let done = 0;
-  for (const cid of list.items) {
+  if (!cl) throw new Error('This item has no upgrades');
+  return { it, cl, wid: String(readValue(S.buf, F(S, it, '_ItemId'))) };
+}
+function writeLevel(S, w, key, level) {
+  if (key === 'excl') {
+    const lb = F(S, w.cl, '_LimitBreakLevelInWeapon'); const e = lb && lb.items && lb.items.length ? S.parsed.nodes[lb.items[0]] : null;
+    const n = e && F(S, e, '_NowLevel'); if (!n) throw new Error('This weapon has no exclusive upgrade');
+    writeValue(S.buf, n, String(level)); return 1;
+  }
+  const u = UPG.find((x) => x.key === key); if (!u) throw new Error('Unknown upgrade');
+  const list = F(S, w.cl, u.arr); let done = 0;
+  for (const cid of (list && list.items) || []) {
     const c = S.parsed.nodes[cid]; const catN = F(S, c, u.catField);
     if (!catN || readValue(S.buf, catN) !== u.cat) continue;
-    for (const fld of [...u.fields, '_NowLevel']) { const n = F(S, c, fld); if (n) { writeValue(S.buf, n, String(level)); } }
+    let fields = effectFields(S, c);
+    if (!fields.length) {
+      fields = [...u.fields];
+      if (key === 'reload' && RELOAD_NUM.has(w.wid)) fields = ['_ReloadNumLevel'];
+      if (key === 'rapid' && PUMP_RAPID.has(w.wid)) fields.push('_PumpActionRapidSpeedLevel');
+    }
+    for (const fld of [...fields, '_NowLevel']) { const n = F(S, c, fld); if (n) writeValue(S.buf, n, String(level)); }
     done++;
   }
   if (!done) throw new Error('This weapon has no such upgrade');
-  return { ok: true };
+  return done;
+}
+// the exclusive upgrade needs every normal upgrade at the maximum: if one is lowered, it is taken away too
+function dropExclusiveIfNeeded(S, w) {
+  const lb = F(S, w.cl, '_LimitBreakLevelInWeapon'); const e = lb && lb.items && lb.items.length ? S.parsed.nodes[lb.items[0]] : null;
+  const n = e && F(S, e, '_NowLevel');
+  if (n && Number(readValue(S.buf, n)) > 0) { writeValue(S.buf, n, '0'); return true; }
+  return false;
+}
+function setUpgrade(S, invIdx, idx, key, level) {
+  level = Number(level);
+  const max = key === 'excl' ? 1 : MAX_UPG;
+  if (!Number.isInteger(level) || level < 0 || level > max) throw new Error(`Level must be between 0 and ${max}`);
+  const w = weaponUpgradeNodes(S, invIdx, idx);
+  writeLevel(S, w, key, level);
+  const exclReset = key !== 'excl' && level < MAX_UPG && dropExclusiveIfNeeded(S, w);
+  return { ok: true, exclReset };
+}
+// every normal upgrade the weapon has to the maximum (level = 4) or back to zero (level = 0, also takes the exclusive upgrade away)
+function setAllUpgrades(S, invIdx, idx, level) {
+  level = Number(level);
+  if (level !== 0 && level !== MAX_UPG) throw new Error('Unsupported level');
+  const w = weaponUpgradeNodes(S, invIdx, idx); let n = 0;
+  for (const u of UPG) { try { writeLevel(S, w, u.key, level); n++; } catch (e) { /* this weapon has no such upgrade */ } }
+  if (!n) throw new Error('This weapon has no upgrades');
+  const exclReset = level === 0 && dropExclusiveIfNeeded(S, w);
+  return { ok: true, changed: n, exclReset };
 }
 
 // ---- change summary (before writing) ------------------------------------------
@@ -537,7 +585,7 @@ function weaponStatus(S) {
     const arr = itemList(S, inv); if (!arr) continue;
     for (const id of arr.items) {
       const it = itemObj(S, S.parsed.nodes[id]); if (!it.c.endsWith('WeaponItem')) continue;
-      const up = upgradesOf(S, it); if (up && up.some((u) => Number(u.level.value) > 0)) upgraded++;
+      const up = upgradesOf(S, it); if (up && up.some((u) => u.key !== 'excl' && Number(u.level.value) > 0)) upgraded++;
       const cl = F(S, it, '_CustomLevelInWeapon'); const lb = cl && F(S, cl, '_LimitBreakLevelInWeapon');
       if (lb && lb.items.some((cid) => { const n = F(S, S.parsed.nodes[cid], '_NowLevel'); return n && Number(readValue(S.buf, n)) > 0; })) exclusive++;
     }
@@ -548,6 +596,6 @@ function weaponStatus(S) {
 module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
-  CASE_DIMS, MAX_UPG, sortCase, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
+  CASE_DIMS, MAX_UPG, sortCase, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
   moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
 };

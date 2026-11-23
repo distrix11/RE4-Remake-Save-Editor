@@ -1,6 +1,8 @@
 # Changelog
 
 ## 0.2.0
+- Weapon upgrades reworked after checking how the game stores them: all effect fields of an upgrade are written together (the Handcannon and SR M1903 reload through a different field than other guns, which used to be left at the old value). The exclusive upgrade is its own 0/1 setting and is taken away when a normal upgrade is lowered (the game needs all of them at 4 for it).
+- New "Full upgrade" button next to weapons (list and Case view) and "Reset upgrades" in the upgrade panel.
 - New "Sort" button in the Case view: packs the items to the left, grouped (weapons, throwables, healing, ammo, accessories, the rest), big items first. Rotations are kept, nothing changes if an item would not fit; "Discard edits" undoes it.
 - Fixed (found in the first in-game test): weapon upgrade levels go up to 4 (the highest seen in real saves); the game reset higher values such as 7 to the first level.
 - Fixed (found in the first in-game test): herbs, sprays and accessories are added as separate entries instead of stacking into one (they do not stack in the game). Ammo stacks only up to the per-slot limit seen in real saves (handgun 50, rifle 15, ...) and the rest goes into new entries.

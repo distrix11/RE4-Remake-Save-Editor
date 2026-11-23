@@ -51,15 +51,23 @@ function upgRow(inv, it) {
   const g = document.createElement('div'); g.className = 'ugrid';
   for (const u of it.upg) {
     const l = document.createElement('label'); l.append(document.createTextNode(u.label));
-    const i = document.createElement('input'); i.type = 'number'; i.min = 0; i.max = 4; i.className = 'mono'; i.value = u.level.value;
+    const i = document.createElement('input'); i.type = 'number'; i.min = 0; i.max = u.max || 4; i.className = 'mono'; i.value = u.level.value;
     i.onchange = async () => {
-      try { const r = await api('upgrade', { name: cur, inv: inv.index, idx: it.idx, key: u.key, level: i.value }); applyFresh(r); render(); }
-      catch (e) { toast(e.message, 'err'); i.value = u.level.value; }
+      try {
+        const r = await api('upgrade', { name: cur, inv: inv.index, idx: it.idx, key: u.key, level: i.value }); applyFresh(r); render();
+        if (r.exclReset) toast('The exclusive upgrade was taken away: it needs every upgrade at the maximum.', '');
+      } catch (e) { toast(e.message, 'err'); i.value = u.level.value; }
     };
     l.append(i); g.append(l);
   }
-  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Levels 0-4 (4 = fully upgraded in real saves; the game resets higher values to the first level). Some weapons have fewer levels. Exclusive upgrades are not affected.';
-  td.append(g, n); tr.append(td); return tr;
+  const bar = document.createElement('div'); bar.className = 'toolbar'; bar.style.margin = '8px 0 0';
+  const full = document.createElement('button'); full.className = 'sm'; full.innerHTML = ic('tools') + 'Full upgrade'; full.title = 'Every normal upgrade of this weapon to the maximum (4); the exclusive upgrade is not touched';
+  full.onclick = () => structural('upgrade-all', { inv: inv.index, idx: it.idx, level: 4 }, 'Weapon fully upgraded');
+  const reset = document.createElement('button'); reset.className = 'sm ghost'; reset.textContent = 'Reset upgrades'; reset.title = 'Every upgrade back to zero, including the exclusive one';
+  reset.onclick = () => structural('upgrade-all', { inv: inv.index, idx: it.idx, level: 0 }, 'Upgrades reset');
+  bar.append(full, reset);
+  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Levels 0-4 (4 = fully upgraded, as in real saves; the game resets higher values). Exclusive: 0 = not bought, 1 = bought; it needs every other upgrade at 4, so lowering one removes it. Some weapons have fewer upgrades.';
+  td.append(g, bar, n); tr.append(td); return tr;
 }
 
 // ---------------------------------------------------------------- attaché case map

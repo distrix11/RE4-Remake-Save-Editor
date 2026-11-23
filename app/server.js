@@ -392,7 +392,8 @@ const routes = {
   'POST /api/move': async (b) => { const S = need(b.name); guard(S); INV.moveItem(S, Number(b.inv), Number(b.idx), b.x, b.y, b.dir); S.dirty = true; return fresh(S); },
   'POST /api/sort': async (b) => { const S = need(b.name); guard(S); const r = INV.sortCase(S, Number(b.inv)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/case-size': async (b) => { const S = need(b.name); guard(S); INV.setCaseSize(S, b.level); S.dirty = true; return fresh(S); },
-  'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return fresh(S); },
+  'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); const r = INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/upgrade-all': async (b) => { const S = need(b.name); guard(S); const r = INV.setAllUpgrades(S, Number(b.inv), Number(b.idx), b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/backups': async (b) => {
     if (!SAVE_RE.test(b.name || '')) throw new Error('Invalid file name');
     return { backups: listBackups(b.name).map(({ path: _p, ...rest }) => rest) };

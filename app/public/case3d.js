@@ -115,6 +115,11 @@ function drawCase3D(holder, inv) {
       if (!fits3(sel, sel.slot.x, sel.slot.y, nfp)) { toast('The rotated item does not fit here', 'err'); return; }
       structural('move', { inv: inv.index, idx: sel.idx, x: sel.slot.x, y: sel.slot.y, dir: nd }, 'Item rotated');
     };
+    if (sel.upg) {
+      const fu = document.createElement('button'); fu.className = 'sm'; fu.innerHTML = ic('tools') + 'Full upgrade'; fu.title = 'Every normal upgrade of this weapon to the maximum (4)';
+      fu.onclick = () => structural('upgrade-all', { inv: inv.index, idx: sel.idx, level: 4 }, 'Weapon fully upgraded');
+      bar.append(fu);
+    }
     const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
     const del = document.createElement('button'); del.className = 'sm danger'; del.innerHTML = ic('trash') + 'Delete';
