@@ -155,10 +155,25 @@
     const turn = horizontal && fp && fp[1] > fp[0];
     return { svg, horizontal, turn };
   };
+  // Optional local picture pack in icons/images (not part of the repository or the releases): picture name by item name
+  const LOCAL = [
+    [/handgun ammo/, 'ammo_handgun'], [/magnum ammo/, 'ammo_magnum'], [/rifle ammo/, 'ammo_rifle'], [/shotgun ammo/, 'ammo_shotgun'], [/submachine gun ammo/, 'ammo_tmp'],
+    [/mixed herb \(g\+g\+g\)/, 'mixed_ggg'], [/mixed herb \(g\+g\+y\)/, 'mixed_ggy'], [/mixed herb \(g\+r\+y\)/, 'mixed_gry'],
+    [/mixed herb \(g\+g\)/, 'mixed_gg'], [/mixed herb \(g\+r\)/, 'mixed_gr'], [/mixed herb \(g\+y\)/, 'mixed_gy'],
+    [/green herb/, 'greenherb'], [/red herb/, 'redherb'], [/yellow herb/, 'yellowherb'], [/first aid/, 'firstaidspray'], [/black bass|lunker/, 'bass'],
+    [/flash grenade/, 'flash'], [/hand grenade/, 'grenade'], [/brown chicken egg/, 'brown_egg'], [/golden chicken egg/, 'golden_egg'],
+    [/sg-09|^handgun/, 'handgun'], [/punisher/, 'punisher'], [/red9/, 'red9'], [/blacktail/, 'blacktail'], [/killer7/, 'killer7'], [/butterfly/, 'brokenbutterfly'],
+    [/w-870|^shotgun/, 'shotgun'], [/striker/, 'striker'], [/sweeper/, 'autoshotgun'], [/m1903|sr m/, 'rifle'], [/stingray|semi auto/, 'semiautorifle'], [/^tmp/, 'tmp'],
+  ];
+  const localKey = (n) => { const t = String(n).toLowerCase(); const m = LOCAL.find(([re]) => re.test(t)); return m ? m[1] : null; };
   window.itemArt = function (name, cat, fp, id) {
     const a = baseArt(name, cat, fp);
-    if (id === undefined || id === null) return a;
-    const own = '<img class="art own" alt="" src="icons/user/' + id + '.png" onerror="this.remove()">';
-    return { ...a, svg: '<div class="stk">' + (a.svg || '') + own + '</div>' };
+    const k = localKey(name);
+    const ld = 'onload="this.parentNode.classList.add(\'hasimg\')" onerror="this.remove()"';
+    let over = '';
+    if (k) over += '<img class="art own" alt="" src="icons/images/' + k + '.png" ' + ld + '>';
+    if (id !== undefined && id !== null) over += '<img class="art own" alt="" src="icons/user/' + id + '.png" ' + ld + '>';
+    if (!over) return a;
+    return { ...a, svg: '<div class="stk">' + (a.svg || '') + over + '</div>' };
   };
 })();
