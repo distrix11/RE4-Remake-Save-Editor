@@ -21,12 +21,12 @@ An unofficial, local save editor for **Resident Evil 4 (2023 remake), Steam, Win
 SHA-256:
 
 ```text
-6b0bdfbc542835d7fffcb1ed3b88e2b53f9632019758b4fc24f70d3da27daf43  RE4SaveEditor-0.9.0-windows-allinone.zip
+ed1f5de97e5e441604a63e4f9d888e2e00a67731e3dcb333d6f66e0b7a00d8ec  RE4SaveEditor-0.9.0-windows-allinone.zip
 ```
 
 Prefer not to run an `.exe`? Everything is plain JavaScript: download the source code (or `git clone`), run `build.bat` once (it needs [Node.js](https://nodejs.org) 20+ and builds the name dictionary), then double-click `start.bat`. A script-only package (`start.js`, no executables, needs Node.js 20+) is also published on Nexus Mods.
 
-**Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 100 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). 
+**Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is about 110 lines of C# and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). 
 
 ## Quick start
 

@@ -27,7 +27,7 @@ module.exports = async function allInOne(c) {
   // the launcher needs only the C# compiler that ships with Windows (.NET Framework 4)
   const csc = path.join(process.env.WINDIR || 'C:\\Windows', 'Microsoft.NET', 'Framework64', 'v4.0.30319', 'csc.exe');
   const launcher = path.join(TMP, 'RE4SaveEditor.exe');
-  run(csc, ['/nologo', '/target:exe', '/optimize', '/win32icon:' + path.join(ROOT, 'launcher', 'icon.ico'), '/out:' + launcher, path.join(ROOT, 'launcher', 'Launcher.cs')]);
+  run(csc, ['/nologo', '/target:winexe', '/r:System.Windows.Forms.dll', '/optimize', '/win32icon:' + path.join(ROOT, 'launcher', 'icon.ico'), '/out:' + launcher, path.join(ROOT, 'launcher', 'Launcher.cs')]);
 
   const stage = path.join(TMP, 'allinone'); const root = path.join(stage, FOLDER);
   stageSnapshot(root, false);
@@ -45,7 +45,7 @@ module.exports = async function allInOne(c) {
     '  2. Extract this folder anywhere and double-click RE4SaveEditor.exe.',
     '     The editor opens in its own window. Closing that window stops the editor.', '',
     'Windows SmartScreen may warn about the launcher because it is not code-signed. Its full source is launcher/Launcher.cs',
-    '(about 100 lines: it starts runtime\\node.exe with app\\server.js and opens the window).',
+    '(about 110 lines: it starts runtime\\node.exe with app\\server.js and opens the window).',
     'runtime\\node.exe is the unmodified official Node.js build (checked against the SHA-256 list from nodejs.org).',
     'The save encryption (app/lime.js) is a JavaScript port of the open-source LimebrellaSharp (MIT).',
     'Source code and details: https://github.com/distrix11/RE4-Remake-Save-Editor', '',

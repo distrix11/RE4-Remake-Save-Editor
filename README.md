@@ -66,7 +66,7 @@ Download from GitHub Releases, extract anywhere and pick one:
 
 - `...-windows-allinone.zip` (recommended on GitHub): double-click `RE4SaveEditor.exe`. Nothing to install and nothing to download.
   The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
-  The launcher is about 100 lines of C# (`launcher/Launcher.cs`) that starts the bundled `runtime/node.exe` with `app/server.js`.
+  The launcher is about 110 lines of C# (`launcher/Launcher.cs`, a window program without a console) that starts the bundled `runtime/node.exe` with `app/server.js`.
   Windows SmartScreen may warn because it is not code-signed. SHA-256 sums are published with each release.
 - Script-only package (also on Nexus Mods; it has no `.exe`, `.dll` or `.bat` because Nexus does not accept them): double-click `start.js`. It needs [Node.js](https://nodejs.org) 20 or newer (install the LTS version once); if it is missing, a message offers to open the download page. Windows may ask once whether to run the script; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
 
