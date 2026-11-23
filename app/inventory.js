@@ -98,6 +98,27 @@ function model(S) {
     return { index, size: sz, grid, sizes: sz ? Object.entries(CASE_DIMS).map(([level, [w, h]]) => ({ level: Number(level), w, h })) : null, hasSlots: items.some((i) => i.slot), items };
   });
 }
+// The description the game itself shows for a slot is stored after the data, in the language of the game:
+//   "<slot> / <difficulty> / <chapter N>", mode, number of saves, time, chapter, zone, objective, runs, language.
+const DIFFICULTY = { 10: 'Assisted', 20: 'Standard', 30: 'Hardcore', 40: 'Professional' }; // 20 and 40 confirmed from real saves
+function slotInfo(S) {
+  try {
+    const text = S.buf.subarray(S.parsed.end).toString('utf16le');
+    const parts = text.split(/[\u0000-\u001f\ufffd-\uffff]+/).map((x) => x.trim()).filter((x) => x.length > 2);
+    const isTime = (x) => /^\d{1,2}:\d{2}:\d{2}$/.test(x);
+    const ti = parts.findIndex((x, i) => x.includes(' / ') && parts.slice(i + 1, i + 5).some(isTime));
+    if (ti < 0) return null;
+    const clean = (x) => x.replace(/[\u2000-\u2bff\uac00-\ud7ff]+$/, '');
+    const seg = parts[ti].split(' / ').map(clean);
+    const tIdx = parts.findIndex((x, i) => i > ti && isTime(x));
+    const num = (x) => { const m = /(\d+)\s*$/.exec(x || ''); return m ? Number(m[1]) : null; };
+    const rest = parts.slice(tIdx + 2).map(clean); // after the chapter line: [zone, objective,] playthroughs, language
+    const chapter = num(seg[2]) || num(parts[tIdx + 1]);
+    const saves = num(parts[tIdx - 1]);
+    const lines = parts.slice(ti + 1, ti + 9).map(clean);
+    return { slotText: seg[0], difficultyText: seg[1] && seg[1].replace(/[«»"]/g, ''), chapter, saves, time: parts[tIdx], zone: rest.length >= 4 ? rest[0] : null, goal: rest.length >= 4 ? rest[1] : null, playthrough: num(rest[rest.length - 2]), lines };
+  } catch (e) { return null; }
+}
 function overview(S) {
   const sec = (s) => sections(S).find((o) => o.c.endsWith(s));
   const clock = sec('GameClock.GameSaveData'), inv = sec('InventoryManager.GameSaveData'),
@@ -107,6 +128,8 @@ function overview(S) {
   if (inv) o.ptas = scalar(S, F(S, inv, 'PTAS'));
   if (shop) o.spinel = scalar(S, F(S, shop, 'SpinelCount'));
   if (camp) { o.difficulty = scalar(S, F(S, camp, '_CurrentDifficulty')); o.saveCount = scalar(S, F(S, camp, '_SaveCount')); }
+  if (o.difficulty) o.difficultyName = DIFFICULTY[o.difficulty.value] || null;
+  o.slotInfo = slotInfo(S);
   // look of the attaché case: the skin item selected for the main character (100000) in the skin settings
   try {
     const host = sections(S).find((x) => F(S, x, 'SkinSettingSaveData'));

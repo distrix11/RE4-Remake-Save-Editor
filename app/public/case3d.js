@@ -12,11 +12,12 @@ const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
 
 function drawCase3D(holder, inv) {
   holder.innerHTML = '';
-  const [W, H] = inv.grid;
+  // the game shows the case lying down: the save's rows run across the screen, its columns run down
+  const [GW, GH] = inv.grid; const W = GH, H = GW;
   const skin = CASE_SKINS[data && data.overview && data.overview.caseSkin] || CASE_SKINS[124176000];
-  const cell = clampN(Math.floor(500 / W), 28, 46), pad = 22;
+  const cell = clampN(Math.floor(860 / W), 28, 58), pad = 24;
   const w = W * cell + pad * 2, h = H * cell + pad * 2;
-  const tilt = 40;
+  const tilt = 34;
   const card = document.createElement('div'); card.className = 'card';
   const scene = document.createElement('div'); scene.className = 'scene3d';
   scene.style.height = Math.round(h * Math.cos(tilt * Math.PI / 180) + h * 0.55 + 60) + 'px';
@@ -33,10 +34,11 @@ function drawCase3D(holder, inv) {
     const nm = itemName(it) || '#' + it.itemId.value;
     const el = document.createElement('div');
     el.className = 'i3 c-' + (it.cat || 'other') + (ui.sel === it.idx ? ' sel' : '');
-    const bw = it.fp[0] * cell, bh = it.fp[1] * cell;
-    el.style.cssText = `left:${it.slot.x * cell}px;top:${it.slot.y * cell}px;width:${bw}px;height:${bh}px`;
+    const sfp = [it.fp[1], it.fp[0]]; // size on screen
+    const bw = sfp[0] * cell, bh = sfp[1] * cell;
+    el.style.cssText = `left:${it.slot.y * cell}px;top:${it.slot.x * cell}px;width:${bw}px;height:${bh}px`;
     el.title = `${nm}\nID ${it.itemId.value}\ncell ${it.slot.x},${it.slot.y}`;
-    const art = typeof itemArt === 'function' ? itemArt(nm, it.cat, it.fp, it.itemId.value) : { svg: null };
+    const art = typeof itemArt === 'function' ? itemArt(nm, it.cat, sfp, it.itemId.value) : { svg: null };
     let inner;
     if (art.svg && art.turn) inner = `<div class="turned" style="width:${bh - 4}px;height:${bw - 4}px">${art.svg}</div>`;
     else if (art.svg) inner = art.svg;

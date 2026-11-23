@@ -47,7 +47,10 @@ async function loadFiles() {
 }
 function optLabel(f) {
   const s = summaries[f.name];
-  return slotTitle(f.name) + (s ? ` · ${hours(s.playTime)} · ${fmt(s.ptas)} PTAS` : '');
+  if (!s) return slotTitle(f.name);
+  const si = s.slotInfo, diff = s.difficultyName || (si && si.difficultyText);
+  const saves = si && si.saves != null ? si.saves : s.saveCount;
+  return [slotTitle(f.name), diff, si && si.chapter ? 'Ch. ' + si.chapter : null, si && si.playthrough > 1 ? 'New Game+' : null, saves != null ? saves + ' saves' : null, hours(s.playTime), fmt(s.ptas) + ' PTAS'].filter(Boolean).join(' · ');
 }
 async function loadSummaries() {
   for (const f of cfg.files.filter((x) => /Slot\.bin$/.test(x.name))) {
@@ -119,7 +122,10 @@ function renderMoney(root) {
   hint.textContent = 'Type a number and press Enter or click outside the field: the value changes immediately in the editable copy. To get it into the game, press "Save to game".';
   card.append(hint); root.append(card);
   const info = document.createElement('div'); info.className = 'card';
-  info.innerHTML = `<h3>${ic('file')}About this save</h3><div class="dim">${slotTitle(data.name)} · play time ${o.playTime ? hours(o.playTime.value) : '—'} · saves: ${o.saveCount ? o.saveCount.value : '—'} · difficulty code: ${o.difficulty ? o.difficulty.value : '—'}</div>`;
+  const si = o.slotInfo;
+  const diffName = o.difficultyName || (si && si.difficultyText) || (o.difficulty ? 'code ' + o.difficulty.value : '—');
+  info.innerHTML = `<h3>${ic('file')}About this save</h3><div class="dim">${slotTitle(data.name)} · ${esc(diffName)}${si && si.chapter ? ' · Chapter ' + si.chapter : ''} · play time ${o.playTime ? hours(o.playTime.value) : '—'} · saves: ${si && si.saves != null ? si.saves : (o.saveCount ? o.saveCount.value : '—')}</div>` +
+    (si && (si.zone || si.goal) ? `<div class="dim" style="margin-top:6px">As the game shows it: ${esc([si.zone, si.goal].filter(Boolean).join(' · '))}</div>` : '');
   root.append(info);
 }
 

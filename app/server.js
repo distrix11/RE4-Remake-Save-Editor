@@ -474,7 +474,7 @@ const routes = {
     if (!/Slot.bin$/.test(b.name || '') || !SAVE_RE.test(b.name)) throw new Error('Invalid file name');
     const S = { buf: await unpackCached(b.name) }; S.parsed = parse(S.buf);
     const ov = INV.overview(S);
-    return { ptas: ov.ptas && ov.ptas.value, playTime: ov.playTime && ov.playTime.value, saveCount: ov.saveCount && ov.saveCount.value, difficulty: ov.difficulty && ov.difficulty.value };
+    return { ptas: ov.ptas && ov.ptas.value, playTime: ov.playTime && ov.playTime.value, saveCount: ov.saveCount && ov.saveCount.value, difficulty: ov.difficulty && ov.difficulty.value, difficultyName: ov.difficultyName, slotInfo: ov.slotInfo };
   },
   'POST /api/open': async (b) => {
     if (!SAVE_RE.test(b.name || '')) throw new Error('Invalid file name');

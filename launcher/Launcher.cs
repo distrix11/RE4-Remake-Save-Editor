@@ -39,6 +39,13 @@ static class Launcher
                 for (int i = 0; i < 60 && !IsUp(url) && !srv.HasExited; i++) Thread.Sleep(250);
                 if (srv.HasExited) return Fail("The editor stopped with code " + srv.ExitCode + ". The message above says why.");
             }
+            else
+            {
+                // something already answers on this port: make sure it is this version of the editor and not an older copy
+                string running = RunningVersion(url), mine = OwnVersion(dir);
+                if (running != null && mine != null && running != mine)
+                    return Fail("Another copy of the editor (version " + running + ") is already running on port " + port + ", this folder is version " + mine + ".\nClose the other editor window (and its black window or start.bat) and start this file again.");
+            }
         }
         catch (Exception e)
         {
@@ -75,6 +82,28 @@ static class Launcher
         }
         catch { }
         return 4784;
+    }
+
+    static string RunningVersion(string url)
+    {
+        try
+        {
+            var r = (HttpWebRequest)WebRequest.Create(url + "api/config"); r.Timeout = 1500;
+            using (var resp = r.GetResponse()) using (var sr = new StreamReader(resp.GetResponseStream()))
+            { var m = Regex.Match(sr.ReadToEnd(), "\"version\"\\s*:\\s*\"([^\"]+)\""); return m.Success ? m.Groups[1].Value : null; }
+        }
+        catch { return null; }
+    }
+
+    static string OwnVersion(string dir)
+    {
+        try
+        {
+            string pj = Path.Combine(dir, "package.json");
+            if (File.Exists(pj)) { var m = Regex.Match(File.ReadAllText(pj), "\"version\"\\s*:\\s*\"([^\"]+)\""); if (m.Success) return m.Groups[1].Value; }
+        }
+        catch { }
+        return null;
     }
 
     static bool IsUp(string url)
