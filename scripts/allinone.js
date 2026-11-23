@@ -30,7 +30,7 @@ module.exports = async function allInOne(c) {
   // the launcher needs only the C# compiler that ships with Windows (.NET Framework 4)
   const csc = path.join(process.env.WINDIR || 'C:\\Windows', 'Microsoft.NET', 'Framework64', 'v4.0.30319', 'csc.exe');
   const launcher = path.join(TMP, 'RE4SaveEditor.exe');
-  run(csc, ['/nologo', '/target:exe', '/optimize', '/out:' + launcher, path.join(ROOT, 'launcher', 'Launcher.cs')]);
+  run(csc, ['/nologo', '/target:exe', '/optimize', '/win32icon:' + path.join(ROOT, 'launcher', 'icon.ico'), '/out:' + launcher, path.join(ROOT, 'launcher', 'Launcher.cs')]);
 
   const stage = path.join(TMP, 'allinone'); const root = path.join(stage, FOLDER);
   stageSnapshot(root, false);

@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
 const args = process.argv.slice(2); const oi = args.indexOf('--out');
 const OUT = oi >= 0 ? path.resolve(args.splice(oi, 2)[1]) : path.join(ROOT, 'icons', 'items');
-const SIZE = 256;
+const si = args.indexOf('--size'); const SIZE = si >= 0 ? +args.splice(si, 2)[1] : 256;
 const EDGE = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Google/Chrome/Application/chrome.exe'].find(fs.existsSync);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const server = http.createServer((req, res) => { const u = req.url.split('?')[0]; const f = path.join(__dirname, u === '/' ? 'procedural.html' : u.slice(1)); if (!f.startsWith(__dirname) || !fs.existsSync(f)) { res.statusCode = 404; return res.end(); } res.setHeader('Content-Type', f.endsWith('.js') ? 'text/javascript' : 'text/html'); res.end(fs.readFileSync(f)); });
