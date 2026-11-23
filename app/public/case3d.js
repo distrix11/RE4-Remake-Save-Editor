@@ -54,7 +54,7 @@ function drawCase3D(holder, inv) {
     if (art.svg && art.turn) inner = `<div class="turned" style="width:${bh - 4}px;height:${bw - 4}px">${art.svg}</div>`;
     else if (art.svg) inner = art.svg;
     else inner = `<span class="fallback">${ic(it.cat || 'box')}</span>`;
-    el.innerHTML = inner + (it.count && Number(it.count.value) > 1 ? '<span class="cn">' + it.count.value + '</span>' : '');
+    el.innerHTML = '<div class="in">' + inner + (it.count && Number(it.count.value) > 1 ? '<span class="cn">' + it.count.value + '</span>' : '') + '</div>';
     el.onpointerdown = (e) => {
       if (e.button !== 0) return;
       e.preventDefault(); el.setPointerCapture(e.pointerId);
