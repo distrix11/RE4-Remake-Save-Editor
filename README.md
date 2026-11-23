@@ -33,6 +33,7 @@ It runs on your own computer, opens in your browser and never sends anything ove
 | ![Money](docs/screenshots/01-money.png) | ![Inventory](docs/screenshots/02-inventory.png) |
 | ![Case map](docs/screenshots/03-case-map.png) | ![Merchant requests](docs/screenshots/04-merchant-requests.png) |
 | ![Treasures](docs/screenshots/05-treasures.png) | ![Change summary](docs/screenshots/07-change-summary.png) |
+| ![3D case](docs/screenshots/08-case-3d.png) | ![Settings](docs/screenshots/09-settings.png) |
 
 ## Requirements
 
