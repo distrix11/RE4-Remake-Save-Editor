@@ -1,6 +1,9 @@
 # Changelog
 
 ## 0.2.0
+- New "Sort" button in the Case view: packs the items to the left, grouped (weapons, throwables, healing, ammo, accessories, the rest), big items first. Rotations are kept, nothing changes if an item would not fit; "Discard edits" undoes it.
+- Fixed (found in the first in-game test): weapon upgrade levels go up to 4 (the highest seen in real saves); the game reset higher values such as 7 to the first level.
+- Fixed (found in the first in-game test): herbs, sprays and accessories are added as separate entries instead of stacking into one (they do not stack in the game). Ammo stacks only up to the per-slot limit seen in real saves (handgun 50, rifle 15, ...) and the rest goes into new entries.
 - Weapon sizes corrected: guns are two rows tall and 2-6 columns wide, the SR M1903 is one row; checked so that no items overlap in real saves.
 - Fixed saves that failed to open ("unknown class" error): the size of the physics data blocks is now found by the shape of their elements instead of guessing the next token.
 - Settings window: choose the save folder or Steam account from inside the editor.

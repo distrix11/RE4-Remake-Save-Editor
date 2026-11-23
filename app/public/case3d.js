@@ -95,6 +95,10 @@ function drawCase3D(holder, inv) {
   box.append(lid, shell, latches); scene.append(box);
   const tools = document.createElement('div'); tools.className = 'toolbar'; tools.style.cssText = 'margin:0 0 6px';
   tools.innerHTML = `<span class="dim" style="font-size:12px">Your case: <b>${esc(skin.name)}</b> (taken from the save). Click an item to select it and drag it to move it. Green outline: it fits, red: it does not.</span>`;
+  const sortBtn = document.createElement('button'); sortBtn.className = 'sm'; sortBtn.style.marginLeft = 'auto'; sortBtn.innerHTML = ic('sort') + 'Sort';
+  sortBtn.title = 'Pack the items to the left, grouped: weapons, throwables, healing, ammo, accessories, the rest. Undo with "Discard edits".';
+  sortBtn.onclick = () => structural('sort', { inv: inv.index }, 'Case sorted');
+  if (inv.index === 0) tools.append(sortBtn);
   card.append(tools, scene);
 
   const sel = inv.items.find((i) => i.idx === ui.sel && i.slot);

@@ -51,14 +51,14 @@ function upgRow(inv, it) {
   const g = document.createElement('div'); g.className = 'ugrid';
   for (const u of it.upg) {
     const l = document.createElement('label'); l.append(document.createTextNode(u.label));
-    const i = document.createElement('input'); i.type = 'number'; i.min = 0; i.max = 7; i.className = 'mono'; i.value = u.level.value;
+    const i = document.createElement('input'); i.type = 'number'; i.min = 0; i.max = 4; i.className = 'mono'; i.value = u.level.value;
     i.onchange = async () => {
       try { const r = await api('upgrade', { name: cur, inv: inv.index, idx: it.idx, key: u.key, level: i.value }); applyFresh(r); render(); }
       catch (e) { toast(e.message, 'err'); i.value = u.level.value; }
     };
     l.append(i); g.append(l);
   }
-  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Levels 0-7. The maximum depends on the weapon: going above the limit may make the game behave unpredictably. Exclusive upgrades are not affected.';
+  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Levels 0-4 (4 = fully upgraded in real saves; the game resets higher values to the first level). Some weapons have fewer levels. Exclusive upgrades are not affected.';
   td.append(g, n); tr.append(td); return tr;
 }
 

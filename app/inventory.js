@@ -37,7 +37,9 @@ const UPG = [
   { key: 'rapid', label: 'Rapid fire', arr: '_IndividualLevelInWeapon', catField: '_IndividualCustomCategory', cat: 8, fields: ['_RapidSpeedLevel'] },
   { key: 'dura', label: 'Durability', arr: '_IndividualLevelInWeapon', catField: '_IndividualCustomCategory', cat: 6, fields: ['_DurabilityMaxLevel'] },
 ];
-const MAX_UPG = 7;
+// pieces per stack in the case (the highest counts seen in real saves, so the editor never goes above what the game made itself); resources do not stack
+const STACK_CAP = { 'Handgun Ammo': 50, 'Rifle Ammo': 15, 'Shotgun Ammo': 12, 'Magnum Ammo': 4, 'Submachine Gun Ammo': 30, 'Gunpowder': 10, 'Resources (L)': 1, 'Resources (S)': 1 };
+const MAX_UPG = 4; // the highest level seen on fully upgraded weapons in real saves; the game resets higher values
 
 // ---- tree helpers -----------------------------------------------------------
 const F = (S, o, name) => { const f = o && o.f && o.f.find((x) => x[0] === name); return f ? S.parsed.nodes[f[1]] : null; };
@@ -227,14 +229,37 @@ function addItem(S, { itemId, count }) {
   const invIdx = cat ? HOME[cat] : 0;
   const m = model(S)[invIdx]; if (!m) throw new Error('There is no suitable inventory in this slot');
   count = Math.max(1, Math.floor(Number(count) || 1));
-  // stackable: just increase the count of an existing entry
+  // Ammo and treasures stack (one entry with a count). Herbs, sprays and accessories do NOT stack in the game: every piece is its own entry in the case.
   const existing = m.items.find((i) => String(i.itemId.value) === String(itemId));
-  const stackable = cat === 'ammo' || cat === 'heal' || cat === 'treasure' || cat === 'acc';
+  const stackable = cat === 'ammo' || cat === 'treasure';
+  const separate = cat === 'heal' || cat === 'acc';
+  const cap = cat === 'ammo' && info ? STACK_CAP[info.n] : undefined;
+  if (stackable && cap) {
+    // a stack holds at most "cap" pieces: top up the existing stacks first, the rest goes into new entries
+    let left = count;
+    for (const e of m.items.filter((i) => String(i.itemId.value) === String(itemId) && i.count && i.count.editable)) {
+      const room = cap - Number(e.count.value); if (room <= 0 || left <= 0) continue;
+      const put = Math.min(room, left); writeValue(S.buf, S.parsed.nodes[e.count.id], String(Number(e.count.value) + put)); left -= put;
+    }
+    let added = 0;
+    try { while (left > 0 && added < 40) { const put = Math.min(cap, left); addEntry(S, invIdx, itemId, put); left -= put; added++; } }
+    catch (e) { throw new Error(added || left < count ? `Added only part: ${e.message}` : e.message); }
+    return { stacked: added === 0, inv: invIdx, added };
+  }
   if (existing && stackable && existing.count && existing.count.editable) {
     writeValue(S.buf, S.parsed.nodes[existing.count.id], String(Number(existing.count.value) + count));
     return { stacked: true, inv: invIdx };
   }
-  if (existing && !stackable) throw new Error('Such an item is already in the inventory');
+  if (existing && !stackable && !separate) throw new Error('Such an item is already in the inventory');
+  if (!separate) return { ...addEntry(S, invIdx, itemId, count), stacked: false };
+  const want = Math.min(count, 30); let added = 0, last = null;
+  try { for (; added < want; added++) last = addEntry(S, invIdx, itemId, 1); }
+  catch (e) { if (!added) throw e; throw new Error(`Added ${added} of ${want}: ${e.message}`); }
+  return { stacked: false, inv: invIdx, slot: last.slot, added };
+}
+// one new entry in its own free cell (clone of a template entry with a new GUID)
+function addEntry(S, invIdx, itemId, count) {
+  const m = model(S)[invIdx];
   const tpl = pickTemplate(S, invIdx, itemId);
   const spot = findSpot(m, footprint(itemId, false)); // throws if the case is full
   const arrNode = itemList(S, inventories(S)[invIdx]);
@@ -244,7 +269,7 @@ function addItem(S, { itemId, count }) {
   setEntry(S, lastEntry(S, invIdx), { itemId, count, slot: spot, newGuid: true });
   // the clone may carry a rotation from its template
   const dn = F(S, lastEntry(S, invIdx), 'CurrDirection'); if (dn) writeValue(S.buf, dn, '0');
-  return { stacked: false, inv: invIdx, slot: spot };
+  return { inv: invIdx, slot: spot };
 }
 function removeItem(S, invIdx, idx) {
   const inv = inventories(S)[invIdx]; if (!inv) throw new Error('No such inventory');
@@ -294,6 +319,42 @@ function setCaseSize(S, level) {
   }
   writeValue(S.buf, S.parsed.nodes[m.size.id], String(level));
   return { ok: true };
+}
+// Tidy up the attaché case: items are packed to the left, grouped by kind (weapons, throwables, healing, ammo, accessories, the rest), big ones first.
+// Rotations are kept. Nothing is written unless every item finds a place.
+const SORT_ORDER = ['weapon', 'throw', 'heal', 'ammo', 'acc'];
+function sortCase(S, invIdx) {
+  const m = model(S)[invIdx]; if (!m || !m.grid || invIdx !== 0) throw new Error('Only the attaché case can be sorted');
+  const [W, H] = m.grid;
+  const items = m.items.filter((i) => i.slot);
+  const rank = (c) => { const k = SORT_ORDER.indexOf(c); return k < 0 ? SORT_ORDER.length : k; };
+  const area = (i) => i.fp[0] * i.fp[1];
+  const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || '')) || String(a.itemId.value).localeCompare(String(b.itemId.value));
+  const orders = [
+    (a, b) => rank(a.cat) - rank(b.cat) || area(b) - area(a) || byName(a, b),
+    (a, b) => area(b) - area(a) || Math.max(...b.fp) - Math.max(...a.fp) || rank(a.cat) - rank(b.cat) || byName(a, b),
+  ];
+  let plan = null;
+  for (const cmp of orders) {
+    const used = Array.from({ length: W }, () => new Array(H).fill(false)); const out = [];
+    const fits = (x, y, w, h) => { if (x + w > W || y + h > H) return false; for (let a = 0; a < w; a++) for (let b = 0; b < h; b++) if (used[x + a][y + b]) return false; return true; };
+    let ok = true;
+    for (const it of [...items].sort(cmp)) {
+      const [w, h] = it.fp; let spot = null;
+      for (let y = 0; y + h <= H && !spot; y++) for (let x = 0; x + w <= W && !spot; x++) if (fits(x, y, w, h)) spot = { x, y };
+      if (!spot) { ok = false; break; }
+      for (let a = 0; a < w; a++) for (let b = 0; b < h; b++) used[spot.x + a][spot.y + b] = true;
+      out.push([it, spot]);
+    }
+    if (ok) { plan = out; break; }
+  }
+  if (!plan) throw new Error('Cannot sort: the items do not all fit when packed (item sizes are estimates). Nothing was changed.');
+  const arr = itemList(S, inventories(S)[invIdx]); let moved = 0;
+  for (const [it, spot] of plan) {
+    if (it.slot.x === spot.x && it.slot.y === spot.y) continue;
+    setEntry(S, S.parsed.nodes[arr.items[it.idx]], { slot: spot }); moved++;
+  }
+  return { moved };
 }
 // Weapon upgrade level (0..MAX_UPG) for one upgrade category.
 function setUpgrade(S, invIdx, idx, key, level) {
@@ -487,6 +548,6 @@ function weaponStatus(S) {
 module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
-  CASE_DIMS, MAX_UPG, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
+  CASE_DIMS, MAX_UPG, sortCase, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
   moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
 };

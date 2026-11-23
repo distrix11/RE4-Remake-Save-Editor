@@ -390,6 +390,7 @@ const routes = {
     return { changes, dirty: !!S.dirty, rawEdits: Object.keys(S.edits || {}).length };
   },
   'POST /api/move': async (b) => { const S = need(b.name); guard(S); INV.moveItem(S, Number(b.inv), Number(b.idx), b.x, b.y, b.dir); S.dirty = true; return fresh(S); },
+  'POST /api/sort': async (b) => { const S = need(b.name); guard(S); const r = INV.sortCase(S, Number(b.inv)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/case-size': async (b) => { const S = need(b.name); guard(S); INV.setCaseSize(S, b.level); S.dirty = true; return fresh(S); },
   'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return fresh(S); },
   'POST /api/backups': async (b) => {
