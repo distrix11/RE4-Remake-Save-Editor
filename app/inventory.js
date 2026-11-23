@@ -26,7 +26,7 @@ const FOOT = JSON.parse(fs.readFileSync(path.join(__dirname, 'footprints.json'),
 function footprint(itemId, rotated) {
   const id = String(itemId);
   let fp = FOOT[id];
-  if (!fp) fp = /^27[0-8]/.test(id) && !/^277/.test(id) ? [3, 2] : [1, 1];
+  if (!fp) fp = /^27[0-8]/.test(id) && !/^277/.test(id) ? [2, 3] : [1, 1];
   return rotated ? [fp[1], fp[0]] : [fp[0], fp[1]];
 }
 // weapon upgrade categories seen in saves: which fields carry the level

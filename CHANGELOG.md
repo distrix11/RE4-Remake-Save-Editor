@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.2.0
+- Weapon sizes corrected: guns are two rows tall and 2-6 columns wide, the SR M1903 is one row; checked so that no items overlap in real saves.
 - Fixed saves that failed to open ("unknown class" error): the size of the physics data blocks is now found by the shape of their elements instead of guessing the next token.
 - Settings window: choose the save folder or Steam account from inside the editor.
 - Safer writes: the new file is written to a temporary name, decrypted back and compared, then moved into place.
