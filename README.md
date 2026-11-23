@@ -55,7 +55,7 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 ## Requirements
 
 - Windows 10 / 11, Steam version of Resident Evil 4 (2023)
-- Release archive: nothing else. The all-in-one archive bundles Node.js; the other two download the official portable Node.js once if the PC has none (or use the Node.js 20+ you have).
+- Release archive: nothing else, the all-in-one archive bundles Node.js. The script-only packages (`start.js`) need the [Node.js](https://nodejs.org) 20+ you have installed.
 - Building from source: [Node.js](https://nodejs.org) 20 or newer, [git](https://git-scm.com) and internet access for the first build
 
 ## Quick start
@@ -68,8 +68,7 @@ Download from GitHub Releases, extract anywhere and pick one:
   The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
   The launcher is about 100 lines of C# (`launcher/Launcher.cs`) that starts the bundled `runtime/node.exe` with `app/server.js`.
   Windows SmartScreen may warn because it is not code-signed. SHA-256 sums are published with each release.
-- `...-github.zip`: double-click `start.bat` (or `start.js`). Uses the Node.js 20+ you have; if there is none, it asks once and downloads the official portable Node.js from nodejs.org (about 37 MB, checked against a fixed SHA-256) into the `runtime` folder. Nothing is installed.
-- `...-nexus.zip` (Nexus Mods): the same without `start.bat` (Nexus does not accept `.bat`, `.exe` or `.dll` files): double-click `start.js`. Windows may ask once whether to run it; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
+- Script-only package (also on Nexus Mods; it has no `.exe`, `.dll` or `.bat` because Nexus does not accept them): double-click `start.js`. It needs [Node.js](https://nodejs.org) 20 or newer (install the LTS version once); if it is missing, a message offers to open the download page. Windows may ask once whether to run the script; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
 
 If you prefer a terminal: `node app/server.js` opens the editor in your browser at http://localhost:4784 (close the black window to stop it).
 `scripts/make-dist.js` builds the archives (`--allinone yes` adds the all-in-one one); a GitHub Actions workflow does it for tags.

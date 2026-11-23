@@ -15,6 +15,8 @@ const url = `http://127.0.0.1:${port}/`;
 const ownVersion = readJson(path.join(ROOT, 'package.json')).version || null;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const fail = (msg) => { console.log('[ERROR] ' + msg); process.exit(1); };
+if (Number(process.versions.node.split('.')[0]) < 20) fail(`Node.js 20 or newer is required (this is ${process.version}). Install the LTS version from https://nodejs.org and start again.`);
+if (Number(process.versions.node.split('.')[0]) < 20) fail(`Node.js 20 or newer is required (this is ${process.version}). Install the LTS version from https://nodejs.org and start again.`);
 
 // the version of the editor that answers on our port (null when nothing does)
 function runningVersion() {

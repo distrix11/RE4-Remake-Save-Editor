@@ -2,7 +2,7 @@
 
 ## 0.9.0 (pre-release)
 - No more .NET and no separate encryptor: the save encryption is built in (`app/lime.js`, a JavaScript port of LimebrellaSharp checked byte for byte against the original on real saves in both directions). Opening a slot takes about 0.1 s instead of seconds.
-- New `start.js` (double-click, no console window) starts the editor in its own app-style window, using `runtime/node.exe`, the installed Node.js, or, after asking once, the official portable Node.js downloaded from nodejs.org (SHA-256 checked). The Nexus archive contains no `.exe`, `.dll` or `.bat` any more. The all-in-one archive is half the size (about 37 MB).
+- New `start.js` (double-click, no console window) starts the editor in its own app-style window, using `runtime/node.exe` or the Node.js 20+ installed on the PC (if there is none, it offers to open the Node.js download page; the script downloads nothing itself). The Nexus archive contains no `.exe`, `.dll` or `.bat` any more. The all-in-one archive is half the size (about 37 MB).
 - Fixed: the backup list and the "Restore from backup" window failed with "fmtSize is not defined" and showed nothing.
 - Fixed: the "Reset upgrades" button was drawn on top of "Full upgrade" (a leftover style of the removed Map view).
 - New "Case look" selector next to the case size: choose Silver, Black, Leather, Gold or Classic. A skin you do not own yet is unlocked too (added to the recipes, cases and charms inventory).

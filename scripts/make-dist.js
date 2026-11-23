@@ -1,6 +1,6 @@
 'use strict';
 // Builds the release archives into dist/ (not committed). All of them are plain JavaScript: the save encryption is built in (app/lime.js),
-// so nothing but Node.js is needed, and Node.js itself can be downloaded by start.js on first start.
+// so nothing but Node.js is needed (bundled in the all-in-one archive).
 //
 //   nexus      start.js (double-click, Windows Script Host) and no .exe, .dll, .bat, .cmd, .ps1 at all: Nexus Mods does not accept them.
 //   github     the same plus start.bat.
@@ -58,9 +58,9 @@ const START = (bat) => `How to start:
      The editor opens in its own window. Closing that window stops the editor.
      - Windows may ask once whether you want to run the script (it came from the internet): choose Open / Run.
      - If start.js opens in a text editor instead, right-click it, "Open with", "Microsoft Windows Based Script Host".
-  3. If this PC has no Node.js (version 20 or newer), a message offers to download the official portable Node.js (about 37 MB)
-     from nodejs.org. The download is checked against a fixed SHA-256 and only unpacked into the "runtime" folder next to start.js;
-     nothing is installed. If you decline, install Node.js LTS from https://nodejs.org yourself and start again.
+  3. This needs Node.js (version 20 or newer). If it is not installed, a message offers to open the Node.js download page:
+     install the "LTS" version (Windows Installer, Next, Next, Finish), then double-click start.js again. This script downloads nothing itself.
+     (The all-in-one zip on GitHub already contains Node.js and needs nothing: https://github.com/distrix11/RE4-Remake-Save-Editor/releases)
 
 If you have Node.js and prefer a terminal:  node app/server.js   (the editor opens in your browser at http://localhost:4784).
 `;

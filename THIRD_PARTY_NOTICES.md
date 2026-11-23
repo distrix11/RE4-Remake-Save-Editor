@@ -26,7 +26,7 @@ The weapon pictures in `icons/weapons` are renders of the CC0 3D models from the
 
 The all-in-one release archive bundles the unmodified official Node.js Windows build as `runtime/node.exe`
 (downloaded from https://nodejs.org and checked against the published SHA-256 list). Its license is included as `runtime/LICENSE-Node.txt`.
-The Nexus and GitHub archives do not contain Node.js; `start.js` can download the same official build from nodejs.org (checked against a fixed SHA-256) into `runtime/` if the PC has none.
+The script-only packages do not contain Node.js; they use the one installed on the PC.
 
 ## MIT License text (applies to the MIT-licensed projects above)
 
