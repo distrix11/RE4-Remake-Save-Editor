@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RE4 Save Editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237fb35a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19c0-8 5-14 15-14 0 10-6 15-14 15'/%3E%3Cpath d='M5 19c3-5 6-8 11-11'/%3E%3C/svg%3E">
+<style>
+/* Theme: survival-horror olive / herb green with brass accents (original palette, no game assets) */
+:root{
+  --bg:#0f120d;--bg2:#141910;--panel:#1a2015;--panel2:#232b1c;--panel3:#2b3522;
+  --line:#34402b;--line2:#46553a;
+  --text:#e6e9d9;--dim:#8f9b7e;
+  --green:#7fb35a;--green2:#5e8f3f;--brass:#c9a24a;--brass2:#a8832f;
+  --accent:var(--green);--danger:#c0503f;--ok:#8cc152;--warn:#d9a441;
+  --mono:ui-monospace,Consolas,monospace;
+  --head:"Bahnschrift","Segoe UI Semibold","Arial Narrow",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;color:var(--text);font:14px/1.45 system-ui,Segoe UI,sans-serif;background-color:var(--bg);
+  background-image:linear-gradient(rgba(127,179,90,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(127,179,90,.045) 1px,transparent 1px),radial-gradient(ellipse at 50% -10%,rgba(127,179,90,.12),transparent 55%);
+  background-size:36px 36px,36px 36px,100% 100%;background-attachment:fixed}
+.ic{width:1.15em;height:1.15em;vertical-align:-.22em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-right:.45em;flex:none}
+.sm .ic,button.icon .ic{margin-right:0}
+
+/* header */
+header{display:flex;gap:10px;align-items:center;padding:10px 18px;background:linear-gradient(180deg,#1d2418,#161b12);position:sticky;top:0;z-index:5;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);box-shadow:0 1px 0 rgba(201,162,74,.35),0 6px 18px rgba(0,0,0,.35)}
+h1{font:600 17px var(--head);margin:0;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+h1 .brand{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--green2);background:rgba(127,179,90,.12);color:var(--green)}
+h1 .brand .ic{margin:0;width:18px;height:18px}
+h1 b{color:var(--green);font-weight:600}
+.sp{flex:1}
+header>button{padding:6px 10px;font-size:13px}
+header>select{max-width:280px}
+
+/* controls */
+button,select{background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--text);border:1px solid var(--line2);border-radius:3px;padding:6px 13px;cursor:pointer;font:inherit;transition:border-color .12s,background .12s,color .12s}
+button:hover:not(:disabled),select:hover{border-color:var(--green);background:linear-gradient(180deg,var(--panel3),var(--panel2))}
+button.pri{background:linear-gradient(180deg,var(--green),var(--green2));border-color:var(--green);color:#10150b;font-weight:600}
+button.pri:hover:not(:disabled){background:linear-gradient(180deg,#93c76d,var(--green));border-color:#a9d88a}
+button.sm{padding:3px 9px;font-size:12px}button.ghost{background:none;border-color:transparent;color:var(--dim)}
+button.ghost:hover:not(:disabled){color:var(--text);border-color:var(--line2);background:none}
+button.danger:hover:not(:disabled){border-color:var(--danger);color:#f0a79b}
+button:disabled{opacity:.4;cursor:default}
+select{max-width:340px;padding-right:8px}
+/* dropdown list (native popup) must stay dark and readable */
+select option,select optgroup{background:#1a2015;color:var(--text);font-weight:400}
+select optgroup{color:var(--brass);font-style:normal;font-weight:600}
+select option:checked,select option:hover{background:#3b4a2c;color:#fff}
+select option:disabled{color:var(--dim)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+
+main{max-width:1040px;margin:0 auto;padding:18px}
+
+/* tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.tab{display:inline-flex;align-items:center;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:9px 18px;color:var(--dim);font:600 14px var(--head);letter-spacing:.08em;text-transform:uppercase}
+.tab:hover:not(:disabled){background:rgba(127,179,90,.07);color:var(--text)}
+.tab.on{color:var(--green);border-bottom-color:var(--brass);background:linear-gradient(180deg,transparent,rgba(127,179,90,.1))}
+
+/* cards */
+.card{background:linear-gradient(180deg,rgba(35,43,28,.55),rgba(26,32,21,.85));border:1px solid var(--line);border-left:3px solid var(--brass2);border-radius:3px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.card h3{margin:0 0 12px;font:600 14px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);display:flex;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.big{font-size:28px;padding:8px 12px;font-family:var(--mono);color:var(--brass);letter-spacing:.02em}
+label.f{display:block}label.f>span{display:flex;align-items:center;color:var(--dim);font:600 12px var(--head);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+label.f>span .ic{color:var(--green)}
+input{background:#0c0f09;color:var(--text);border:1px solid var(--line2);border-radius:3px;padding:6px 9px;font:inherit;width:100%}
+input.mono,.mono{font-family:var(--mono)}input:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(127,179,90,.25)}
+input.ok{border-color:var(--ok);box-shadow:0 0 0 2px rgba(140,193,82,.3)}input.bad{border-color:var(--danger);box-shadow:0 0 0 2px rgba(192,80,63,.3)}
+.quick{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+
+/* tables / lists */
+table{width:100%;border-collapse:collapse}th,td{padding:7px 9px;border-bottom:1px solid rgba(52,64,43,.7);text-align:left;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+th{color:var(--dim);font:600 11px var(--head);letter-spacing:.12em;text-transform:uppercase;user-select:none}th.s{cursor:pointer}th.s:hover{color:var(--brass)}
+tbody tr:hover td,table tr:not(:first-child):hover td{background:rgba(127,179,90,.045)}
+td input{padding:4px 7px}
+.dim{color:var(--dim)}
+.tag{display:inline-flex;align-items:center;font-size:11px;padding:1px 8px;border:1px solid var(--line2);border-radius:2px;color:var(--dim);white-space:nowrap;background:rgba(0,0,0,.2)}
+.tag .ic{width:1em;height:1em;margin-right:.35em}
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;font-size:13px}.crumbs a{color:var(--green);cursor:pointer}.crumbs a:hover{color:var(--brass)}
+.row{cursor:pointer}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar input{max-width:260px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;border-radius:2px;padding:5px 12px;font-size:13px}
+.chip.on{border-color:var(--brass);color:var(--brass);background:linear-gradient(180deg,rgba(201,162,74,.16),rgba(201,162,74,.05))}
+.iname{font-weight:600;letter-spacing:.01em}.iname.u{color:var(--dim);font-weight:400}
+.acts{white-space:nowrap;text-align:right}
+.irow{display:flex;align-items:center;gap:11px}
+.tile{display:grid;place-items:center;flex:none;width:36px;height:36px;border:1px solid var(--line2);background:linear-gradient(180deg,#10150c,#0b0e08);color:var(--dim);border-radius:2px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+.tile .ic{margin:0;width:20px;height:20px}
+.c-weapon{color:#d6b25a}.c-throw{color:#d98a52}.c-ammo{color:#c7b278}.c-heal{color:#8cc152}.c-acc{color:#7fb7c4}
+.c-key{color:#e3c15a}.c-treasure{color:#6fc3a6}.c-special{color:#b79be0}.c-charm{color:#e08aa3}.c-money{color:var(--brass)}
+.tile.c-weapon{border-color:#6e5a2a}.tile.c-heal{border-color:#41602a}.tile.c-treasure{border-color:#2f6252}.tile.c-key{border-color:#6e5f2a}
+
+/* toast / modal */
+#toast{position:fixed;right:18px;bottom:18px;background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--brass);padding:11px 15px;border-radius:3px;max-width:460px;display:none;z-index:30;white-space:pre-line;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#toast.err{border-left-color:var(--danger)}#toast.ok{border-left-color:var(--ok)}
+.warn{color:var(--warn)}.empty{padding:44px;text-align:center;color:var(--dim)}
+.modal{position:fixed;inset:0;background:rgba(5,7,4,.72);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:6vh 12px;z-index:20}
+.modal.on{display:flex}
+.dlg{background:var(--panel);border:1px solid var(--line2);border-top:3px solid var(--brass);border-radius:3px;width:min(660px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.dlg header{position:static;border:0;box-shadow:none;background:none;padding:14px 16px 8px}.dlg .body{padding:0 16px 12px;overflow:auto}
+.dlg footer{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.18)}
+.dlg h3{font:600 15px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.pick{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 9px;border:1px solid transparent;border-radius:2px;cursor:pointer}
+.pick:hover{background:rgba(127,179,90,.08)}.pick.on{border-color:var(--green);background:rgba(127,179,90,.14)}
+.note{font-size:12px;color:var(--dim);margin:6px 0 0}
+.st-done{color:var(--ok);border-color:var(--green2)}.st-part{color:var(--warn);border-color:#7a6026}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}::-webkit-scrollbar-track{background:var(--bg2)}
+@media (max-width:760px){.hide-s{display:none}h1{font-size:15px}}
+.dirty{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--head);letter-spacing:.1em;text-transform:uppercase;color:var(--warn);border:1px solid #7a6026;background:rgba(217,164,65,.1);padding:3px 9px;border-radius:2px}
+.dirty::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.dirty[hidden]{display:none}
+.seg{display:inline-flex}.seg button{border-radius:0}.seg button:first-child{border-radius:3px 0 0 3px}.seg button:last-child{border-radius:0 3px 3px 0;margin-left:-1px}
+.seg button.on{border-color:var(--brass);color:var(--brass);background:linear-gradient(180deg,rgba(201,162,74,.18),rgba(201,162,74,.06));position:relative;z-index:1}
+.upg{background:rgba(0,0,0,.18)}.upg td{padding:8px 12px 10px 56px}
+.upg .ugrid{display:flex;gap:14px;flex-wrap:wrap}.upg label{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim)}.upg input{width:64px}
+.cmap{position:relative;margin:0 auto;border:1px solid var(--line2);background-color:#0a0d08;touch-action:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:var(--cell) var(--cell)}
+.mi{position:absolute;box-sizing:border-box;border:1px solid var(--line2);background:rgba(127,179,90,.1);display:flex;align-items:flex-start;gap:4px;padding:3px 4px;font-size:11px;line-height:1.15;overflow:hidden;cursor:grab;user-select:none;color:var(--text)}
+.mi .ic{margin:0;width:14px;height:14px;flex:none}.mi .nm{overflow:hidden;text-overflow:ellipsis}.mi .cn{position:absolute;right:3px;bottom:1px;font:600 10px var(--mono);color:var(--brass)}
+.mi.c-weapon{border-color:#6e5a2a;background:rgba(214,178,90,.13)}.mi.c-heal{border-color:#41602a;background:rgba(140,193,82,.13)}.mi.c-ammo{border-color:#6a5f3a;background:rgba(199,178,120,.1)}
+.mi.c-treasure{border-color:#2f6252;background:rgba(111,195,166,.12)}.mi.c-key{border-color:#6e5f2a;background:rgba(227,193,90,.12)}.mi.c-acc{border-color:#35606b;background:rgba(127,183,196,.12)}.mi.c-throw{border-color:#7a4a2a;background:rgba(217,138,82,.12)}
+.mi.sel{outline:2px solid var(--brass);z-index:3}.mi.drag{opacity:.85;z-index:6;cursor:grabbing}
+.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-sizing:border-box}.ghost.ok{border-color:var(--ok);background:rgba(140,193,82,.18)}.ghost.bad{border-color:var(--danger);background:rgba(192,80,63,.22)}
+.selbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.dchg{display:flex;align-items:flex-start;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(52,64,43,.6)}.dchg:last-child{border-bottom:0}.dchg .ic{color:var(--green);margin:3px 0 0}
+.bar{height:10px;background:#0a0d08;border:1px solid var(--line2);border-radius:2px;overflow:hidden}.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--green2),var(--green))}
+.metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.metric{border:1px solid var(--line);background:rgba(0,0,0,.18);padding:8px 10px;border-radius:2px}
+.metric b{display:block;font:600 20px var(--mono);color:var(--brass)}.metric span{font:600 11px var(--head);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.ach{display:flex;gap:12px;padding:10px 4px;border-bottom:1px solid rgba(52,64,43,.6)}.ach:last-child{border-bottom:0}
+.ach .tile{width:40px;height:40px}.ach.got .tile{color:var(--brass);border-color:#6e5a2a}.ach.got .nm{color:var(--dim)}
+.hint{margin-top:5px;font-size:12px;padding:4px 8px;border-left:2px solid var(--line2);background:rgba(0,0,0,.15);color:var(--dim)}.hint.ok{border-left-color:var(--ok);color:#b9d99a}.hint.bad{border-left-color:var(--danger);color:#e5a398}
+.banner{display:flex;align-items:center;gap:10px;padding:9px 18px;background:linear-gradient(180deg,#4a3a12,#3a2d0e);color:#f3dd9b;border-bottom:1px solid #7a6026;font-weight:600}
+.banner[hidden]{display:none}.banner .ic{margin:0;color:#e0b94a}.banner span{font-weight:400}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="brand" data-ic="leaf"></span><span>RE4 <b>Save Editor</b></span></h1>
+  <select id="slot" title="Save file"></select>
+  <span id="dirty" class="dirty" hidden title="There are edits in the editor that are not in the game file yet">Unsaved</span>
+  <span class="sp"></span>
+  <button id="bRevert" data-ic="undo" disabled title="Discard unsaved edits">Discard edits</button>
+  <button id="bRestore" data-ic="restore" disabled title="Restore the file from a backup or from your own file">Restore from backup…</button>
+  <button id="bCopy" data-ic="copy" disabled title="Copy this slot into another slot">Copy slot…</button>
+  <button id="bOut" data-ic="export" disabled title="Save the encrypted file to the output/ folder; the game is not touched">Export to output/</button>
+  <button id="bGame" data-ic="save" class="pri" disabled>Save to game</button>
+</header>
+<div id="gameBanner" class="banner" role="alert" hidden></div>
+<main id="view"><div class="empty">Loading…</div></main>
+<div class="modal" id="addModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="plus">Add item</h3><span class="sp"></span><button class="sm ghost icon" id="addClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <div class="chips" id="addCats"></div>
+      <div style="margin:10px 0"><input id="addQ" placeholder="Search by name or ID…"></div>
+      <div id="addList"></div>
+      <p class="note">The names list is community-compiled and may contain mistakes. Weapons and throwables cannot be added; copy an existing one with the copy button instead.</p>
+    </div>
+    <footer>
+      <span id="addSel" class="dim" style="flex:1">Nothing selected</span>
+      <label style="display:flex;align-items:center;gap:6px">Count <input id="addCount" type="number" min="1" value="1" style="width:80px"></label>
+      <button class="pri" id="addGo" disabled>Add</button>
+    </footer>
+  </div>
+</div>
+<div class="modal" id="restoreModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="restore">Restore a save from a backup</h3><span class="sp"></span><button class="sm ghost icon" id="restoreClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <p class="note" style="margin-top:0" id="restoreFor"></p>
+      <div id="restoreList"></div>
+    </div>
+    <footer>
+      <input type="file" id="restoreFile" style="display:none">
+      <button id="restorePick" data-ic="file">Choose your own file…</button>
+      <span class="dim" style="flex:1;font-size:12px">The current file is copied to backup/auto/ before it is replaced.</span>
+    </footer>
+  </div>
+</div>
+<div class="modal" id="diffModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="file">What will be written</h3><span class="sp"></span><button class="sm ghost icon" id="diffClose" data-ic="close" title="Close"></button></header>
+    <div class="body"><div id="diffList"></div></div>
+    <footer>
+      <span class="dim" id="diffNote" style="flex:1;font-size:12px"></span>
+      <button id="diffCancel">Cancel</button>
+      <button class="pri" id="diffGo" data-ic="save">Write</button>
+    </footer>
+  </div>
+</div>
+<div class="modal" id="copyModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="copy">Copy slot</h3><span class="sp"></span><button class="sm ghost icon" id="copyClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <p class="note" style="margin-top:0" id="copyFor"></p>
+      <div id="copyList"></div>
+      <p class="note">The chosen slot will be replaced completely. Its current version is saved to backup/auto/. The state from the editor is copied (including unsaved edits, if any). New slots cannot be created: choose an existing one.</p>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="icons.js"></script>
+<script src="app.js"></script>
+<script src="features.js"></script>
+<script src="treasures.js"></script>
+<script src="achievements.js"></script>
+</body>
+</html>
