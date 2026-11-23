@@ -95,7 +95,7 @@ function render() {
   }
   view.append(tabs);
   const body = document.createElement('div'); view.append(body);
-  if (tab === 'money') renderMoney(body); else if (tab === 'inv') renderInventory(body); else if (tab === 'quests') renderQuests(body); else if (tab === 'treasures') renderTreasures(body); else if (tab === 'achievements') renderAchievements(body); else renderTree(body);
+  if (tab === 'money') renderMoney(body); else if (tab === 'inv') renderInventory(body); else if (tab === 'quests') renderQuests(body); else if (tab === 'treasures') renderTreasures(body); else if (tab === 'achievements') renderAchievements(body); else if (!cfg.advancedAccepted) renderAdvancedGate(body); else renderTree(body);
 }
 
 // ---------------------------------------------------------------- money
@@ -304,6 +304,19 @@ $('#addGo').onclick = async () => {
   await structural('add', { itemId: add.sel, count }, 'Item added');
 };
 
+// ---------------------------------------------------------------- Advanced: one-time warning (remembered in config.json)
+function renderAdvancedGate(root) {
+  const card = document.createElement('div'); card.className = 'card'; card.style.borderLeft = '4px solid var(--danger)';
+  card.innerHTML = '<h3 style="margin:0 0 8px">' + ic('tools') + ' Advanced: for experienced users only</h3>' +
+    '<p style="margin:0 0 8px">This tab shows every field of the save file and lets you change raw numbers directly. The editor cannot check whether a value makes sense: a wrong value can <b>corrupt the slot so that the game fails to load it</b> or behaves in unexpected ways.</p>' +
+    '<p class="note" style="margin:0 0 12px">Nothing is written to the game until you press <b>Save to game</b>, and a backup is made before every write, but keep your own copies of your saves too. This warning is shown only once.</p>' +
+    '<label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;margin-bottom:12px"><input type="checkbox" id="advOk" style="width:auto;margin-top:3px"><span>I understand that editing raw fields can damage my save, and I accept this risk.</span></label>' +
+    '<button class="pri" id="advGo" disabled>Continue to Advanced</button>';
+  root.append(card);
+  const ok = card.querySelector('#advOk'), go = card.querySelector('#advGo');
+  ok.onchange = () => { go.disabled = !ok.checked; };
+  go.onclick = async () => { try { await api('advanced-accept', {}); cfg.advancedAccepted = true; render(); } catch (e) { toast(e.message, 'err'); } };
+}
 // ---------------------------------------------------------------- tree (advanced)
 let treeState = { id: null, q: '' };
 async function renderTree(root) {

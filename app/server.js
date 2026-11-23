@@ -425,6 +425,8 @@ const routes = {
     const r = b.check ? await UPD.check(VERSION, true) : (enabled ? await UPD.check(VERSION, false) : UPD.cached(VERSION));
     return { enabled, repo: UPD.REPO, ...r };
   },
+  // the one-time "Advanced is for experienced users" confirmation is remembered in config.json
+  'POST /api/advanced-accept': async () => { cfg.advancedAccepted = true; const conf = readJsonSafe(CFG_PATH, {}); conf.advancedAccepted = true; fs.writeFileSync(CFG_PATH, JSON.stringify(conf, null, 2)); return { ok: true }; },
   'POST /api/update-dismiss': async (b) => { UPD.dismiss(b.version); return { ok: true }; },
   'GET /api/settings': async () => ({ saveDir: cfg.saveDir, candidates: detectSaveDirs().map((c) => ({ dir: c.dir, account: c.account, mtime: c.mtime })), configFile: CFG_PATH, version: VERSION }),
   'POST /api/settings': async (b) => {
@@ -471,7 +473,7 @@ const routes = {
     return { ok: true };
   },
   'GET /api/status': async () => ({ gameRunning: await gameRunning() }),
-  'GET /api/config': async () => ({ version: VERSION, noSaveDir: !cfg.saveDir, files: fileList(), catalog: INV.CATALOG, categories: INV.CATEGORIES, questInfo: QUEST_INFO }),
+  'GET /api/config': async () => ({ version: VERSION, advancedAccepted: cfg.advancedAccepted === true, noSaveDir: !cfg.saveDir, files: fileList(), catalog: INV.CATALOG, categories: INV.CATEGORIES, questInfo: QUEST_INFO }),
   'POST /api/summary': async (b) => {
     if (!/Slot.bin$/.test(b.name || '') || !SAVE_RE.test(b.name)) throw new Error('Invalid file name');
     const S = { buf: await unpackCached(b.name) }; S.parsed = parse(S.buf);
@@ -555,7 +557,7 @@ const routes = {
   },
 };
 
-const NO_SAVE_OK = new Set(['GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
+const NO_SAVE_OK = new Set(['POST /api/advanced-accept', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
   try {

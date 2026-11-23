@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.2.0
+- The Advanced tab asks for a one-time confirmation (a checkbox) that it is for experienced users and can damage the save. The choice is remembered in config.json.
 - Weapon upgrades reworked after checking how the game stores them: all effect fields of an upgrade are written together (the Handcannon and SR M1903 reload through a different field than other guns, which used to be left at the old value). The exclusive upgrade is its own 0/1 setting and is taken away when a normal upgrade is lowered (the game needs all of them at 4 for it).
 - New "Full upgrade" button next to weapons (list and Case view) and "Reset upgrades" in the upgrade panel.
 - New "Sort" button in the Case view: packs the items to the left, grouped (weapons, throwables, healing, ammo, accessories, the rest), big items first. Rotations are kept, nothing changes if an item would not fit; "Discard edits" undoes it.
