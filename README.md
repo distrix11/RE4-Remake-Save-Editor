@@ -24,7 +24,7 @@ It runs on your own computer, opens in your browser and never sends anything ove
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
 - **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with vector item icons.
-  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Items are moved on the flat map.
+  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Weapons use pictures rendered from CC0 3D models; you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved on the flat map.
 - **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - **Advanced**: a raw tree view of every field in the save file with search.
 

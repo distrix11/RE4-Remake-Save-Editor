@@ -554,7 +554,7 @@ const routes = {
 };
 
 const NO_SAVE_OK = new Set(['GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
+const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://x');
@@ -566,6 +566,9 @@ const server = http.createServer(async (req, res) => {
       const body = req.method === 'POST' ? await readJson(req) : {};
       return send(res, 200, await routes[key](body));
     }
+    // pictures: icons/weapons (bundled, rendered from CC0 models) and icons/user (your own, named <item id>.png)
+    const im = new RegExp('^/icons/(weapons|user)/([\\w.-]+\\.(png|webp|jpg))$', 'i').exec(url.pathname);
+    if (im) { const ip = path.join(__dirname, '..', 'icons', im[1].toLowerCase(), im[2]); if (!fs.existsSync(ip)) return send(res, 404, 'not found', 'text/plain'); return send(res, 200, fs.readFileSync(ip), MIME['.' + im[3].toLowerCase()]); }
     const f = path.join(__dirname, 'public', url.pathname === '/' ? 'index.html' : url.pathname);
     if (!f.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(f)) return send(res, 404, 'not found', 'text/plain');
     send(res, 200, fs.readFileSync(f), MIME[path.extname(f)] || 'application/octet-stream');

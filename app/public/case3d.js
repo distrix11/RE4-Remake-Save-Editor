@@ -36,7 +36,7 @@ function drawCase3D(holder, inv) {
     const bw = it.fp[0] * cell, bh = it.fp[1] * cell;
     el.style.cssText = `left:${it.slot.x * cell}px;top:${it.slot.y * cell}px;width:${bw}px;height:${bh}px`;
     el.title = `${nm}\nID ${it.itemId.value}\ncell ${it.slot.x},${it.slot.y}`;
-    const art = typeof itemArt === 'function' ? itemArt(nm, it.cat, it.fp) : { svg: null };
+    const art = typeof itemArt === 'function' ? itemArt(nm, it.cat, it.fp, it.itemId.value) : { svg: null };
     let inner;
     if (art.svg && art.turn) inner = `<div class="turned" style="width:${bh - 4}px;height:${bw - 4}px">${art.svg}</div>`;
     else if (art.svg) inner = art.svg;

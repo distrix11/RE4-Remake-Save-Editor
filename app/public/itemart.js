@@ -30,6 +30,15 @@
     bow: `<path d="M30 8c-14 10-14 40 0 50" fill="none" stroke="#7a5430" stroke-width="5" stroke-linecap="round"/><path d="M30 8l62 26-62 26" fill="none" stroke="#d8d2b8" stroke-width="1.5"/><rect x="28" y="28" width="76" height="7" rx="2" fill="url(#gDark)" ${O}/><path d="M104 31h10l-6 5z" fill="url(#gMetal)" ${O}/>`,
     knife: `<path d="M8 36L84 24l18 4-4 8-16 2z" fill="url(#gMetal)" ${O}/><path d="M12 35l68-10" stroke="#fff" stroke-width="1.4" opacity=".7"/><rect x="82" y="20" width="6" height="20" rx="2" fill="url(#gBrass)" ${O}/><rect x="88" y="23" width="26" height="13" rx="5" fill="url(#gDark)" ${O}/>`,
   };
+  // rendered pictures (icons/weapons/*.png, from the CC0 Ultimate Gun Pack by Quaternius); knives, rocket launchers and the bow stay vector
+  const GUN_PNG = [
+    [/sg-09|handgun/, 'pistol_1'], [/punisher/, 'pistol_2'], [/minecart|red9/, 'pistol_3'], [/blacktail/, 'pistol_4'], [/sentinel/, 'pistol_5'], [/matilda/, 'pistol_6'],
+    [/handcannon/, 'revolver_1'], [/killer7/, 'revolver_2'], [/butterfly/, 'revolver_3'],
+    [/riot/, 'shotgun_1'], [/w-870|shotgun/, 'shotgun_2'], [/striker/, 'shotgun_4'], [/sweeper/, 'shotgun_shortstock'],
+    [/m1903|sr /, 'sniperrifle_6'], [/stingray|semi/, 'assaultrifle_5'], [/cqbr/, 'assaultrifle2_1'],
+    [/tmp/, 'submachinegun_4'], [/le 5/, 'submachinegun_2'],
+  ];
+  const gunPng = (n) => { const t = n.toLowerCase(); const m = GUN_PNG.find(([re]) => re.test(t)); return m ? '<img class="art" alt="" src="icons/weapons/' + m[1] + '.png">' : null; };
   const weapon = (n) => {
     n = n.toLowerCase();
     if (/knife|kunai/.test(n)) return W.knife;
@@ -120,11 +129,11 @@
   const caseUp = wrap('0 0 60 60', `<rect x="6" y="22" width="48" height="30" rx="4" fill="url(#gMetal)" ${O}/><path d="M30 6v14M23 13l7-7 7 7" fill="none" stroke="#a9c58a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`);
 
   // returns { svg, wide }: wide art is drawn horizontally and is turned when the item box is taller than wide
-  window.itemArt = function (name, cat, fp) {
+  const baseArt = function (name, cat, fp) {
     const n = String(name || ''); const t = n.toLowerCase();
     let svg = null, horizontal = false;
     try {
-      if (cat === 'weapon') { svg = wrap('0 0 120 60', weapon(n)); horizontal = true; }
+      if (cat === 'weapon') { svg = (!/knife|rocket|bolt thrower|bow/i.test(n) && gunPng(n)) || wrap('0 0 120 60', weapon(n)); horizontal = true; }
       else if (cat === 'heal') {
         svg = /spray/.test(t) ? spray : /bass/.test(t) ? fish : /viper/.test(t) ? viper : /beetle/.test(t) ? beetle : herb(n);
       } else if (cat === 'ammo') {
@@ -144,6 +153,12 @@
     if (!svg) return { svg: null, horizontal: false };
     // a horizontally drawn weapon in a tall box is turned by 90 degrees
     const turn = horizontal && fp && fp[1] > fp[0];
-    return { svg: turn ? svg.replace('<svg ', '<svg style="transform:rotate(90deg)" ') : svg, horizontal, turn };
+    return { svg, horizontal, turn };
+  };
+  window.itemArt = function (name, cat, fp, id) {
+    const a = baseArt(name, cat, fp);
+    if (id === undefined || id === null) return a;
+    const own = '<img class="art own" alt="" src="icons/user/' + id + '.png" onerror="this.remove()">';
+    return { ...a, svg: '<div class="stk">' + (a.svg || '') + own + '</div>' };
   };
 })();

@@ -22,3 +22,8 @@ Thumbs.db
 .DS_Store
 
 app/update-state.json
+
+# your own item pictures
+icons/user/*
+!icons/user/README.txt
+icons/images/

@@ -1,0 +1,44 @@
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+const q = new URLSearchParams(location.search);
+const path = q.get('m'), flip = q.get('flip') === '1', W = +q.get('w') || 384, H = +q.get('h') || 192;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setClearColor(0x000000, 0); renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x556070, 1.5));
+const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-2, 3, 4); scene.add(key);
+const rim = new THREE.DirectionalLight(0xaac4ff, 1.0); rim.position.set(3, 1, -3); scene.add(rim);
+const dir = path.substring(0, path.lastIndexOf('/') + 1), file = path.substring(path.lastIndexOf('/') + 1);
+const mtl = await new MTLLoader().setPath(dir).loadAsync(file + '.mtl'); mtl.preload();
+const obj = await new OBJLoader().setMaterials(mtl).setPath(dir).loadAsync(file + '.obj');
+// the pack stores colours as linear values that are very dark: lift them and give the metal some shine
+obj.traverse((m) => {
+  if (!m.isMesh) return;
+  const mats = Array.isArray(m.material) ? m.material : [m.material];
+  const out = mats.map((o) => {
+    const c = o.color.clone(); const l = (c.r + c.g + c.b) / 3; const wood = c.r > c.b * 1.3;
+    const col = wood ? c.clone().multiplyScalar(5) : new THREE.Color().setScalar(Math.min(0.55, 0.12 + l * 4));
+    return new THREE.MeshStandardMaterial({ color: col, metalness: wood ? 0.0 : 0.75, roughness: wood ? 0.6 : 0.35 });
+  });
+  m.material = Array.isArray(m.material) ? out : out[0];
+});
+const box = new THREE.Box3().setFromObject(obj); const size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+obj.position.sub(ctr); const g = new THREE.Group(); g.add(obj); scene.add(g);
+// length axis -> screen X, thinnest axis -> view direction
+const ax = ['x', 'y', 'z'].sort((a, b) => size[b] - size[a]);
+const L = ax[0], T = ax[2];
+if (L === 'z') g.rotation.y = Math.PI / 2; else if (L === 'y') g.rotation.z = -Math.PI / 2;
+if (T === 'x' && L === 'y') g.rotation.y = Math.PI / 2;
+if (flip) g.scale.x = -1;
+const outer = new THREE.Group(); outer.add(g); scene.add(outer); outer.rotation.set(0.28, -0.35, 0);
+const b2 = new THREE.Box3().setFromObject(outer); const s2 = b2.getSize(new THREE.Vector3()), c2 = b2.getCenter(new THREE.Vector3());
+const sc = Math.min((W * 0.94) / s2.x, (H * 0.94) / s2.y);
+const cam = new THREE.OrthographicCamera(-W / 2 / sc, W / 2 / sc, H / 2 / sc, -H / 2 / sc, -100, 100);
+cam.position.set(c2.x, c2.y, 10); cam.lookAt(c2.x, c2.y, 0);
+renderer.render(scene, cam); window.__done = true;
+</script>

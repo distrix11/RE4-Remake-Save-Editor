@@ -31,7 +31,7 @@ const walk = (d, out = []) => { for (const e of fs.readdirSync(d, { withFileType
 function stageSnapshot(dir, withLauncher) {
   const files = run('git', ['ls-files', '-z'], { cwd: ROOT }).toString('utf8').split('\0').filter(Boolean);
   for (const f of files) {
-    if (f === 'scripts/make-dist.js' || f === 'scripts/allinone.js' || f.startsWith('.github/') || f.startsWith('docs/') || f === 'build.bat') continue; // dev-only files
+    if (f === 'scripts/make-dist.js' || f === 'scripts/allinone.js' || f.startsWith('.github/') || f.startsWith('icons/models/') || f.startsWith('docs/') || f === 'build.bat') continue; // dev-only files
     if (f === 'start.bat' && !withLauncher) continue;
     const dest = path.join(dir, f); fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(path.join(ROOT, f), dest);
   }
