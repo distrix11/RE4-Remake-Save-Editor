@@ -2,6 +2,7 @@
 
 ## Unreleased (for 0.9.1)
 - Fixed: the update check did not see pre-releases (GitHub never reports a pre-release as "latest"), so it said that no release exists. It now looks at the list of releases and names a pre-release as such.
+- The update banner has GitHub and Nexus Mods buttons (and the About dialog a link to the Nexus Mods page).
 - Issue templates are forms now (package, version, did the game load the save, diagnostics, a required "no save files attached" box).
 
 ## 0.9.0 (pre-release)
