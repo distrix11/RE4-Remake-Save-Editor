@@ -20,9 +20,6 @@ dotnet --list-runtimes | findstr /b /c:"Microsoft.NETCore.App 10." >nul
 if errorlevel 1 goto :nodotnet
 
 :run
-echo RE4 Save Editor: http://localhost:4784
-echo Close this window to stop the editor.
-start "" http://localhost:4784
 node app\server.js
 pause
 exit /b 0

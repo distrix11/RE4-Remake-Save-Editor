@@ -40,10 +40,13 @@ It runs on your own computer, opens in your browser and never sends anything ove
 ### Option A: release archive (no build)
 
 1. Install [Node.js](https://nodejs.org) (LTS) and the [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64; the *Runtime*, not the SDK).
-2. Download the `...-with-dlls.zip` archive, extract it anywhere and double-click `start.bat`.
+2. Download an archive and extract it anywhere:
+   - `...-github.zip` (GitHub Releases): double-click `start.bat`.
+   - `...-nexus.zip` (Nexus Mods): it has no launcher file. Open the folder in Explorer, click the address bar, type `cmd`, press Enter, then run `node app/server.js`.
+3. The editor opens in your browser at http://localhost:4784. Close the black window to stop it.
 
-The archive contains no `.exe` files: the encryptor is shipped as .NET libraries (`encryptor/*.dll`) and everything else is plain JavaScript.
-`scripts/make-dist.js` builds the archives.
+The archives contain no `.exe` files: the encryptor is shipped as .NET libraries (`encryptor/*.dll`) and everything else is plain JavaScript.
+`scripts/make-dist.js` builds both archives.
 
 ### Option B: build from source
 

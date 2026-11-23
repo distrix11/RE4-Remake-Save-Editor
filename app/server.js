@@ -4,7 +4,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
 const { parse, readValue, writeValue, isEditable } = require('./parser');
 const INV = require('./inventory');
 const { hashName } = require('./murmur');
@@ -410,4 +410,25 @@ const server = http.createServer(async (req, res) => {
   }
 });
 fs.mkdirSync(WORK, { recursive: true });
-server.listen(cfg.port, '127.0.0.1', () => console.log(`RE4 Save Editor: http://localhost:${cfg.port}` + (cfg.saveDir ? '' : '  (save folder not found, see README)')));
+function checkRuntime() {
+  execFile(cfg.dotnet, ['--list-runtimes'], { windowsHide: true }, (err, out) => {
+    if (err || !/Microsoft\.NETCore\.App 10\./.test(String(out))) {
+      console.log('\n[WARNING] The .NET 10 Runtime was not found. Install it from https://dotnet.microsoft.com/download/dotnet/10.0');
+      console.log('          (the Runtime for Windows x64, not the SDK) and restart the editor.\n');
+    }
+  });
+}
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') console.log('\n[ERROR] Port ' + cfg.port + ' is already in use. The editor may already be running: open http://localhost:' + cfg.port + ' or close the other window.\n');
+  else console.log('\n[ERROR] ' + e.message + '\n');
+  process.exit(1);
+});
+server.listen(cfg.port, '127.0.0.1', () => {
+  const url = 'http://localhost:' + cfg.port;
+  console.log('RE4 Save Editor: ' + url + (cfg.saveDir ? '' : '  (save folder not found, see README)'));
+  console.log('Close this window to stop the editor.');
+  checkRuntime();
+  if (!process.env.NO_BROWSER) { // open the default browser (set NO_BROWSER=1 to disable)
+    try { spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore', windowsHide: true }).unref(); } catch { /* the address is printed above */ }
+  }
+});
