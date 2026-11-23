@@ -1,0 +1,15 @@
+{
+  "_note": "Region hints for treasure pickup groups. Group numbers are NOT labeled in the save; labels here are inferred. 'guide' = treasure names and counts from the Push Square village treasure guide (Red9, listed there as the 39th pickup, is a weapon and is excluded).",
+  "12": {
+    "label": "Village",
+    "confidence": "likely",
+    "guideTotal": 39,
+    "guideNote": "The guide lists 39 village treasures including the Red9 weapon; 38 treasures are compared here.",
+    "guide": {
+      "Elegant Bangle": 1, "Vintage Compass": 1, "Velvet Blue": 4, "Ruby": 5, "Pearl Pendant": 2, "Antique Pipe": 2, "Flagon": 1,
+      "Antique Camera": 1, "Sapphire": 3, "Elegant Mask": 1, "Yellow Diamond": 4, "Elegant Headdress": 2, "Splendid Bangle": 1,
+      "Alexandrite": 2, "Butterfly Lamp": 1, "Brass Pocket Watch": 1, "Depraved Idol": 1, "Pearl Bangle": 1, "Gold Bar": 1,
+      "Red Gemstone Ring": 1, "Chalice of Atonement": 1, "Emerald": 1
+    }
+  }
+}

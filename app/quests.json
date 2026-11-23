@@ -1,0 +1,22 @@
+{
+  "_note": "Names come from public guides (Prima Games, HoldToReset); descriptions are written in our own words. Mapping of save IDs to requests: 'sure' = confirmed (by the required item in the save, or by a player who saw the requests in game); 'likely' = deduced from goal type, order and progress of test slots; 'unknown' = several candidates.",
+  "10001": { "n": "Destroy the Blue Medallions 1", "d": "Destroy the blue medallions (5 of them in the original, Farm).", "r": 3, "c": "likely" },
+  "10002": { "n": "Viper Hunter", "d": "Sell three Vipers to the Merchant.", "r": 4, "c": "sure" },
+  "10003": { "n": "Grave Robber", "d": "Destroy the emblems on the tombstones near the church. Two goals.", "r": 2, "c": "likely" },
+  "10004": { "n": "Destroy the Blue Medallions 2", "d": "Destroy the blue medallions (5 of them, Quarry / Fish Farm).", "r": 4, "c": "likely" },
+  "10005": { "n": "Pest Control", "d": "Exterminate three rats in the abandoned factory. Three goals.", "r": 3, "c": "likely" },
+  "10006": { "n": "More Pest Control", "d": "Exterminate three rats in the Grand Hall and the library. Three goals.", "r": 3, "c": "likely" },
+  "10007": { "n": "Egg Hunt", "d": "Sell a Golden Chicken Egg to the Merchant.", "r": 3, "c": "sure" },
+  "10008": { "n": "Catch Me a Big Fish", "d": "Sell a Lunker Bass to the Merchant.", "r": 4, "c": "sure" },
+  "10009": { "n": "A Savage Mutt", "d": "Defeat the strong enemy in the Village Chief's Manor. One goal.", "r": 8, "c": "sure" },
+  "10010": { "n": "Destroy the Blue Medallions 3", "d": "Destroy the blue medallions (6 of them, castle gate).", "r": 5, "c": "likely" },
+  "10011": { "n": "Jewel Thief", "d": "Sell a Scratched Emerald to the Merchant.", "r": 3, "c": "sure" },
+  "10012": { "n": "Destroy the Blue Medallions 4", "d": "Destroy the blue medallions (5 of them, Grand Hall).", "r": 5, "c": "likely" },
+  "10013": { "n": "Merciless Knight", "d": "Defeat the strong enemy in the mausoleum. One goal.", "r": 8, "c": "sure" },
+  "10014": { "n": "Insect Hive", "d": "Destroy all the entrances to the hive. Four goals.", "r": 4, "c": "likely" },
+  "10015": { "n": "Destroy the Blue Medallions 5", "d": "Destroy the blue medallions (5 of them, cargo depot).", "r": 5, "c": "likely" },
+  "10016": { "n": "The Disgrace of the Salazar Family", "d": "Deface Ramon's portrait. One goal.", "r": 4, "c": "sure" },
+  "10017": { "n": "Destroy the Blue Medallions 6", "d": "Destroy the blue medallions (5 of them, cliffside ruins).", "r": 5, "c": "likely" },
+  "10018": { "n": "The Wandering Dead", "d": "Defeat the strong enemy in the incubation lab. One goal.", "r": 8, "c": "sure" },
+  "10019": { "n": "Even More Pest Control", "d": "Exterminate four rats in the waste disposal area. Four goals.", "r": 3, "c": "sure" }
+}

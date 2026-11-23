@@ -1,0 +1,224 @@
+# ID|Name|Category   (community-compiled list: kTeo "Ultimate Item ID List", unverified; names as posted)
+274835456|Handgun SG-09 R|weapon
+274837056|Punisher|weapon
+274838656|Red9|weapon
+274840256|Blacktail|weapon
+274841856|Matilda|weapon
+274843456|Minecart Red9|weapon
+274995456|Shotgun W-870|weapon
+274997056|Riot Gun|weapon
+274998656|Striker|weapon
+275155456|TMP|weapon
+275158656|LE 5|weapon
+275157056|Chicago Sweeper|weapon
+275475456|Rifle SR M1903|weapon
+275477056|Semi Auto Rifle Stingray|weapon
+275478656|CQBR Assault Rifle|weapon
+275635456|Broken Butterfly|weapon
+275637056|Killer7|weapon
+275638656|Handcannon|weapon
+275795456|Bolt Thrower|weapon
+276275456|Rocket Launcher|weapon
+276277056|Rocket Launcher (Special)|weapon
+276278656|Rocket Launcher (Infinite)|weapon
+276435456|Combat Knife|weapon
+276437056|Fighting Knife|weapon
+276438656|Kitchen Knife|weapon
+276440256|Boot Knife|weapon
+276445056|Primal Knife|weapon
+278035456|Sentinel Nine|weapon
+278037056|Skull Crusher|weapon
+278521856|Krauser's Bow|weapon
+277075456|Hand Grenade|throw
+277077056|Heavy Grenade|throw
+277078656|Flash Grenade|throw
+277080256|White Chicken Egg|throw
+277081856|Brown Chicken Egg|throw
+277083456|Golden Chicken Egg|throw
+116000000|Scope|acc
+116001600|Red9 Stock|acc
+116003200|High-Power Scope|acc
+116004800|Biosensor Scope|acc
+116006400|TMP Stock|acc
+116008000|Laser Sight|acc
+116009600|Matilda Stock|acc
+114400000|Green Herb|heal
+114401600|Red Herb|heal
+114403200|Yellow Herb|heal
+114404800|Mixed Herb (G+G)|heal
+114406400|Mixed Herb (G+G+G)|heal
+114408000|Mixed Herb (G+R)|heal
+114409600|Mixed Herb (G+Y)|heal
+114411200|Mixed Herb (R+Y)|heal
+114412800|Mixed Herb (G+R+Y)|heal
+114414400|Mixed Herb (G+G+Y)|heal
+114416000|First Aid Spray|heal
+114417600|Black Bass|heal
+114419200|Lunker Bass|heal
+114420800|Black Bass (L)|heal
+114422400|Viper|heal
+114424000|Rhinoceros Beetle|heal
+112800000|Handgun Ammo|ammo
+112801600|Magnum Ammo|ammo
+112803200|Shotgun Ammo|ammo
+112804800|Rifle Ammo|ammo
+112806400|Submachine Gun Ammo|ammo
+112808000|Bolts|ammo
+112320000|Explosive Arrows|ammo
+117600000|Gunpowder|ammo
+117601600|Resources (L)|ammo
+117603200|Attachable Mine|ammo
+117606400|Resources (S)|ammo
+119203200|Hexagonal Emblem|key
+119204800|Insignia Key|key
+119206400|Halo Wheel|key
+119209600|Crimson Lantern|key
+119211200|Level 1 Keycard|key
+119212800|Level 2 Keycard|key
+119214400|Level 3 Keycard|key
+119217600|Crystal Marble|key
+119219200|Wrench|key
+119220800|Salazar Family Insignia|key
+119222400|Lion Head|key
+119224000|Goat Head|key
+119225600|Serpent Head|key
+119230400|Blasphemer's Head|key
+119232000|Apostate's Head|key
+119235200|Wooden Cog|key
+119236800|Dynamite|key
+119238400|Luis' Key|key
+119244800|Small Key|key
+119246400|Checkpoint Crank|key
+119248000|Hexagon Piece A|key
+119249600|Hexagon Piece B|key
+119251200|Hexagon Piece C|key
+119254400|Dungeon Key|key
+119256000|Old Wayshrine Key|key
+119257600|Church Insignia|key
+119259200|Water Scooter Key|key
+119260800|Golden Sword|key
+119262400|Iron Sword|key
+119265600|Lithographic Stone A|key
+119267200|Lithographic Stone B|key
+119268800|Lithographic Stone C|key
+119270400|Lithographic Stone D|key
+119273600|Boat Fuel|key
+119275200|Bunch of Keys|key
+119276800|Cubic Device|key
+119278400|Bloodied Sword|key
+119280000|Rusted Sword|key
+119281600|Hunter's Lodge Key|key
+119283200|Unicorn Horn|key
+119284800|Blue Dial|key
+119286400|Silver Token|key
+119288000|Gold Token|key
+119289600|Wooden Planks|key
+120801600|Pearl Pendant|treasure
+120803200|Dirty Pearl Pendant|treasure
+120809600|Brass Pocket Watch|treasure
+120812800|Elegant Headdress|treasure
+120814400|Antique Pipe|treasure
+120816000|Pearl Bangle|treasure
+120817600|Red Gemstone Ring|treasure
+120819200|Gold Bangle|treasure
+120820800|Iluminados Pendant|treasure
+120822400|Mirror With Pearls and Rubies|treasure
+120824000|Golden Hourglass|treasure
+120825600|Elegant Perfume Bottle|treasure
+120827200|Elegant Chessboard|treasure
+120828800|Staff of Royalty|treasure
+120830400|Ruby|treasure
+120832000|Emerald|treasure
+120833600|Sapphire|treasure
+120835200|Yellow Diamond|treasure
+120838400|Alexandrite|treasure
+120840000|Gold Bar|treasure
+120841600|Gold Bar (L)|treasure
+120843200|Gold Ingot|treasure
+120844800|Depraved Idol|treasure
+120846400|Vintage Compass|treasure
+120848000|Justitia Statue|treasure
+120849600|Crystal Ore|treasure
+120851200|Ornate Beetle|treasure
+120852800|Méndez's False Eye|treasure
+120854400|Gold Monocle|treasure
+120856000|Lip Rouge|treasure
+120857600|Red Beryl|treasure
+120860800|Antique Camera|treasure
+120864000|Velvet Blue|treasure
+120865600|Scratched Emerald|treasure
+120867200|Exclusive Upgrade Ticket|treasure
+122400000|Elegant Mask|treasure
+122401600|Flagon|treasure
+122403200|Butterfly Lamp|treasure
+122404800|Elegant Crown|treasure
+122406400|Golden Lynx|treasure
+122408000|Extravagant Clock|treasure
+122409600|Splendid Bangle|treasure
+122411200|Chalice of Atonement|treasure
+122412800|Ornate Necklace|treasure
+122416000|Elegant Bangle|treasure
+124001600|Body Armor|special
+124003200|Treasure Map: Village|special
+124004800|Treasure Map: Castle|special
+124006400|Treasure Map: Island|special
+124160000|Case Upgrade (7x10)|special
+124161600|Case Upgrade (7x12)|special
+124163200|Case Upgrade (8x12)|special
+124164800|Case Upgrade (8x13)|special
+124166400|Case Upgrade (9x13)|special
+124176000|Attaché Case: Silver|special
+124177600|Attaché Case: Black|special
+124179200|Attaché Case: Leather|special
+124192000|Attaché Case: Gold (pre-order)|special
+124193600|Attaché Case: Classic (Deluxe Edition)|special
+124321600|Recipe: Handgun Ammo|special
+124323200|Recipe: Shotgun Ammo|special
+124324800|Recipe: Submachine Gun Ammo|special
+124326400|Recipe: Rifle Ammo|special
+124328000|Recipe: Magnum Ammo|special
+124329600|Recipe: Bolts|special
+124334400|Recipe: Attachable Mines|special
+124336000|Recipe: Heavy Grenade|special
+124337600|Recipe: Flash Grenade|special
+124353600|Recipe: Mixed Herb (G+G)|special
+124355200|Recipe: Mixed Herb (G+R)|special
+124356800|Recipe: Mixed Herb (G+Y)|special
+124358400|Recipe: Mixed Herb (R+Y)|special
+124360000|Recipe: Mixed Herb (G+G+G)|special
+124361600|Recipe: Mixed Herb (G+G+Y)|special
+124364800|Recipe: Mixed Herb (G+R+Y)|special
+124000000|Pesetas|money
+120800000|Spinel|money
+127360000|Green Herb (Deluxe charm)|charm
+127361600|Handgun Ammo (Pre-order charm)|charm
+127200000|Don Jose|charm
+127201600|Don Diego|charm
+127203200|Don Esteban|charm
+127204800|Don Manuel|charm
+127206400|Isabel|charm
+127208000|Maria|charm
+127209600|Dr. Salvador|charm
+127211200|Bella Sisters|charm
+127212800|Don Pedro|charm
+127214400|Zealot w/ scythe|charm
+127216000|Zealot w/ shield|charm
+127217600|Zealot w/ bowgun|charm
+127219200|Leader Zealot|charm
+127220800|Soldier w/ dynamite|charm
+127222400|Soldier w/ stun-rod|charm
+127224000|Soldier w/ hammer|charm
+127225600|J.J.|charm
+127227200|Leon w/ handgun|charm
+127228800|Leon w/ shotgun|charm
+127230400|Leon w/ rocket launcher|charm
+127232000|Merchant|charm
+127233600|Ashley Graham|charm
+127235200|Luis Sera|charm
+127236800|Ada Wong|charm
+127238400|Chicken|charm
+127240000|Black Bass|charm
+127241600|Rhinoceros Beetle|charm
+127243200|Iluminados Emblem|charm
+127244800|Striker|charm
+127246400|Cute Bear|charm
