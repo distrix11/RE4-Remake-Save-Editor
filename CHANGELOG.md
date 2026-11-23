@@ -1,6 +1,8 @@
 # Changelog
 
 ## 0.9.0 (pre-release)
+- Fixed: the backup list and the "Restore from backup" window failed with "fmtSize is not defined" and showed nothing.
+- Fixed: the "Reset upgrades" button was drawn on top of "Full upgrade" (a leftover style of the removed Map view).
 - New "Case look" selector next to the case size: choose Silver, Black, Leather, Gold or Classic. A skin you do not own yet is unlocked too (added to the recipes, cases and charms inventory).
 - The Advanced tab asks for a one-time confirmation (a checkbox) that it is for experienced users and can damage the save. The choice is remembered in config.json.
 - Weapon upgrades reworked after checking how the game stores them: all effect fields of an upgrade are written together (the Handcannon and SR M1903 reload through a different field than other guns, which used to be left at the old value). The exclusive upgrade is its own 0/1 setting and is taken away when a normal upgrade is lowered (the game needs all of them at 4 for it).
