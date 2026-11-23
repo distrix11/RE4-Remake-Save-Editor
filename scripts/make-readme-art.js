@@ -53,6 +53,15 @@ body{width:360px;height:76px;display:flex;align-items:center;gap:14px;padding:0 
 .l{font-size:25px;font-weight:800;color:${color};letter-spacing:1px;line-height:1.1}.s{font-size:14px;color:#cfd9c1;margin-top:3px}</style><body>${icon}<div><div class="l">${label}</div><div class="s">${sub}</div></div>`;
 shot('btn-github', button('DOWNLOAD', 'from GitHub Releases (Windows)', '#a9c58a', '#1d2a17', img('herb_green', 46)), 360, 76);
 shot('btn-nexus', button('DOWNLOAD', 'from Nexus Mods', '#e8a24a', '#2a2114', img('case_gold', 46)), 360, 76);
+// minimal header and cover for the Nexus Mods page: one icon, the name and one line
+const nexusHeader = `<!doctype html><meta charset="utf-8"><style>${css}
+body{width:1600px;height:400px;display:flex;align-items:center;justify-content:center;gap:56px;border-bottom:5px solid #c9a24a}
+h1{margin:0;font-size:104px;letter-spacing:12px;color:#a9c58a;font-weight:800;line-height:1}h1 span{color:#c9a24a}p{margin:18px 0 0;font-size:34px;color:#cfd9c1;letter-spacing:1px}</style><body>${img('herb_green', 250)}<div><h1>RE4 <span>SAVE EDITOR</span></h1><p>Unofficial save editor for Resident Evil 4 (2023)</p></div>`;
+const nexusCover = `<!doctype html><meta charset="utf-8"><style>${css}
+body{width:1920px;height:1080px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:44px;text-align:center}
+h1{margin:0;font-size:150px;letter-spacing:18px;color:#a9c58a;font-weight:800;line-height:1}h1 span{color:#c9a24a}p{margin:0;font-size:44px;color:#cfd9c1;letter-spacing:2px}.bar{width:520px;height:5px;background:#c9a24a;margin:30px auto 0}</style><body>${img('herb_green', 420)}<div><h1>RE4 <span>SAVE EDITOR</span></h1><div class="bar"></div></div><p>Unofficial save editor for Resident Evil 4 (2023)</p>`;
+shot('nexus-header', nexusHeader, 1600, 400);
+shot('nexus-cover', nexusCover, 1920, 1080);
 shot('banner', banner, 1280, 320);
 shot('icon-gallery', gallery, 1280, 790);
 fs.rmSync(tmp, { recursive: true, force: true });

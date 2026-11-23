@@ -1,0 +1,91 @@
+NEXUS MODS PAGE - RE4 Save Editor (draft; the page itself is written in English)
+==========================================================================================
+
+MOD NAME
+RE4 Save Editor
+
+CATEGORY / TYPE
+Utilities (or "Saves" / "Tools" if the game has such a category). Not adult content.
+
+TAGS (suggestions)
+save editor, utility, inventory, attache case, money, pesetas, weapon upgrades, backup, tool
+
+VERSION
+0.9.0   (pre-release)
+
+SHORT SUMMARY (max ~350 characters)
+Unofficial local save editor for Resident Evil 4 (2023) on Steam: change money, edit and sort your attaché case in a visual Case view with drag and drop, weapon upgrades, case size and look, with automatic backups. Runs on your PC, sends nothing anywhere.
+
+REQUIREMENTS FIELD
+Windows 10/11, Steam version of Resident Evil 4 (2023), Node.js 20 or newer (LTS). No .NET needed.
+
+FILE
+RE4SaveEditor-0.9.0-nexus.zip  (main file)
+File description: Script-only package. Install Node.js LTS once, extract the zip, double-click start.js.
+
+==========================================================================================
+FULL DESCRIPTION (Nexus BBCode)
+==========================================================================================
+
+[center][size=6][b]RE4 Save Editor[/b][/size]
+[i]Unofficial local save editor for Resident Evil 4 (2023), Steam, Windows[/i]
+
+[url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]All-in-one download (no Node.js needed)[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
+[/center]
+
+[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.0). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving, and consider turning off Steam Cloud for RE4.
+
+[line]
+
+[size=5][b]What it does[/b][/size]
+Edit your save in a clean local window: it runs on your PC and never sends your saves anywhere.
+[list]
+[*][b]Money[/b]: Pesetas and Spinel.
+[*][b]Attaché case[/b]: add, copy and delete items (about 220 in the catalogue), change counts, ammo and durability, the [b]case size[/b] and the [b]case look[/b] (Silver, Black, Leather, Gold, Classic).
+[*][b]Case view[/b]: your case lying down like in the game, with about 150 original 3D-rendered icons. Drag items to move them, rotate them, or press [b]Sort[/b] to tidy the case.
+[*][b]Weapon upgrades[/b]: levels 0-4, a [b]Full upgrade[/b] button and a switch for the exclusive upgrade.
+[*][b]Also[/b]: merchant requests, treasures, achievement hints (read-only) and an [i]Advanced[/i] raw view for experienced users.
+[*][b]Safe by design[/b]: a summary of every change before writing, writes are decrypted back and compared before they replace the file, backup manager with restore, copy one slot into another.
+[/list]
+
+[line]
+
+[size=5][b]Installation[/b][/size]
+[list=1]
+[*]Install [url=https://nodejs.org]Node.js[/url] 20 or newer once (the "LTS" Windows Installer: Next, Next, Finish).
+[*]Close Resident Evil 4.
+[*]Extract the whole zip anywhere and double-click [b]start.js[/b]. The editor opens in its own window; closing the window stops it.
+[*]Pick a slot at the top, edit, press [b]Save to game[/b]. [b]Restore from backup...[/b] undoes a write at any time.
+[/list]
+[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts.[/size]
+
+[b]Prefer not to install Node.js?[/b] The [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub release[/url] has an all-in-one zip with Node.js inside: extract it and double-click RE4SaveEditor.exe. (Nexus Mods does not accept .exe files, so that version is only on GitHub.)
+
+[line]
+
+[size=5][b]Good to know[/b][/size]
+[list]
+[*]Item sizes in the case are estimates; a few items may look slightly different in the game.
+[*]Weapon upgrade levels are limited to 0-4. Weapons and grenades cannot be added (copy an existing one instead).
+[*]Tested on a limited set of saves and one game version. After a game patch the editor can disable structural edits and tells you why.
+[*]Windows and the Steam version only.
+[*]The package is plain JavaScript you can read, with no executables. One antivirus engine out of ~60 on VirusTotal shows a generic script heuristic for the start script (a false positive); the [url=https://github.com/distrix11/RE4-Remake-Save-Editor]full source is on GitHub[/url].
+[/list]
+
+[line]
+
+[size=5][b]Credits[/b][/size]
+[list]
+[*]Save encryption: JavaScript port of [url=https://github.com/mi5hmash/LimebrellaSharp]LimebrellaSharp[/url] by Michał Gębicki (MIT).
+[*]Field names: [url=https://github.com/alphazolam/RE_RSZ]RE_RSZ[/url] by alphazolam (MIT).
+[*]Gun icons: renders of the CC0 [url=https://quaternius.com]Ultimate Gun Pack[/url] by Quaternius. All other icons are original models made for this project.
+[*]Item list: the community "Ultimate Item ID List" by kTeo.
+[*]Open source under the MIT licence: [url=https://github.com/distrix11/RE4-Remake-Save-Editor]github.com/distrix11/RE4-Remake-Save-Editor[/url]
+[/list]
+
+[size=2][i]Unofficial fan tool, not affiliated with Capcom or Valve. Resident Evil is a trademark of Capcom. The package contains no game assets.[/i][/size]
+
+==========================================================================================
+CHANGELOG ENTRY FOR THE FILE (version 0.9.0)
+==========================================================================================
+First public pre-release. Money, attaché case (add, copy, delete, move, rotate, sort, size, look), weapon upgrades with Full upgrade, merchant requests, treasures, achievements hints, Advanced view, backups and restore, copy slot.
