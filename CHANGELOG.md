@@ -9,6 +9,7 @@
 - Format guard: if a game update changes the save layout, structural edits are disabled and a banner explains it.
 - Copy diagnostics (no personal data) for bug reports.
 - Pale-green colour scheme closer to the original game.
+- The flat Map view is gone: the Case view now does everything it did (drag to move, Rotate button), with hover and selection effects.
 - Static case view with vector item icons; the case takes the look of the skin chosen in the save.
 - Daily update check (switch in the new About dialog, opened with the ? button). It never downloads anything.
 - The launcher opens the editor in its own app-style window and stops the server when the window is closed.

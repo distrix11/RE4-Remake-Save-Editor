@@ -136,7 +136,7 @@
       if (cat === 'weapon') {
         // guns stay horizontal like in the game; only knives and the like are turned upright in tall boxes
         const gp = !/knife|rocket|bolt thrower|bow/i.test(n) && gunPng(n);
-        svg = gp || wrap('0 0 120 60', weapon(n)); horizontal = !gp;
+        svg = gp || wrap('0 0 120 60', weapon(n)); horizontal = true;
       }
       else if (cat === 'heal') {
         svg = /spray/.test(t) ? spray : /bass/.test(t) ? fish : /viper/.test(t) ? viper : /beetle/.test(t) ? beetle : herb(n);

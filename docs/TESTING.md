@@ -5,7 +5,7 @@ Use a spare slot (Copy slot… in the editor) and keep Steam Cloud off while tes
 
 1. Money: set pesetas to a new value, Save to game, start the game, load the slot. Value shown?
 2. Add an item (e.g. First Aid Spray). Does it appear, usable, in the right place?
-3. Move an item on the Map view, save, load. Is the position kept, no overlap?
+3. Drag an item to another place in the Case view, save, load. Is the position kept, no overlap?
 4. Case size: set a larger case, save, load. Does the case show the new size?
 5. Weapon upgrade levels: change one, load, open the weapon at the Merchant.
 6. Remove an item and a copied item: does the game load without errors?

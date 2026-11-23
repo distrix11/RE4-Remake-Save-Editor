@@ -29,6 +29,17 @@ function drawCase3D(holder, inv) {
   const shell = document.createElement('div'); shell.className = 'shell3d';
   const foam = document.createElement('div'); foam.className = 'foam3d';
   foam.style.cssText = `left:${pad}px;top:${pad}px;width:${W * cell}px;height:${H * cell}px`;
+  // invisible cells under the items: they tell which grid cell is under the mouse, whatever the perspective
+  for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+    const hit = document.createElement('div'); hit.className = 'cellhit'; hit.dataset.c = c; hit.dataset.r = r;
+    hit.style.cssText = `left:${c * cell}px;top:${r * cell}px;width:${cell}px;height:${cell}px`; foam.append(hit);
+  }
+  const ghost = document.createElement('div'); ghost.className = 'ghost3'; ghost.hidden = true; foam.append(ghost);
+  const cellAt = (ev) => { const e = document.elementsFromPoint(ev.clientX, ev.clientY).find((n) => n.classList && n.classList.contains('cellhit')); return e ? [Number(e.dataset.c), Number(e.dataset.r)] : null; };
+  // moves are done in the save's own coordinates: x = row on screen, y = column on screen
+  const ovl3 = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const fits3 = (it, x, y, fp) => x >= 0 && y >= 0 && x + fp[0] <= GW && y + fp[1] <= GH &&
+    !inv.items.some((o) => o !== it && o.slot && ovl3({ x, y, w: fp[0], h: fp[1] }, { x: o.slot.x, y: o.slot.y, w: o.fp[0], h: o.fp[1] }));
   for (const it of inv.items) {
     if (!it.slot) continue;
     const nm = itemName(it) || '#' + it.itemId.value;
@@ -44,7 +55,38 @@ function drawCase3D(holder, inv) {
     else if (art.svg) inner = art.svg;
     else inner = `<span class="fallback">${ic(it.cat || 'box')}</span>`;
     el.innerHTML = inner + (it.count && Number(it.count.value) > 1 ? '<span class="cn">' + it.count.value + '</span>' : '');
-    el.onclick = () => { ui.sel = it.idx; drawCase3D(holder, inv); };
+    el.onpointerdown = (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault(); el.setPointerCapture(e.pointerId);
+      const sx = e.clientX, sy = e.clientY; let moved = false, fly = null;
+      const grab = cellAt(e) || [it.slot.y, it.slot.x];
+      const off = [grab[0] - it.slot.y, grab[1] - it.slot.x]; // which cell of the item was grabbed (screen column, row)
+      const target = (ev) => { const c = cellAt(ev); return c ? [c[1] - off[1], c[0] - off[0]] : null; }; // save x (row), y (column)
+      el.onpointermove = (ev) => {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+        if (!moved) {
+          moved = true; el.classList.add('drag');
+          fly = el.cloneNode(true); fly.className = 'i3 flying'; const rc = el.getBoundingClientRect();
+          fly.style.cssText = `position:fixed;left:0;top:0;width:${rc.width}px;height:${rc.height}px;pointer-events:none;z-index:50;margin:0`;
+          document.body.append(fly);
+        }
+        const rc = el.getBoundingClientRect();
+        fly.style.transform = `translate(${ev.clientX - sx + rc.left}px,${ev.clientY - sy + rc.top}px)`;
+        const t = target(ev);
+        if (!t) { ghost.hidden = true; return; }
+        ghost.hidden = false; ghost.className = 'ghost3 ' + (fits3(it, t[0], t[1], it.fp) ? 'ok' : 'bad');
+        ghost.style.cssText = `left:${t[1] * cell}px;top:${t[0] * cell}px;width:${it.fp[1] * cell}px;height:${it.fp[0] * cell}px`;
+      };
+      el.onpointerup = async (ev) => {
+        el.onpointermove = null; el.onpointerup = null; el.classList.remove('drag'); ghost.hidden = true; if (fly) fly.remove();
+        if (!moved) { ui.sel = it.idx; drawCase3D(holder, inv); return; }
+        const t = target(ev);
+        if (!t || (t[0] === it.slot.x && t[1] === it.slot.y)) return;
+        if (!fits3(it, t[0], t[1], it.fp)) { toast('The item does not fit here or overlaps another one (sizes are estimates)', 'err'); return; }
+        ui.sel = it.idx;
+        await structural('move', { inv: inv.index, idx: it.idx, x: t[0], y: t[1] }, 'Item moved');
+      };
+    };
     foam.append(el);
   }
   shell.append(foam);
@@ -52,7 +94,7 @@ function drawCase3D(holder, inv) {
   latches.innerHTML = '<i style="left:18%"></i><i style="left:50%"></i><i style="left:82%"></i>';
   box.append(lid, shell, latches); scene.append(box);
   const tools = document.createElement('div'); tools.className = 'toolbar'; tools.style.cssText = 'margin:0 0 6px';
-  tools.innerHTML = `<span class="dim" style="font-size:12px">Your case: <b>${esc(skin.name)}</b> (taken from the save). Click an item to select it. Switch to “Map” to move items.</span>`;
+  tools.innerHTML = `<span class="dim" style="font-size:12px">Your case: <b>${esc(skin.name)}</b> (taken from the save). Click an item to select it and drag it to move it. Green outline: it fits, red: it does not.</span>`;
   card.append(tools, scene);
 
   const sel = inv.items.find((i) => i.idx === ui.sel && i.slot);
@@ -63,12 +105,18 @@ function drawCase3D(holder, inv) {
     info.innerHTML = `<div class="iname">${esc(nm)}</div><div class="dim mono" style="font-size:11px">ID ${sel.itemId.value} · cell ${sel.slot.x},${sel.slot.y} · ${sel.fp[0]}×${sel.fp[1]} (estimate)</div>`;
     bar.append(info);
     if (sel.count) { const l = document.createElement('label'); l.className = 'f'; l.style.width = '110px'; l.innerHTML = '<span>Count</span>'; l.append(field(sel.count, { width: '100%' })); bar.append(l); }
+    const rot = document.createElement('button'); rot.className = 'sm'; rot.innerHTML = ic('rotate') + 'Rotate';
+    rot.onclick = () => {
+      const nd = sel.dir % 2 === 1 ? 0 : 1; const nfp = [sel.fp[1], sel.fp[0]];
+      if (!fits3(sel, sel.slot.x, sel.slot.y, nfp)) { toast('The rotated item does not fit here', 'err'); return; }
+      structural('move', { inv: inv.index, idx: sel.idx, x: sel.slot.x, y: sel.slot.y, dir: nd }, 'Item rotated');
+    };
     const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
     const del = document.createElement('button'); del.className = 'sm danger'; del.innerHTML = ic('trash') + 'Delete';
     del.onclick = () => { if (confirm('Delete "' + nm + '" from the case?')) { ui.sel = null; structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
-    bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), dup, del);
-  } else bar.innerHTML = '<span class="dim">Click an item to select it.</span>';
+    bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), rot, dup, del);
+  } else bar.innerHTML = '<span class="dim">Click an item to select it; drag it to move it.</span>';
   card.append(bar);
   holder.append(card);
 }

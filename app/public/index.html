@@ -166,6 +166,14 @@ td input{padding:4px 7px}
 .i3.sel{border-color:var(--brass);background:linear-gradient(160deg,rgba(201,173,106,.32),rgba(201,173,106,.1));z-index:4;transform:translateY(-4px) scale(1.05);
   box-shadow:0 0 0 2px var(--brass),0 0 16px 3px rgba(201,173,106,.6),0 12px 12px -2px rgba(0,0,0,.65)}
 .i3.sel:hover{transform:translateY(-6px) scale(1.08)}
+.cellhit{position:absolute;pointer-events:auto}
+.i3{touch-action:none;user-select:none}
+.i3.drag{opacity:.3;transform:none;box-shadow:none}
+.i3.flying{transform-origin:0 0;opacity:.92;box-shadow:0 0 0 2px #cfe6a8,0 16px 18px -2px rgba(0,0,0,.7);background:rgba(40,52,30,.85);transition:none;cursor:grabbing}
+.ghost3{position:absolute;pointer-events:none;border-radius:3px;z-index:2;transform:none}
+.ghost3[hidden]{display:none}
+.ghost3.ok{background:rgba(120,200,90,.28);box-shadow:0 0 0 2px #8cd05a inset}
+.ghost3.bad{background:rgba(210,70,55,.3);box-shadow:0 0 0 2px #d24a3a inset}
 </style>
 </head>
 <body>

@@ -12,7 +12,7 @@ It runs on your own computer, opens in your browser and never sends anything ove
 - **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
   **add** items from a catalog of ~220 items, **duplicate**, **delete**;
-  **case size** selector; a **case map** with drag & drop and rotation; **weapon upgrade levels**.
+  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrade levels**.
 - **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
@@ -24,7 +24,7 @@ It runs on your own computer, opens in your browser and never sends anything ove
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
 - **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with vector item icons.
-  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Weapons use pictures rendered from CC0 3D models; you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved on the flat map.
+  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Weapons use pictures rendered from CC0 3D models; you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view.
 - **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - **Advanced**: a raw tree view of every field in the save file with search.
 
@@ -33,7 +33,7 @@ It runs on your own computer, opens in your browser and never sends anything ove
 | | |
 |---|---|
 | ![Money](docs/screenshots/01-money.png) | ![Inventory](docs/screenshots/02-inventory.png) |
-| ![Case map](docs/screenshots/03-case-map.png) | ![Merchant requests](docs/screenshots/04-merchant-requests.png) |
+| ![Dragging an item](docs/screenshots/03-case-drag.png) | ![Merchant requests](docs/screenshots/04-merchant-requests.png) |
 | ![Treasures](docs/screenshots/05-treasures.png) | ![Change summary](docs/screenshots/07-change-summary.png) |
 | ![Case view](docs/screenshots/08-case-view.png) | ![Settings](docs/screenshots/09-settings.png) |
 
@@ -85,7 +85,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 ## Known limitations
 
-- Item sizes on the case map are **estimates** inferred from real layouts; items may look different in game.
+- Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
 - The maximum valid weapon upgrade level depends on the weapon and is not enforced.
 - Weapons cannot be added (copy an existing one instead); exclusive upgrades are not editable.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
