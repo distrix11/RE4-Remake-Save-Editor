@@ -139,20 +139,26 @@ td input{padding:4px 7px}
 .banner{display:flex;align-items:center;gap:10px;padding:9px 18px;background:linear-gradient(180deg,#4a3a12,#3a2d0e);color:#f3dd9b;border-bottom:1px solid #7a6026;font-weight:600}
 .banner[hidden]{display:none}.banner .ic{margin:0;color:#e0b94a}.banner span{font-weight:400}
 
-/* 3D case */
-.scene3d{perspective:1100px;perspective-origin:50% 30%;display:flex;justify-content:center;align-items:flex-start;padding-top:70px;overflow:hidden;cursor:grab;touch-action:none;
+.banner.info{background:linear-gradient(180deg,#2c3a22,#232e1b);color:#dfeccb;border-bottom:1px solid var(--green2)}.banner .sp{flex:1}.banner button{margin-left:6px}
+/* case view (static) */
+.scene3d{perspective:1200px;perspective-origin:50% 20%;display:flex;justify-content:center;align-items:flex-start;padding-top:56px;overflow:hidden;
   background:radial-gradient(ellipse at 50% 60%,rgba(169,197,138,.10),transparent 65%);border:1px solid var(--line);border-radius:3px}
-.scene3d.turning{cursor:grabbing}
-.case3d{position:relative;transform-style:preserve-3d;transition:transform .05s linear}
-.scene3d.turning .case3d{transition:none}
-.shell3d{position:absolute;inset:0;background:linear-gradient(160deg,#2b3324,#1a2015);border:1px solid #556646;border-radius:6px;transform-style:preserve-3d}
-.foam3d{position:absolute;background:#0d100a;border:1px solid #3b4631;background-image:linear-gradient(rgba(169,197,138,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.16) 1px,transparent 1px);background-size:var(--cell) var(--cell);box-shadow:inset 0 0 18px #000}
-.lid3d{position:absolute;left:0;right:0;bottom:100%;height:100%;transform-origin:50% 100%;transform:rotateX(-62deg);background:linear-gradient(180deg,#2a3223,#202718);border:1px solid #556646;border-radius:6px;margin-bottom:2px}
-.lidpad{position:absolute;inset:14px;background:repeating-linear-gradient(45deg,#1a2015 0 6px,#161b12 6px 12px);border:1px solid #3b4631;border-radius:3px}
-.strap{position:absolute;left:8px;right:8px;height:6px;background:#4a3d1c;border-top:1px solid #7a6026;border-radius:2px}
-.latches3d i{position:absolute;top:100%;margin-top:6px;width:26px;height:12px;margin-left:-13px;background:linear-gradient(180deg,var(--brass),var(--brass2));border-radius:2px;box-shadow:0 2px 0 #5a4818}
-.i3{transform:translateZ(7px);box-shadow:0 5px 0 rgba(0,0,0,.45),0 8px 10px rgba(0,0,0,.5);background:rgba(169,197,138,.22)}
-.i3.sel{outline:2px solid var(--brass);transform:translateZ(14px)}
+.case3d{position:relative;transform-style:preserve-3d;transform-origin:50% 0}
+.shell3d{position:absolute;inset:0;background:linear-gradient(160deg,var(--c1),var(--c2));border:2px solid var(--ce);border-radius:8px;
+  box-shadow:0 1px 0 var(--ce),0 2px 0 var(--ce),0 3px 0 var(--ce),0 4px 0 var(--ce),0 5px 0 var(--ce),0 6px 0 var(--ce),0 7px 0 var(--ce),0 8px 0 var(--ce),0 9px 0 var(--ce),0 10px 0 var(--ce),0 11px 0 var(--ce),0 12px 0 var(--ce),0 34px 40px rgba(0,0,0,.55)}
+.foam3d{position:absolute;background-color:#0c0f09;border:2px solid var(--ce);border-radius:3px;background-image:linear-gradient(rgba(169,197,138,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.18) 1px,transparent 1px);background-size:var(--cell) var(--cell);box-shadow:inset 0 0 22px #000}
+.lid3d{position:absolute;left:0;right:0;bottom:100%;height:100%;transform-origin:50% 100%;transform:rotateX(-58deg);margin-bottom:2px;
+  background:linear-gradient(160deg,var(--c1),var(--c2));border:2px solid var(--ce);border-radius:8px}
+.lidpad{position:absolute;inset:14px;background:repeating-linear-gradient(45deg,rgba(0,0,0,.35) 0 6px,rgba(0,0,0,.2) 6px 12px);border:1px solid var(--ce);border-radius:4px}
+.strap{position:absolute;left:10px;right:10px;height:7px;background:var(--ct);border:1px solid var(--ce);border-radius:2px;opacity:.9}
+.latches3d i{position:absolute;top:100%;margin-top:14px;width:28px;height:13px;margin-left:-14px;background:var(--cl);border:1px solid var(--ce);border-radius:3px;box-shadow:0 2px 0 var(--ce)}
+.i3{position:absolute;box-sizing:border-box;cursor:pointer;padding:2px;border-radius:2px;background:rgba(169,197,138,.07);border:1px solid rgba(169,197,138,.22);transform:translateZ(6px)}
+.i3:hover{background:rgba(169,197,138,.18)}
+.i3 .art{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.i3 .turned{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+.i3 .fallback .ic{width:60%;height:60%;margin:20%;color:var(--green)}
+.i3 .cn{position:absolute;right:2px;bottom:0;font:700 11px var(--mono);color:#fff3b8;text-shadow:0 1px 2px #000,0 0 3px #000}
+.i3.sel{outline:2px solid var(--brass);background:rgba(201,173,106,.18);z-index:3}
 </style>
 </head>
 <body>
@@ -166,11 +172,29 @@ td input{padding:4px 7px}
   <button id="bCopy" data-ic="copy" disabled title="Copy this slot into another slot">Copy slot…</button>
   <button id="bOut" data-ic="export" disabled title="Save the encrypted file to the output/ folder; the game is not touched">Export to output/</button>
   <button id="bGame" data-ic="save" class="pri" disabled>Save to game</button>
+  <button id="bAbout" class="icon" title="About, license, updates" style="font-weight:700">?</button>
   <button id="bSettings" class="icon" data-ic="tools" title="Settings: save folder, backups, diagnostics"></button>
 </header>
 <div id="gameBanner" class="banner" role="alert" hidden></div>
+<div id="updBanner" class="banner info" role="status" hidden></div>
 <div id="fmtBanner" class="banner" role="alert" hidden></div>
 <main id="view"><div class="empty">Loading…</div></main>
+<div class="modal" id="aboutModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="file">About</h3><span class="sp"></span><button class="sm ghost icon" id="aboutClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <p style="margin-top:0"><b>RE4 Save Editor</b> (unofficial)<br><span class="dim" id="abVersion"></span></p>
+      <p>Created by <b>distrix11</b>, co-authored with Claude (Anthropic).</p>
+      <p><a href="https://github.com/distrix11/RE4-Remake-Save-Editor" target="_blank" rel="noopener">github.com/distrix11/RE4-Remake-Save-Editor</a><br>
+      License: MIT (free to use, change and share; see the LICENSE and THIRD_PARTY_NOTICES files).</p>
+      <p class="note">Not affiliated with Capcom or Valve. Resident Evil is a trademark of Capcom. Use at your own risk and keep backups.</p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+      <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="abUpd" style="width:auto"> Check for a new version on GitHub once a day</label>
+      <p class="note" style="margin:6px 0 10px">Only the latest release number is requested, nothing about you or your saves is sent. Nothing is downloaded or installed automatically.</p>
+      <div class="toolbar" style="margin:0"><button id="abCheck" data-ic="restore">Check now</button><span class="dim" id="abStatus"></span></div>
+    </div>
+  </div>
+</div>
 <div class="modal" id="settingsModal">
   <div class="dlg">
     <header><h3 style="margin:0" data-ic="tools">Settings</h3><span class="sp"></span><button class="sm ghost icon" id="settingsClose" data-ic="close" title="Close"></button></header>
@@ -259,7 +283,9 @@ td input{padding:4px 7px}
 <script src="icons.js"></script>
 <script src="app.js"></script>
 <script src="features.js"></script>
+<script src="itemart.js"></script>
 <script src="case3d.js"></script>
+<script src="about.js"></script>
 <script src="treasures.js"></script>
 <script src="achievements.js"></script>
 <script src="settings.js"></script>

@@ -13,6 +13,7 @@ const STEAM = require('./steam');
 const { buildHints } = require('./achievements');
 const QUEST_INFO = JSON.parse(fs.readFileSync(path.join(__dirname, 'quests.json'), 'utf8'));
 const readJsonSafe = (p, dflt) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return dflt; } };
+const UPD = require('./updater');
 const KNOWN = readJsonSafe(path.join(__dirname, 'known-format.json'), {}); // class name -> { hashes: [...] } of the supported save layouts
 const VERSION = (readJsonSafe(path.join(__dirname, '..', 'package.json'), {}).version) || '0.0.0';
 
@@ -411,6 +412,18 @@ const routes = {
     catch (e) { throw new Error('The file does not fit (another Steam account or corrupted): ' + e.message); }
     finally { rmrf(tmp); }
   },
+  // update check (once a day, can be turned off in About)
+  'GET /api/update': async () => ({ enabled: cfg.updateCheck !== false, repo: UPD.REPO, ...UPD.cached(VERSION) }),
+  'POST /api/update': async (b) => {
+    if (typeof b.enabled === 'boolean') {
+      cfg.updateCheck = b.enabled; const conf = readJsonSafe(CFG_PATH, {}); conf.updateCheck = b.enabled; fs.writeFileSync(CFG_PATH, JSON.stringify(conf, null, 2));
+    }
+    const enabled = cfg.updateCheck !== false;
+    // a manual check works even when the daily check is off
+    const r = b.check ? await UPD.check(VERSION, true) : (enabled ? await UPD.check(VERSION, false) : UPD.cached(VERSION));
+    return { enabled, repo: UPD.REPO, ...r };
+  },
+  'POST /api/update-dismiss': async (b) => { UPD.dismiss(b.version); return { ok: true }; },
   'GET /api/settings': async () => ({ saveDir: cfg.saveDir, candidates: detectSaveDirs().map((c) => ({ dir: c.dir, account: c.account, mtime: c.mtime })), configFile: CFG_PATH, version: VERSION }),
   'POST /api/settings': async (b) => {
     const dir = path.resolve(String(b.saveDir || ''));
@@ -540,7 +553,7 @@ const routes = {
   },
 };
 
-const NO_SAVE_OK = new Set(['GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
+const NO_SAVE_OK = new Set(['GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const server = http.createServer(async (req, res) => {
   try {
@@ -580,6 +593,8 @@ server.listen(cfg.port, '127.0.0.1', () => {
   console.log('RE4 Save Editor: ' + url + (cfg.saveDir ? '' : '  (save folder not found, see README)'));
   console.log('Close this window to stop the editor.');
   checkRuntime();
+  setTimeout(() => { if (cfg.updateCheck !== false) UPD.check(VERSION, false).catch(() => {}); }, 4000);
+  setInterval(() => { if (cfg.updateCheck !== false) UPD.check(VERSION, false).catch(() => {}); }, 6 * 3600 * 1000).unref();
   if (!process.env.NO_BROWSER) { // open the default browser (set NO_BROWSER=1 to disable)
     try { spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore', windowsHide: true }).unref(); } catch { /* the address is printed above */ }
   }

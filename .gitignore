@@ -20,3 +20,5 @@ dist/
 *.log
 Thumbs.db
 .DS_Store
+
+app/update-state.json

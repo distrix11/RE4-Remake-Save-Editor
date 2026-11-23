@@ -36,7 +36,7 @@ function renderCaseBar(root, inv) {
     catch (e) { toast(e.message, 'err'); sel.value = inv.size.value; }
   };
   const seg = document.createElement('span'); seg.className = 'seg';
-  for (const [k, icon, t] of [['list', 'list', 'List'], ['map', 'grid', 'Map'], ['3d', 'case', '3D']]) {
+  for (const [k, icon, t] of [['list', 'list', 'List'], ['map', 'grid', 'Map'], ['3d', 'case', 'Case']]) {
     const b = document.createElement('button'); b.className = ui.view === k ? 'on' : ''; b.innerHTML = ic(icon) + t;
     b.onclick = () => { ui.view = k; render(); }; seg.append(b);
   }

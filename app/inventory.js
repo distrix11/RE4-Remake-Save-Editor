@@ -107,6 +107,15 @@ function overview(S) {
   if (inv) o.ptas = scalar(S, F(S, inv, 'PTAS'));
   if (shop) o.spinel = scalar(S, F(S, shop, 'SpinelCount'));
   if (camp) { o.difficulty = scalar(S, F(S, camp, '_CurrentDifficulty')); o.saveCount = scalar(S, F(S, camp, '_SaveCount')); }
+  // look of the attaché case: the skin item selected for the main character (100000) in the skin settings
+  try {
+    const host = sections(S).find((x) => F(S, x, 'SkinSettingSaveData'));
+    const arr = host && F(S, F(S, host, 'SkinSettingSaveData'), 'Settings');
+    if (arr) for (const i of arr.items) {
+      const e = S.parsed.nodes[i]; const cid = scalar(S, F(S, e, 'CharacterID')); const it = scalar(S, F(S, e, 'ItemId'));
+      if (cid && it && Number(cid.value) === 100000) o.caseSkin = Number(it.value);
+    }
+  } catch (e) { /* optional */ }
   return o;
 }
 
