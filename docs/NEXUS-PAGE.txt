@@ -27,10 +27,11 @@ File description: Script-only package. Install Node.js LTS once, extract the zip
 FULL DESCRIPTION (Nexus BBCode)
 ==========================================================================================
 
-[center][size=6][b]RE4 Save Editor[/b][/size]
-[i]Unofficial local save editor for Resident Evil 4 (2023), Steam, Windows[/i]
+[center][img]https://raw.githubusercontent.com/distrix11/RE4-Remake-Save-Editor/main/docs/nexus-header.png[/img]
 
-[url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]All-in-one download (no Node.js needed)[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
+[size=4][b]Don't want to install anything?[/b] Get the [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]all-in-one version from GitHub[/url]: Node.js is inside, just extract it and double-click RE4SaveEditor.exe.[/size]
+
+[url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
 
 [color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.0). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving, and consider turning off Steam Cloud for RE4.
@@ -48,18 +49,22 @@ Edit your save in a clean local window: it runs on your PC and never sends your 
 [*][b]Safe by design[/b]: a summary of every change before writing, writes are decrypted back and compared before they replace the file, backup manager with restore, copy one slot into another.
 [/list]
 
+[center][img]https://raw.githubusercontent.com/distrix11/RE4-Remake-Save-Editor/main/docs/screenshots/08-case-view.png[/img]
+[i]The Case view: pick an item, drag it to a new place, press Sort to tidy up.[/i]
+
+[img]https://raw.githubusercontent.com/distrix11/RE4-Remake-Save-Editor/main/docs/screenshots/07-change-summary.png[/img]
+[i]Every change is listed before anything is written to the game.[/i][/center]
+
 [line]
 
 [size=5][b]Installation[/b][/size]
+This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed once (the "LTS" Windows Installer: Next, Next, Finish). If you would rather install nothing, use the [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]all-in-one version on GitHub[/url] instead.
 [list=1]
-[*]Install [url=https://nodejs.org]Node.js[/url] 20 or newer once (the "LTS" Windows Installer: Next, Next, Finish).
 [*]Close Resident Evil 4.
 [*]Extract the whole zip anywhere and double-click [b]start.js[/b]. The editor opens in its own window; closing the window stops it.
 [*]Pick a slot at the top, edit, press [b]Save to game[/b]. [b]Restore from backup...[/b] undoes a write at any time.
 [/list]
-[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts.[/size]
-
-[b]Prefer not to install Node.js?[/b] The [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub release[/url] has an all-in-one zip with Node.js inside: extract it and double-click RE4SaveEditor.exe. (Nexus Mods does not accept .exe files, so that version is only on GitHub.)
+[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts. (Nexus Mods does not accept .exe files, so the executable version is only on GitHub.)[/size]
 
 [line]
 
