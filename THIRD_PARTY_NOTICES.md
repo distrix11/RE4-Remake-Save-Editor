@@ -66,3 +66,7 @@ SOFTWARE.
 Resident Evil, Resident Evil 4 and related names are trademarks of Capcom Co., Ltd.
 Steam is a trademark of Valve Corporation. This is an unofficial fan tool and is not
 affiliated with, endorsed by or supported by Capcom or Valve. No game assets are included.
+
+## Item icons (icons/items)
+
+The pictures in `icons/items` are renders of original procedural 3D models written for this project (`scripts/icon-render/procedural.html` and `builders-extra.js`, MIT like the rest of the project). They contain no third-party or game assets.

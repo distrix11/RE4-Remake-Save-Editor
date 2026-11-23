@@ -128,10 +128,43 @@
   const caseIcon = (c1, c2) => wrap('0 0 60 60', `<rect x="6" y="18" width="48" height="32" rx="4" fill="url(#${c1})" ${O}/><path d="M22 18v-5h16v5" fill="none" ${O}/><rect x="6" y="30" width="48" height="4" fill="${c2}" opacity=".8"/><rect x="26" y="28" width="8" height="8" rx="1" fill="url(#gBrass)" ${O}/>`);
   const caseUp = wrap('0 0 60 60', `<rect x="6" y="22" width="48" height="30" rx="4" fill="url(#gMetal)" ${O}/><path d="M30 6v14M23 13l7-7 7 7" fill="none" stroke="#a9c58a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`);
 
+  // Rendered 3D pictures of every catalogue item (icons/items/<key>.png, made by scripts/icon-render from original models); [category, name pattern, picture]
+  const ITEM_PNG = [
+    ['throw', /hand grenade/, 'grenade_hand'], ['throw', /heavy grenade/, 'grenade_heavy'], ['throw', /flash grenade/, 'grenade_flash'], ['throw', /white/, 'egg_white'], ['throw', /brown/, 'egg_brown'], ['throw', /golden/, 'egg_gold'],
+    ['acc', /high-power/, 'scope_hp'], ['acc', /biosensor/, 'scope_bio'], ['acc', /scope/, 'scope'], ['acc', /red9 stock/, 'stock_red9'], ['acc', /tmp stock/, 'stock_tmp'], ['acc', /matilda stock/, 'stock_matilda'], ['acc', /laser/, 'laser'],
+    ['heal', /mixed herb \(g\+g\+g\)/, 'herb_ggg'], ['heal', /mixed herb \(g\+g\+y\)/, 'herb_ggy'], ['heal', /mixed herb \(g\+r\+y\)/, 'herb_gry'], ['heal', /mixed herb \(g\+g\)/, 'herb_gg'], ['heal', /mixed herb \(g\+r\)/, 'herb_gr'], ['heal', /mixed herb \(g\+y\)/, 'herb_gy'], ['heal', /mixed herb \(r\+y\)/, 'herb_ry'],
+    ['heal', /green herb/, 'herb_green'], ['heal', /red herb/, 'herb_red'], ['heal', /yellow herb/, 'herb_yellow'], ['heal', /first aid/, 'first_aid_spray'], ['heal', /bass/, 'bass'], ['heal', /viper/, 'viper'], ['heal', /beetle/, 'beetle'],
+    ['ammo', /handgun/, 'ammo_handgun'], ['ammo', /magnum/, 'ammo_magnum'], ['ammo', /shotgun/, 'ammo_shotgun'], ['ammo', /rifle/, 'ammo_rifle'], ['ammo', /submachine/, 'ammo_smg'], ['ammo', /bolts/, 'bolts'], ['ammo', /explosive/, 'arrows_explosive'],
+    ['ammo', /gunpowder/, 'gunpowder'], ['ammo', /resources \(l\)/, 'resources_l'], ['ammo', /resources/, 'resources_s'], ['ammo', /mine/, 'mine'],
+    ['weapon', /knife/, 'knife'], ['weapon', /rocket/, 'rocket_launcher'], ['weapon', /bolt thrower/, 'bolt_thrower'], ['weapon', /bow/, 'krauser_bow'],
+    ['treasure', /dirty pearl/, 'pendant_dirty'], ['treasure', /pearl pendant/, 'pendant_pearl'], ['treasure', /pocket watch/, 'pocket_watch'], ['treasure', /headdress/, 'headdress'], ['treasure', /pipe/, 'pipe'], ['treasure', /pearl bangle/, 'bangle_pearl'],
+    ['treasure', /red gemstone ring/, 'ring_ruby'], ['treasure', /gold bangle/, 'bangle_gold'], ['treasure', /iluminados pendant/, 'pendant_illum'], ['treasure', /mirror/, 'mirror'], ['treasure', /hourglass/, 'hourglass'], ['treasure', /perfume/, 'perfume'],
+    ['treasure', /chessboard/, 'chessboard'], ['treasure', /staff/, 'staff'], ['treasure', /scratched emerald/, 'gem_scratched'], ['treasure', /ruby/, 'gem_ruby'], ['treasure', /emerald/, 'gem_emerald'], ['treasure', /sapphire/, 'gem_sapphire'],
+    ['treasure', /yellow diamond/, 'gem_yellow'], ['treasure', /alexandrite/, 'gem_alexandrite'], ['treasure', /gold bar \(l\)/, 'bar_l'], ['treasure', /gold bar/, 'gold_bar'], ['treasure', /ingot/, 'ingot'], ['treasure', /idol/, 'idol'],
+    ['treasure', /compass/, 'compass'], ['treasure', /justitia/, 'justitia'], ['treasure', /ore/, 'ore'], ['treasure', /ornate beetle/, 'ornate_beetle'], ['treasure', /false eye/, 'eye'], ['treasure', /monocle/, 'monocle'], ['treasure', /lip rouge/, 'lip_rouge'],
+    ['treasure', /red beryl/, 'gem_red_beryl'], ['treasure', /camera/, 'camera'], ['treasure', /velvet blue/, 'gem_velvet'], ['treasure', /ticket/, 'ticket'], ['treasure', /mask/, 'mask'], ['treasure', /flagon/, 'flagon'], ['treasure', /butterfly lamp/, 'butterfly_lamp'],
+    ['treasure', /crown/, 'crown'], ['treasure', /lynx/, 'lynx'], ['treasure', /clock/, 'clock'], ['treasure', /splendid bangle/, 'bangle_splendid'], ['treasure', /chalice/, 'chalice'], ['treasure', /necklace/, 'necklace'], ['treasure', /elegant bangle/, 'bangle_elegant'],
+    ['key', /hexagonal emblem/, 'emblem_hex'], ['key', /salazar|insignia key/, 'insignia_gold'], ['key', /church insignia/, 'insignia_silver'], ['key', /halo wheel/, 'halo_wheel'], ['key', /lantern/, 'lantern'], ['key', /level 1/, 'keycard_1'], ['key', /level 2/, 'keycard_2'], ['key', /level 3/, 'keycard_3'],
+    ['key', /marble/, 'marble'], ['key', /wrench/, 'wrench'], ['key', /lion head/, 'head_lion'], ['key', /goat head/, 'head_goat'], ['key', /serpent head/, 'head_serpent'], ['key', /blasphemer/, 'head_blasph'], ['key', /apostate/, 'head_apost'],
+    ['key', /cog/, 'cog'], ['key', /dynamite/, 'dynamite'], ['key', /luis/, 'key_brass'], ['key', /small key/, 'key_steel'], ['key', /crank/, 'crank'], ['key', /hexagon piece a/, 'hex_a'], ['key', /hexagon piece b/, 'hex_b'], ['key', /hexagon piece c/, 'hex_c'],
+    ['key', /dungeon key/, 'key_iron'], ['key', /wayshrine/, 'key_rust'], ['key', /scooter/, 'key_scooter'], ['key', /golden sword/, 'sword_gold'], ['key', /iron sword/, 'sword_iron'], ['key', /bloodied sword/, 'sword_blood'], ['key', /rusted sword/, 'sword_rust'],
+    ['key', /lithographic stone a/, 'litho_a'], ['key', /lithographic stone b/, 'litho_b'], ['key', /lithographic stone c/, 'litho_c'], ['key', /lithographic stone d/, 'litho_d'], ['key', /boat fuel/, 'boat_fuel'], ['key', /bunch of keys/, 'key_bunch'],
+    ['key', /cubic device/, 'cubic_device'], ['key', /lodge/, 'key_lodge'], ['key', /unicorn/, 'unicorn_horn'], ['key', /blue dial/, 'blue_dial'], ['key', /silver token/, 'token_silver'], ['key', /gold token/, 'token_gold'], ['key', /planks/, 'planks'],
+    ['special', /recipe/, 'recipe'], ['special', /body armor/, 'armor'], ['special', /treasure map/, 'map'], ['special', /case upgrade/, 'case_upgrade'], ['special', /silver/, 'case_silver'], ['special', /black/, 'case_black'], ['special', /leather/, 'case_leather'],
+    ['special', /gold/, 'case_gold'], ['special', /classic/, 'case_classic'],
+  ];
+  const itemPng = (n, cat) => {
+    const t = String(n).toLowerCase(); let key = null;
+    if (cat === 'charm') { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; key = 'charm_' + (h % 12); }
+    else { const m = ITEM_PNG.find(([c, re]) => c === cat && re.test(t)); key = m ? m[2] : null; }
+    return key ? '<img class="art" alt="" src="icons/items/' + key + '.png">' : null;
+  };
+
   // returns { svg, wide }: wide art is drawn horizontally and is turned when the item box is taller than wide
   const baseArt = function (name, cat, fp) {
     const n = String(name || ''); const t = n.toLowerCase();
     let svg = null, horizontal = false;
+    const pic = itemPng(n, cat); if (pic) return { svg: pic, horizontal: false, turn: false };
     try {
       if (cat === 'weapon') {
         // guns stay horizontal like in the game; only knives and the like are turned upright in tall boxes

@@ -1,0 +1,167 @@
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+// Original procedural 3D icons (no third-party assets). ?k=<name>&s=<size>. window.BUILDERS lists the names.
+import * as THREE from 'three';
+import { makeExtra } from './builders-extra.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const q = new URLSearchParams(location.search); const S = +q.get('s') || 256;
+
+const M = (color, metal, rough, extra = {}) => new THREE.MeshStandardMaterial({ color, metalness: metal, roughness: rough, ...extra });
+const mat = {
+  gold: M(0xf3c84a, 0.7, 0.28, { emissive: 0x3d2a00, emissiveIntensity: 0.6 }), brass: M(0xe0b24e, 0.7, 0.3, { emissive: 0x2e2000, emissiveIntensity: 0.5 }), steel: M(0xaab2b9, 1, 0.28), dark: M(0x30353a, 0.8, 0.4), rubber: M(0x1b1d1f, 0, 0.7),
+  olive: M(0x5d6b3a, 0.1, 0.65), white: M(0xf2f2ec, 0, 0.35), cream: M(0xe9dfc2, 0, 0.45), brown: M(0x8a5a33, 0, 0.5),
+  red: M(0xc72f27, 0.1, 0.4), green: M(0x2f9a45, 0.1, 0.4), glassy: (c) => M(c, 0.15, 0.06, { flatShading: true, emissive: c, emissiveIntensity: 0.18 }),
+};
+const add = (g, geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
+const lathe = (pts, seg = 48) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
+
+function leaf(color, len = 1.5, wid = 0.55) {
+  const s = new THREE.Shape(); s.moveTo(0, 0); s.bezierCurveTo(wid, len * 0.2, wid * 0.9, len * 0.7, 0, len); s.bezierCurveTo(-wid * 0.9, len * 0.7, -wid, len * 0.2, 0, 0);
+  const geo = new THREE.ExtrudeGeometry(s, { depth: 0.015, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.02, bevelSegments: 2, curveSegments: 14 });
+  const p = geo.attributes.position, col = new Float32Array(p.count * 3), base = new THREE.Color(color), hi = base.clone().lerp(new THREE.Color(0xffffff), 0.12), lo = base.clone().multiplyScalar(0.42);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), t = y / len, w = wid * Math.sin(Math.PI * Math.min(1, t * 1.05) * 0.95) + 0.001, edge = Math.min(1, Math.abs(x) / w);
+    p.setZ(i, p.getZ(i) + t * t * 0.45 + Math.abs(x) * 0.5 * (0.4 + t));          // arch the blade and fold it along the midrib
+    const c = Math.abs(x) < 0.035 ? hi : lo.clone().lerp(base, 1 - edge * 0.5);   // lighter midrib, darker edges
+    col[i * 3] = c.r * 0.55; col[i * 3 + 1] = c.g * 0.55; col[i * 3 + 2] = c.b * 0.55;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
+  return new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, side: THREE.DoubleSide }));
+}
+function herb(colors) {
+  const g = new THREE.Group(); const n = colors.length; const per = n === 1 ? 6 : n === 2 ? 4 : 3; let k = 0;
+  colors.forEach((c, ci) => {
+    for (let i = 0; i < per; i++) {
+      const L = leaf(c, 1.7 + (i % 2) * 0.35, 0.62); const pivot = new THREE.Group(); pivot.add(L);
+      pivot.rotation.order = 'YXZ'; pivot.rotation.y = (k / (per * n)) * Math.PI * 2 + ci * 0.45; pivot.rotation.x = 0.95 + (i % 3) * 0.12; k++; g.add(pivot);
+    }
+  });
+  add(g, new THREE.SphereGeometry(0.16, 12, 10), M(0x3a5a22, 0, 0.7), 0, 0.02, 0);
+  g.userData.view = [0.95, -0.35]; return g;
+}
+function gem(color, sides = 8) {
+  const g = new THREE.Group();
+  const geo = lathe([[0, -1], [0.98, 0.05], [1.0, 0.18], [0.62, 0.62], [0, 0.62]], sides);
+  const m = add(g, geo, mat.glassy(color)); m.geometry.computeVertexNormals();
+  g.scale.set(1, 0.95, 1); return g;
+}
+function egg(kind) {
+  const g = new THREE.Group(); const geo = new THREE.SphereGeometry(1, 48, 32); const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i); const t = (y + 1) / 2; const k = 1 - 0.28 * t * t - 0.05 * (1 - t); p.setX(i, p.getX(i) * k * 0.82); p.setZ(i, p.getZ(i) * k * 0.82); p.setY(i, y * 1.15); }
+  geo.computeVertexNormals();
+  add(g, geo, kind === 'gold' ? M(0xf6cc4a, 0.7, 0.22, { emissive: 0x4a3200, emissiveIntensity: 0.6 }) : kind === 'brown' ? M(0x9a6a3c, 0, 0.5) : M(0xf4f1e8, 0, 0.35)); return g;
+}
+function spray() {
+  const g = new THREE.Group();
+  add(g, new THREE.CylinderGeometry(0.55, 0.55, 1.9, 40), M(0xe9efe9, 0.1, 0.3), 0, 0, 0);
+  add(g, new THREE.CylinderGeometry(0.56, 0.56, 0.5, 40), M(0x2f9a45, 0.2, 0.35), 0, -0.75, 0);
+  add(g, lathe([[0.55, 0.95], [0.4, 1.1], [0.25, 1.15], [0, 1.15]]), mat.steel);
+  add(g, new THREE.CylinderGeometry(0.2, 0.22, 0.25, 20), mat.dark, 0, 1.28, 0);
+  add(g, new THREE.BoxGeometry(0.38, 0.12, 0.2), mat.dark, 0.18, 1.45, 0);
+  const cross = new THREE.Group(); const cm = M(0x2f9a45, 0, 0.4);
+  add(cross, new THREE.BoxGeometry(0.62, 0.2, 0.03), cm); add(cross, new THREE.BoxGeometry(0.2, 0.62, 0.03), cm); cross.position.set(0, 0.2, 0.56); g.add(cross);
+  return g;
+}
+const cart = (len, rad, bodyMat, tip) => { const c = new THREE.Group(); add(c, new THREE.CylinderGeometry(rad, rad, len, 16), bodyMat, 0, len / 2, 0); if (tip === 'shell') add(c, new THREE.CylinderGeometry(rad * 1.05, rad * 1.05, len * 0.22, 16), mat.brass, 0, len * 0.11, 0); else add(c, lathe([[rad * 0.98, 0], [rad * 0.85, tip], [rad * 0.3, tip * 1.9], [0, tip * 2]], 16), mat.brass, 0, len, 0); return c; };
+function ammo(kind) {
+  const g = new THREE.Group(); const col = { handgun: 0xc9a23a, shotgun: 0xb4352c, rifle: 0x6a8a3a, magnum: 0x9aa4ac, smg: 0x4a74a8 }[kind];
+  add(g, new THREE.BoxGeometry(2.1, 0.9, 1.1), M(0x4b5538, 0.1, 0.7), 0, -0.1, 0);
+  add(g, new THREE.BoxGeometry(2.14, 0.16, 1.14), M(col, 0.2, 0.5), 0, 0.12, 0);
+  add(g, new THREE.BoxGeometry(1.2, 0.36, 0.02), M(0xe8e2c8, 0, 0.6), 0, -0.08, 0.56);
+  add(g, new THREE.BoxGeometry(0.9, 0.08, 0.025), M(col, 0.2, 0.5), 0, -0.08, 0.57);
+  const rows = kind === 'rifle' || kind === 'magnum' ? 4 : 5;
+  for (let i = 0; i < rows; i++) for (let j = 0; j < 2; j++) {
+    const x = -0.8 + (i * 1.6) / (rows - 1), z = -0.22 + j * 0.44;
+    const c = kind === 'shotgun' ? cart(0.7, 0.14, M(0xc42f27, 0.1, 0.4), 'shell') : kind === 'rifle' ? cart(0.85, 0.1, mat.brass, 0.14) : kind === 'magnum' ? cart(0.7, 0.12, M(0xdde1e4, 1, 0.2), 0.12) : cart(0.5, 0.1, mat.brass, 0.1);
+    c.position.set(x, 0.3, z); g.add(c);
+  }
+  g.rotation.x = 0.15; return g;
+}
+function grenade(kind) {
+  const g = new THREE.Group();
+  if (kind === 'flash') {
+    add(g, new THREE.CylinderGeometry(0.5, 0.5, 1.5, 32), M(0xd2d6d8, 0.6, 0.3)); add(g, new THREE.CylinderGeometry(0.51, 0.51, 0.35, 32), M(0xe0c030, 0.3, 0.4), 0, 0.1, 0);
+    add(g, new THREE.CylinderGeometry(0.28, 0.4, 0.3, 24), mat.steel, 0, 0.9, 0);
+  } else {
+    const heavy = kind === 'heavy'; const s = add(g, new THREE.SphereGeometry(0.85, 36, 28), M(heavy ? 0x66783b : 0x7a8c46, 0.15, 0.55)); s.scale.set(1, 1.15, 1);
+    for (let i = -2; i <= 2; i++) { const t = add(g, new THREE.TorusGeometry(Math.sqrt(Math.max(0.01, 0.72 - (i * 0.34) ** 2)) * 0.98, 0.035, 8, 40), M(0x232a16, 0, 0.8), 0, i * 0.34 * 1.15, 0); t.rotation.x = Math.PI / 2; }
+    add(g, new THREE.CylinderGeometry(0.2, 0.28, 0.35, 20), mat.steel, 0, 1.12, 0);
+    const lev = add(g, new THREE.BoxGeometry(0.18, 1.1, 0.06), mat.steel, 0.38, 0.65, 0); lev.rotation.z = -0.1;
+    const ring = add(g, new THREE.TorusGeometry(0.25, 0.04, 8, 24), mat.steel, -0.3, 1.3, 0); ring.rotation.y = 0.4;
+  }
+  return g;
+}
+function crown() {
+  const g = new THREE.Group();
+  add(g, new THREE.CylinderGeometry(1.05, 0.95, 0.75, 40, 1, true), M(0xf3c84a, 0.7, 0.28, { side: THREE.DoubleSide, emissive: 0x3d2a00, emissiveIntensity: 0.6 }), 0, 0, 0);
+  add(g, new THREE.TorusGeometry(1.0, 0.07, 10, 48), mat.gold, 0, 0.375, 0).rotation.x = Math.PI / 2;
+  add(g, new THREE.TorusGeometry(0.96, 0.07, 10, 48), mat.gold, 0, -0.375, 0).rotation.x = Math.PI / 2;
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2; const x = Math.cos(a) * 1.0, z = Math.sin(a) * 1.0;
+    const sp = add(g, lathe([[0.2, 0], [0.12, 0.5], [0.06, 0.8], [0, 0.95]], 16), mat.gold, x, 0.36, z);
+    add(g, new THREE.SphereGeometry(0.1, 12, 10), M(0xc8283a, 0.1, 0.15), x, 1.36, z);
+    const rg = add(g, new THREE.SphereGeometry(0.14, 14, 10), a % 2 ? M(0xc8283a, 0.1, 0.15) : M(0x2ea36a, 0.1, 0.15), Math.cos(a + 0.52) * 1.02, 0, Math.sin(a + 0.52) * 1.02); rg.scale.set(1, 1.3, 1);
+  }
+  g.rotation.x = 0.0; return g;
+}
+function chalice() {
+  const g = new THREE.Group();
+  add(g, lathe([[0, -1.5], [0.85, -1.5], [0.9, -1.38], [0.6, -1.25], [0.2, -0.95], [0.18, -0.35], [0.38, -0.25], [0.2, -0.2], [0.75, -0.05], [1.05, 0.55], [1.0, 1.0], [0.92, 1.0], [0.95, 0.55], [0.7, 0.05], [0, 0.0]], 48), mat.gold);
+  add(g, new THREE.TorusGeometry(0.28, 0.07, 10, 24), M(0xc8283a, 0.1, 0.15), 0, -0.6, 0).rotation.x = Math.PI / 2;
+  [0, 1, 2, 3].forEach((i) => { const a = i * Math.PI / 2 + 0.4; add(g, new THREE.SphereGeometry(0.1, 12, 10), M(0x2ea36a, 0.1, 0.15), Math.cos(a) * 0.98, 0.45, Math.sin(a) * 0.98); });
+  return g;
+}
+function watch() {
+  const g = new THREE.Group();
+  const c = add(g, new THREE.CylinderGeometry(1, 1, 0.3, 48), mat.gold); c.rotation.x = Math.PI / 2;
+  const f = add(g, new THREE.CylinderGeometry(0.88, 0.88, 0.05, 48), mat.cream, 0, 0, 0.16); f.rotation.x = Math.PI / 2;
+  const bz = add(g, new THREE.TorusGeometry(0.93, 0.07, 10, 48), mat.gold, 0, 0, 0.16);
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; const t = add(g, new THREE.BoxGeometry(0.05, i % 3 ? 0.1 : 0.18, 0.02), mat.dark, Math.sin(a) * 0.74, Math.cos(a) * 0.74, 0.2); t.rotation.z = -a; }
+  const h1 = add(g, new THREE.BoxGeometry(0.06, 0.6, 0.02), mat.dark, 0, 0.3, 0.21); const h2 = add(g, new THREE.BoxGeometry(0.05, 0.45, 0.02), mat.dark, 0.2, 0.0, 0.22); h2.rotation.z = -1.1; h2.position.set(0.18, 0.1, 0.22);
+  add(g, new THREE.CylinderGeometry(0.14, 0.14, 0.25, 16), mat.gold, 0, 1.12, 0);
+  add(g, new THREE.TorusGeometry(0.28, 0.05, 10, 28), mat.gold, 0, 1.4, 0);
+  g.rotation.x = -0.1; return g;
+}
+function hourglass() {
+  const g = new THREE.Group(); const gl = M(0xcfe6ee, 0.1, 0.05, { transparent: true, opacity: 0.45 });
+  add(g, lathe([[0, -1.1], [0.8, -1.1], [0.85, -0.5], [0.12, -0.05], [0.85, 0.5], [0.8, 1.1], [0, 1.1]].map(([r, y]) => [r, y]), 40), gl);
+  add(g, lathe([[0, -1.05], [0.7, -1.05], [0.6, -0.7], [0, -0.5]], 32), M(0xe3c070, 0, 0.8));
+  add(g, lathe([[0, 0.05], [0.14, 0.05], [0.2, 0.9], [0, 0.95]], 32), M(0xe3c070, 0, 0.8));
+  [-1, 1].forEach((s) => add(g, new THREE.CylinderGeometry(1.0, 1.0, 0.18, 40), mat.gold, 0, 1.2 * s, 0));
+  for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + 0.5; add(g, new THREE.CylinderGeometry(0.06, 0.06, 2.3, 10), mat.gold, Math.cos(a) * 0.92, 0, Math.sin(a) * 0.92); }
+  return g;
+}
+function bar() {
+  const g = new THREE.Group(); const geo = new THREE.CylinderGeometry(0.75, 1.0, 0.7, 4); geo.rotateY(Math.PI / 4);
+  const o = add(g, geo, mat.gold); o.scale.set(1.7, 1, 0.9); return g;
+}
+const B = {
+  herb_green: () => herb([0x1f6e2a]), herb_red: () => herb([0x9a1d18]), herb_yellow: () => herb([0xb09418]),
+  herb_gg: () => herb([0x1f6e2a, 0x1f6e2a]), herb_ggg: () => herb([0x1f6e2a, 0x1f6e2a, 0x1f6e2a]), herb_gr: () => herb([0x1f6e2a, 0x9a1d18]), herb_gy: () => herb([0x1f6e2a, 0xb09418]),
+  herb_ry: () => herb([0x9a1d18, 0xb09418]), herb_ggy: () => herb([0x1f6e2a, 0x1f6e2a, 0xb09418]), herb_gry: () => herb([0x1f6e2a, 0x9a1d18, 0xb09418]),
+  first_aid_spray: spray,
+  ammo_handgun: () => ammo('handgun'), ammo_shotgun: () => ammo('shotgun'), ammo_rifle: () => ammo('rifle'), ammo_magnum: () => ammo('magnum'), ammo_smg: () => ammo('smg'),
+  grenade_hand: () => grenade('hand'), grenade_heavy: () => grenade('heavy'), grenade_flash: () => grenade('flash'),
+  egg_white: () => egg('white'), egg_brown: () => egg('brown'), egg_gold: () => egg('gold'),
+  gem_ruby: () => gem(0xd0213a), gem_emerald: () => gem(0x1f9a5a), gem_sapphire: () => gem(0x2a56d0), gem_yellow: () => gem(0xe8cf33), gem_alexandrite: () => gem(0x8a3fc9),
+  crown: crown, chalice: chalice, pocket_watch: watch, hourglass: hourglass, gold_bar: bar,
+};
+Object.assign(B, makeExtra(THREE));
+window.BUILDERS = Object.keys(B);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setSize(S, S); renderer.setClearColor(0x000000, 0); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+document.body.append(renderer.domElement);
+const scene = new THREE.Scene(); const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+const key = new THREE.DirectionalLight(0xffffff, 2.0); key.position.set(-2, 4, 4); scene.add(key);
+const k = q.get('k');
+if (k && B[k]) {
+  const obj = B[k](); const outer = new THREE.Group(); outer.add(obj); const vw = obj.userData.view || [0.5, -0.5]; outer.rotation.set(vw[0], vw[1], vw[2] || 0); scene.add(outer);
+  const bx = new THREE.Box3().setFromObject(outer); const sz = bx.getSize(new THREE.Vector3()), c = bx.getCenter(new THREE.Vector3());
+  const sc = (S * 0.9) / Math.max(sz.x, sz.y);
+  const cam = new THREE.OrthographicCamera(-S / 2 / sc, S / 2 / sc, S / 2 / sc, -S / 2 / sc, -100, 100); cam.position.set(c.x, c.y, 10); cam.lookAt(c.x, c.y, 0);
+  renderer.render(scene, cam);
+}
+window.__done = true;
+</script>

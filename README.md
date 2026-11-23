@@ -23,8 +23,8 @@ It runs on your own computer, opens in your browser and never sends anything ove
 - **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
-- **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with vector item icons.
-  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Weapons use pictures rendered from CC0 3D models; you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view.
+- **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with 3D-rendered item icons.
+  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models rendered by `scripts/icon-render`; guns use renders of CC0 models); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view.
 - **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - **Advanced**: a raw tree view of every field in the save file with search.
 
