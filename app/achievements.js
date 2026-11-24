@@ -14,7 +14,9 @@ function buildHints(S, st) {
     const best = Math.min(g.chaptersHours, g.clockHours || Infinity);
     const pace = chapters ? (g.chaptersHours / chapters) * 16 : null;
     put('2:0', `In this slot: by chapters ${g.chaptersHours.toFixed(1)} h, by game clock ${g.clockHours !== null ? g.clockHours.toFixed(1) : '?'} h (limit 8 h; it is unknown which clock the game uses). Chapters recorded: ${chapters} of 16` +
-      (pace && chapters < 16 ? `; at this pace the whole game would take about ${pace.toFixed(1)} h` : '') + '.', best > 8 ? 'bad' : 'ok');
+      (pace && chapters < 16 ? `; at this pace the whole game would take about ${pace.toFixed(1)} h (a rough estimate: the chapters differ in length)` : '') + '.',
+      // already over the limit: bad; on course by the time so far but a pace above 8 h: only a neutral note, not a green "ok"
+      best > 8 ? 'bad' : (pace && chapters < 16 && pace > 8 ? 'info' : 'ok'));
     for (const key of ['1:27', '1:28', '1:29', '1:30', '1:31']) put(key, `In this slot: difficulty "${diffLabel}", chapters recorded: ${chapters} of 16. The final rank (S+) is not stored in the save.`);
   }
   if (g && g.mode === 'separateWays') for (const key of ['2:10', '2:11', '2:12', '2:13']) put(key, `In this slot (Separate Ways): difficulty "${diffLabel}", chapters recorded: ${chapters}.`);

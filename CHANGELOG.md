@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased (for 0.9.2)
+- The hint of the "Sprinter" achievement no longer shows a green "ok" when the time so far is under 8 h but the pace of the slot would take longer: it is a neutral note and says that the estimate is rough.
+
 ## 0.9.1 (pre-release)
 - Fixed: the update check did not see pre-releases (GitHub never reports a pre-release as "latest"), so it said that no release exists. It now looks at the list of releases and names a pre-release as such.
 - Fixed (found in the first Separate Ways test): "Case look" changed the skin of Leon only, so the case of a Separate Ways slot (Ada) did not change; the skin of the character of the slot is read and written now.
