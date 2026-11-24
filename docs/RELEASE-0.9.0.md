@@ -3,7 +3,7 @@
 An unofficial, local save editor for **Resident Evil 4 (2023 remake), Steam, Windows**. It runs on your own computer and never sends your saves anywhere.
 
 > [!WARNING]
-> **Pre-release. Use at your own risk.** Editing saves can corrupt them. The editor makes a backup before every write and keeps a protected first-run copy of every slot, but keep your own copies too. Close the game before saving and consider turning off Steam Cloud for RE4.
+> **Pre-release. Use at your own risk.** Editing saves can corrupt them. The editor makes a backup before every write and keeps a protected first-run copy of every slot, but keep your own copies too. It is best to close the game before saving, and consider turning off Steam Cloud for RE4.
 
 ## What you can do
 
@@ -32,7 +32,7 @@ Prefer not to run an `.exe`? Everything is plain JavaScript: download the source
 
 ## Quick start
 
-1. Close the game.
+1. Preferably close the game (writing from the main menu and then loading the slot also works).
 2. Start the editor, pick a slot at the top, edit, press **Save to game**. A summary of the changes is shown first.
 3. **Restore from backup...** undoes a write at any time.
 

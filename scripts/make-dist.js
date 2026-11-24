@@ -53,7 +53,7 @@ Source code and details: https://github.com/distrix11/RE4-Remake-Save-Editor
 Unofficial fan tool, not affiliated with Capcom or Valve. Use at your own risk and keep backups.
 `;
 const START = (bat) => `How to start:
-  1. Close Resident Evil 4. Consider turning off Steam Cloud for the game.
+  1. Preferably close Resident Evil 4. Consider turning off Steam Cloud for the game.
   2. Extract the whole zip anywhere and double-click ${bat ? 'start.bat (or start.js)' : 'start.js'}.
      The editor opens in its own window. Closing that window stops the editor.
      - Windows may ask once whether you want to run the script (it came from the internet): choose Open / Run.

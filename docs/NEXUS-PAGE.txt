@@ -34,7 +34,7 @@ FULL DESCRIPTION (Nexus BBCode)
 [url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
 
-[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.0). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving, and consider turning off Steam Cloud for RE4.
+[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.0). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. It is best to close the game before saving (writing from the main menu and then loading the slot also works), and consider turning off Steam Cloud for RE4.
 
 [line]
 
@@ -60,7 +60,7 @@ Edit your save in a clean local window: it runs on your PC and never sends your 
 [size=5][b]Installation[/b][/size]
 This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed once (the "LTS" Windows Installer: Next, Next, Finish). If you would rather install nothing, use the [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]all-in-one version on GitHub[/url] instead.
 [list=1]
-[*]Close Resident Evil 4.
+[*]Preferably close Resident Evil 4.
 [*]Extract the whole zip anywhere and double-click [b]start.js[/b]. The editor opens in its own window; closing the window stops it.
 [*]Pick a slot at the top, edit, press [b]Save to game[/b]. [b]Restore from backup...[/b] undoes a write at any time.
 [/list]

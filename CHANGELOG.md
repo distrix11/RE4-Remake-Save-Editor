@@ -4,6 +4,7 @@
 - Fixed: the update check did not see pre-releases (GitHub never reports a pre-release as "latest"), so it said that no release exists. It now looks at the list of releases and names a pre-release as such.
 - Fixed (found in the first Separate Ways test): "Case look" changed the skin of Leon only, so the case of a Separate Ways slot (Ada) did not change; the skin of the character of the slot is read and written now.
 - Weapons that are not in the catalogue (Ada's weapons of Separate Ways) were drawn as empty cells; they are shown now as "Weapon / Knife (not in the catalogue, ID ...)" with a generic icon.
+- Wording: closing the game before writing is advised, not required (banner, README, release notes); writing from the main menu and loading the slot works too.
 - The update banner has GitHub and Nexus Mods buttons (and the About dialog a link to the Nexus Mods page).
 - Issue templates are forms now (package, version, did the game load the save, diagnostics, a required "no save files attached" box).
 

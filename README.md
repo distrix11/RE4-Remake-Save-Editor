@@ -84,7 +84,7 @@ start.bat     (opens the editor in its own window)
 ```
 
 > [!IMPORTANT]
-> **Close the game** before saving, and consider turning off Steam Cloud for RE4 (otherwise Steam may restore the old file).
+> It is best to **close the game** before saving, and consider turning off Steam Cloud for RE4 (otherwise Steam may restore the old file).
 >
 > Writing while the game is running (for example from its main menu, then loading the slot) has worked in tests, because the game reads the file when you load it; but if the game saves over the file afterwards (autosave), your edit is lost. Closing the game is the safe way.
 

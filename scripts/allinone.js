@@ -41,7 +41,7 @@ module.exports = async function allInOne(c) {
   fs.writeFileSync(path.join(root, 'README-FIRST.txt'), [
     'RE4 Save Editor (unofficial) - all-in-one', '',
     'Nothing to install.',
-    '  1. Close Resident Evil 4. Consider turning off Steam Cloud for the game.',
+    '  1. Preferably close Resident Evil 4. Consider turning off Steam Cloud for the game.',
     '  2. Extract this folder anywhere and double-click RE4SaveEditor.exe.',
     '     The editor opens in its own window. Closing that window stops the editor.', '',
     'Windows SmartScreen may warn about the launcher because it is not code-signed. Its full source is launcher/Launcher.cs',
