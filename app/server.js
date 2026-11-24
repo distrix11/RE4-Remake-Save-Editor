@@ -91,6 +91,10 @@ async function unpackCached(name) {
   unpackCache.set(name, { mtime, buf: Buffer.from(buf) });
   return buf;
 }
+// modification time and size of a save file in the game folder (null when it is gone)
+function diskStamp(name) { try { const st = fs.statSync(path.join(cfg.saveDir, name)); return { mtime: st.mtimeMs, size: st.size }; } catch { return null; } }
+// true when the file was changed (by the game, Steam Cloud, another tool) after the slot was opened in the editor
+function changedOnDisk(S) { if (!S || !S.stamp) return false; const now = diskStamp(S.name); return !now || now.mtime !== S.stamp.mtime || now.size !== S.stamp.size; }
 function needAccount() {
   if (!accountId || !/^\d+$/.test(accountId)) throw new Error('The Steam account of this folder is unknown (the folder must look like <Steam>/userdata/<account>/2050650/remote/win64_save)');
   return accountId;
@@ -421,6 +425,8 @@ const routes = {
     spawn('explorer.exe', [dir], { detached: true, stdio: 'ignore' }).unref();
     return { ok: true };
   },
+  // has the file of an open slot been changed on disk since it was opened? (polled by the editor)
+  'POST /api/changed': async (b) => { const S = sessions.get(b.name); const now = S && diskStamp(b.name); return { changed: changedOnDisk(S), stamp: now ? now.mtime : null, dirty: !!(S && S.dirty) }; },
   'GET /api/status': async () => ({ gameRunning: await gameRunning() }),
   'GET /api/config': async () => ({ version: VERSION, advancedAccepted: cfg.advancedAccepted === true, noSaveDir: !cfg.saveDir, files: fileList(), catalog: INV.CATALOG, categories: INV.CATEGORIES, questInfo: QUEST_INFO }),
   'POST /api/summary': async (b) => {
@@ -435,6 +441,7 @@ const routes = {
     const parsed = parse(buf);
     const S = { name: b.name, buf, orig: Buffer.from(buf), parsed, dirty: false, edits: {} };
     S.warnings = /Slot\.bin$/.test(b.name) ? formatWarnings(S) : [];
+    S.stamp = diskStamp(b.name);
     sessions.set(b.name, S);
     const isSlot = /Slot\.bin$/.test(b.name);
     return { name: b.name, isSlot, warnings: S.warnings, size: buf.length, nodes: parsed.nodes.length, root: parsed.root,
@@ -506,6 +513,7 @@ const routes = {
     const S = need(b.name);
     const target = b.target === 'game' ? 'game' : 'output';
     if (target === 'game' && !b.force && await gameRunning()) return { running: true };
+    if (target === 'game' && !b.forceChanged && changedOnDisk(S)) return { changed: true };
     // sanity: the edited buffer must still parse and keep its length
     parse(S.buf);
     const packed = await packBuffer(b.name, S.buf);
@@ -516,7 +524,7 @@ const routes = {
       fs.mkdirSync(bk, { recursive: true });
       fs.copyFileSync(dest, path.join(bk, b.name));
       await writeVerified(b.name, S.buf, packed, dest);
-      S.orig = Buffer.from(S.buf); S.dirty = false; S.edits = {};
+      S.orig = Buffer.from(S.buf); S.dirty = false; S.edits = {}; S.stamp = diskStamp(b.name);
       unpackCache.set(b.name, { mtime: fs.statSync(dest).mtimeMs, buf: Buffer.from(S.buf) });
       return { ok: true, path: dest, backup: bk };
     }

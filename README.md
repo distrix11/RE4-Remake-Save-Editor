@@ -26,7 +26,7 @@ It runs on your own computer, opens in your browser or its own window and never 
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
   It cannot unlock achievements.
-- <img src="icons/items/first_aid_spray.png" height="26" align="top"> **Safety**: a "game is running" warning, an unsaved-changes indicator, a summary of every change before writing,
+- <img src="icons/items/first_aid_spray.png" height="26" align="top"> **Safety**: a "game is running" warning, a notice when the slot file was changed outside the editor (with a reload button), an unsaved-changes indicator, a summary of every change before writing,
   automatic backups, restore from a backup or from your own file, and copying one slot into another.
 - <img src="icons/items/wrench.png" height="26" align="top"> **Settings**: choose the save folder or Steam account inside the editor, backup manager, "Copy diagnostics" for bug reports (no personal data).
 - <img src="icons/items/key_gold.png" height="26" align="top"> **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.

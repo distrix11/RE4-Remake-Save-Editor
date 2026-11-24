@@ -199,4 +199,23 @@ async function pollGame() {
     gameWasRunning = r.gameRunning;
   } catch { /* server is not reachable or has no save folder: keep the previous state */ }
 }
-pollGame(); setInterval(pollGame, 4000);
+// the file of the open slot was changed on disk (the game saved, Steam Cloud, another tool) after it was opened here
+async function pollFile() {
+  const el = $('#fileBanner');
+  if (!cur || !data || !data.isSlot) { el.hidden = true; return; }
+  try {
+    const r = await api('changed', { name: cur });
+    if (!r.changed || ui.ignoreStamp === r.stamp) { el.hidden = true; return; }
+    el.innerHTML = ic('restore') + '<span>This slot was changed outside the editor (the game saved it?). What you see here may be out of date' + (r.dirty ? ', and writing now would overwrite that change' : '') + '.</span><span class="sp"></span>';
+    const re = document.createElement('button'); re.className = 'pri sm'; re.textContent = 'Reload from disk';
+    re.onclick = async () => {
+      if (data && data.dirty && !confirm('You have unsaved edits in this slot. Reloading drops them. Reload anyway?')) return;
+      const keep = tab; await openFile(cur); if (data && data.isSlot) { tab = keep; render(); }
+      el.hidden = true;
+    };
+    const keepB = document.createElement('button'); keepB.className = 'sm'; keepB.textContent = 'Keep my copy';
+    keepB.onclick = () => { ui.ignoreStamp = r.stamp; el.hidden = true; };
+    el.append(re, keepB); el.hidden = false;
+  } catch { /* server not reachable: keep the previous state */ }
+}
+pollGame(); setInterval(pollGame, 4000); pollFile(); setInterval(pollFile, 4000);

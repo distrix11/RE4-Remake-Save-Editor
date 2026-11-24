@@ -414,11 +414,12 @@ $('#bRevert').onclick = async () => {
   if (!confirm('Discard all unsaved edits in this file?')) return;
   try { const r = await api('revert', { name: cur }); applyFresh(r); render(); toast('Edits discarded', 'ok'); } catch (e) { toast(e.message, 'err'); }
 };
-async function save(target, force) {
+async function save(target, force, forceChanged) {
   try {
     toast(target === 'game' ? 'Encrypting and writing…' : 'Encrypting…');
-    const r = await api('save', { name: cur, target, force });
+    const r = await api('save', { name: cur, target, force, forceChanged });
     if (r.running) { if (confirm('The game (re4.exe) is running. Your write may be overwritten by the game. Write anyway?')) return save(target, true); return; }
+    if (r.changed) { if (confirm('This slot was changed outside the editor since you opened it (the game saved it?). Writing now overwrites that change with what you see here. Write anyway?')) return save(target, force, true); return; }
     toast(target === 'game' ? 'Written to the game.\nBackup of the original: ' + r.backup : 'File saved: ' + r.path, 'ok');
     if (data) data.dirty = false; updateDirty();
     await loadFiles();
