@@ -84,11 +84,18 @@ function entryModel(S, entry, idx) {
   const dirN = F(S, entry, 'CurrDirection');
   const dir = dirN ? Number(readValue(S.buf, dirN)) : 0;
   const g = guidOf(S, entry);
+  const upg = it.c.endsWith('WeaponItem') ? upgradesOf(S, it) : null;
+  let name = cat ? cat.n : null, kind = cat ? cat.c : null;
+  if (!cat && upg) {
+    // a weapon that is not in the catalogue (for example Ada's weapons of Separate Ways): show it instead of an empty cell
+    kind = 'weapon';
+    name = upg.some((u) => u.key === 'dura') ? `Knife (not in the catalogue, ID ${id.value})` : `Weapon (not in the catalogue, ID ${id.value})`;
+  }
   return {
-    idx, nodeId: entry.id, cls: it.c.split('.').pop(), name: cat ? cat.n : null, cat: cat ? cat.c : null,
+    idx, nodeId: entry.id, cls: it.c.split('.').pop(), name, cat: kind,
     itemId: id, count: scalar(S, F(S, it, '_CurrentItemCount')), ammo: scalar(S, F(S, it, '_CurrentAmmoCount')),
     durability: scalar(S, F(S, it, '_CurrentDurability')), slot: slotOf(S, entry), dir,
-    fp: footprint(id.value, dir % 2 === 1), upg: it.c.endsWith('WeaponItem') ? upgradesOf(S, it) : null,
+    fp: footprint(id.value, dir % 2 === 1), upg,
     guid: g ? g.toString('hex') : null,
   };
 }
@@ -135,13 +142,13 @@ function overview(S) {
   if (camp) { o.difficulty = scalar(S, F(S, camp, '_CurrentDifficulty')); o.saveCount = scalar(S, F(S, camp, '_SaveCount')); }
   if (o.difficulty) o.difficultyName = DIFFICULTY[o.difficulty.value] || null;
   o.slotInfo = slotInfo(S);
-  // look of the attaché case: the skin item selected for the main character (100000) in the skin settings
+  // look of the attaché case: the skin item selected for the character of this slot in the skin settings (Leon 100000; Ada 380000 in Separate Ways)
   try {
     const host = sections(S).find((x) => F(S, x, 'SkinSettingSaveData'));
     const arr = host && F(S, F(S, host, 'SkinSettingSaveData'), 'Settings');
     if (arr) for (const i of arr.items) {
       const e = S.parsed.nodes[i]; const cid = scalar(S, F(S, e, 'CharacterID')); const it = scalar(S, F(S, e, 'ItemId'));
-      if (cid && it && Number(cid.value) === 100000) o.caseSkin = Number(it.value);
+      if (cid && it && Number(cid.value) === skinCharacter(S)) o.caseSkin = Number(it.value);
     }
   } catch (e) { /* optional */ }
   return o;
@@ -311,15 +318,27 @@ function moveItem(S, invIdx, idx, x, y, dir) {
   if (dir !== undefined) { const dn = F(S, entry, 'CurrDirection'); if (dn) writeValue(S.buf, dn, String(rot)); }
   return { ok: true };
 }
-// The look of the attaché case: the skin item chosen in the skin settings (character 100000). A skin the player does not own yet is added to the
+// The look of the attaché case: the skin item chosen in the skin settings for the character of the slot (see skinCharacter). A skin the player does not own yet is added to the
 // "recipes, cases, charms" inventory first, so the game lists it as unlocked.
+// The skin settings hold one entry per character: Leon 100000, Ashley 110000, Ada 380000. A Separate Ways slot (chapter ids start with 3) is played
+// with Ada, every other slot with Leon.
+function skinCharacter(S) {
+  // (not gameStats(): that calls overview(), which calls this function)
+  try {
+    const sec = sections(S).find((o) => o.c.endsWith('GameStatsManager.GameSaveData'));
+    const hist = sec && F(S, sec, '_CurrentChapterStatsHistorySave');
+    const first = hist && hist.items && hist.items.length ? S.parsed.nodes[hist.items[0]] : null;
+    const ch = first && F(S, first, '_Chapter');
+    return ch && ch.k === 'v' && String(readValue(S.buf, ch))[0] === '3' ? 380000 : 100000;
+  } catch (e) { return 100000; }
+}
 const CASE_SKIN_IDS = [124176000, 124177600, 124179200, 124192000, 124193600];
 function skinEntry(S) {
   const host = sections(S).find((x) => F(S, x, 'SkinSettingSaveData'));
   const arr = host && F(S, F(S, host, 'SkinSettingSaveData'), 'Settings');
   if (arr) for (const i of arr.items) {
     const e = S.parsed.nodes[i]; const cid = scalar(S, F(S, e, 'CharacterID'));
-    if (cid && Number(cid.value) === 100000) return F(S, e, 'ItemId');
+    if (cid && Number(cid.value) === skinCharacter(S)) return F(S, e, 'ItemId');
   }
   return null;
 }
