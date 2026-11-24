@@ -5,6 +5,7 @@
 - Fixed (found in the first Separate Ways test): "Case look" changed the skin of Leon only, so the case of a Separate Ways slot (Ada) did not change; the skin of the character of the slot is read and written now.
 - Weapons that are not in the catalogue (Ada's weapons of Separate Ways) were drawn as empty cells; they are shown now as "Weapon / Knife (not in the catalogue, ID ...)" with a generic icon.
 - New **Add weapon…** button: takes a real weapon (with its upgrades, ammo and durability) from one of your other slots and puts a copy into this case, with a new id in a free cell. Levels above the maximum are cut and the exclusive upgrade is dropped if another upgrade is not at the maximum, so mistakes of other slots do not spread. Only weapons that exist in your other slots of the same campaign are offered: tested in the game, a copy from the same campaign works, while a Handcannon put into a Separate Ways slot was removed by the game.
+- Ada's weapons of Separate Ways have names now (Blast Crossbow, TMP, Stingray, Tactical Knife; names confirmed in the game) and use the picture of the matching weapon.
 - Wording: closing the game before writing is advised, not required (banner, README, release notes); writing from the main menu and loading the slot works too.
 - The update banner has GitHub and Nexus Mods buttons (and the About dialog a link to the Nexus Mods page).
 - Issue templates are forms now (package, version, did the game load the save, diagnostics, a required "no save files attached" box).

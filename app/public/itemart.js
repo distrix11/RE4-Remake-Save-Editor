@@ -136,7 +136,7 @@
     ['heal', /green herb/, 'herb_green'], ['heal', /red herb/, 'herb_red'], ['heal', /yellow herb/, 'herb_yellow'], ['heal', /first aid/, 'first_aid_spray'], ['heal', /bass/, 'bass'], ['heal', /viper/, 'viper'], ['heal', /beetle/, 'beetle'],
     ['ammo', /handgun/, 'ammo_handgun'], ['ammo', /magnum/, 'ammo_magnum'], ['ammo', /shotgun/, 'ammo_shotgun'], ['ammo', /rifle/, 'ammo_rifle'], ['ammo', /submachine/, 'ammo_smg'], ['ammo', /bolts/, 'bolts'], ['ammo', /explosive/, 'arrows_explosive'],
     ['ammo', /gunpowder/, 'gunpowder'], ['ammo', /resources \(l\)/, 'resources_l'], ['ammo', /resources/, 'resources_s'], ['ammo', /mine/, 'mine'],
-    ['weapon', /knife/, 'knife'], ['weapon', /rocket/, 'rocket_launcher'], ['weapon', /bolt thrower/, 'bolt_thrower'], ['weapon', /bow/, 'krauser_bow'],
+    ['weapon', /knife/, 'knife'], ['weapon', /rocket/, 'rocket_launcher'], ['weapon', /bolt thrower|crossbow/, 'bolt_thrower'], ['weapon', /bow/, 'krauser_bow'],
     ['treasure', /dirty pearl/, 'pendant_dirty'], ['treasure', /pearl pendant/, 'pendant_pearl'], ['treasure', /pocket watch/, 'pocket_watch'], ['treasure', /headdress/, 'headdress'], ['treasure', /pipe/, 'pipe'], ['treasure', /pearl bangle/, 'bangle_pearl'],
     ['treasure', /red gemstone ring/, 'ring_ruby'], ['treasure', /gold bangle/, 'bangle_gold'], ['treasure', /iluminados pendant/, 'pendant_illum'], ['treasure', /mirror/, 'mirror'], ['treasure', /hourglass/, 'hourglass'], ['treasure', /perfume/, 'perfume'],
     ['treasure', /chessboard/, 'chessboard'], ['treasure', /staff/, 'staff'], ['treasure', /scratched emerald/, 'gem_scratched'], ['treasure', /ruby/, 'gem_ruby'], ['treasure', /emerald/, 'gem_emerald'], ['treasure', /sapphire/, 'gem_sapphire'],

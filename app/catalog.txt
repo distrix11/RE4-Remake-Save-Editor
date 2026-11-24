@@ -28,6 +28,10 @@
 276445056|Primal Knife|weapon
 278035456|Sentinel Nine|weapon
 278037056|Skull Crusher|weapon
+278198656|Blast Crossbow|weapon
+278200256|TMP (Separate Ways)|weapon
+278203456|Stingray (Separate Ways)|weapon
+278206656|Tactical Knife|weapon
 278521856|Krauser's Bow|weapon
 277075456|Hand Grenade|throw
 277077056|Heavy Grenade|throw
