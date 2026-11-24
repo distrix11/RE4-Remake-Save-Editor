@@ -205,7 +205,7 @@
   const localKey = (n) => { const t = String(n).toLowerCase(); const m = LOCAL.find(([re]) => re.test(t)); return m ? m[1] : null; };
   window.itemArt = function (name, cat, fp, id) {
     const a = baseArt(name, cat, fp);
-    const k = localKey(name);
+    const k = cat === 'acc' ? null : localKey(name);
     const ld = 'onload="this.parentNode.classList.add(\'hasimg\')" onerror="this.remove()"';
     let over = '';
     if (k) over += '<img class="art own" alt="" src="icons/images/' + k + '.png" ' + ld + '>';
