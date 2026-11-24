@@ -49,6 +49,6 @@ The save folder (`<Steam>/userdata/<account>/2050650/remote/win64_save`) is foun
 
 ## Feedback
 
-Please open an issue and describe what happened (the editor's **Copy diagnostics** button gives a report without personal data). **Never attach your save files** to an issue: they contain your account data.
+Please open an issue and describe what happened (the editor's **Copy diagnostics** button gives a report without personal data). Please **do not attach your save files** to an issue: a save is tied to your Steam account number (not your password or e-mail), which would become public.
 
 Full list of changes: [CHANGELOG.md](https://github.com/distrix11/RE4-Remake-Save-Editor/blob/main/CHANGELOG.md).

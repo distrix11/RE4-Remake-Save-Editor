@@ -119,8 +119,9 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 ## Contributing
 
-Issues and pull requests are welcome. **Never attach your save files to an issue** (they contain your account data);
-describe the problem and include the server log instead.
+Issues and pull requests are welcome. Please **do not attach your save files** to an issue: a save file is tied to your Steam account number
+(the number that identifies your Steam profile; it is not your password, e-mail or payment data), and that number can be worked out from the file,
+so an attached save would make it public. The **Copy diagnostics** button (Settings) makes a report without it: describe the problem and paste that report instead.
 
 ## License
 

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting! **Please never attach your save files**: they contain your Steam account id. Describe the problem and paste the diagnostics below instead.
+        Thanks for reporting! Please **do not attach your save files**: a save is tied to your Steam account number (not your password or e-mail), and attaching it would make that number public. Describe the problem and paste the diagnostics below instead; they are made without that number.
   - type: textarea
     id: what
     attributes:
