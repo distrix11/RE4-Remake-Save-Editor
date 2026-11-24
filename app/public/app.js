@@ -335,7 +335,7 @@ function drawWeapons() {
     const d = document.createElement('div'); d.className = 'pick' + (wpn.sel === w ? ' on' : '');
     const ABBR = { fire: 'Fire', ammo: 'Cap', reload: 'Rld', rapid: 'Rpd', dura: 'Dur' };
     const up = w.upg.filter((u) => u.key !== 'excl').map((u) => (ABBR[u.key] || u.key) + ' ' + u.level).join(' · ') + (w.upg.some((u) => u.key === 'excl' && u.level) ? ' + exclusive' : '');
-    d.innerHTML = '<span class="irow"><span class="tile c-weapon">' + ic('weapon') + '</span><span>' + esc(w.name || ('Weapon #' + w.itemId)) + '</span></span><span class="dim mono" style="font-size:12px">' + esc(slotTitle(w.slot)) + (isSW(w.slot) ? ' (Separate Ways)' : '') + ' · ' + esc(up) + '</span>';
+    d.innerHTML = '<span class="irow"><span class="tile c-weapon">' + ic('weapon') + '</span><span>' + esc(w.name || ('Weapon #' + w.itemId)) + '</span></span><span class="dim mono" style="font-size:12px">' + esc(slotTitle(w.slot)) + ' · ' + esc(up) + '</span>';
     d.onclick = () => { wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + (w.name || w.itemId); $('#wpnGo').disabled = false; drawWeapons(); };
     box.append(d);
   }
@@ -345,7 +345,6 @@ $('#wpnClose').onclick = () => $('#wpnModal').classList.remove('on');
 $('#wpnModal').onclick = (e) => { if (e.target.id === 'wpnModal') $('#wpnModal').classList.remove('on'); };
 $('#wpnGo').onclick = async () => {
   const w = wpn.sel; if (!w) return;
-  if (isSW(w.slot) !== isSW(cur) && !confirm('This weapon comes from ' + (isSW(w.slot) ? 'Separate Ways' : 'the main campaign') + ' but you are editing ' + (isSW(cur) ? 'a Separate Ways slot' : 'a main-campaign slot') + '. The game may not accept it. Add it anyway?')) return;
   $('#wpnModal').classList.remove('on');
   await structural('add-weapon', { from: w.slot, idx: w.idx }, 'Weapon added (a copy of the one in ' + slotTitle(w.slot) + ', with its upgrades)');
 };

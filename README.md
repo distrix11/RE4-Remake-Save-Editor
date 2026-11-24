@@ -111,7 +111,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
 - Weapon upgrade levels are limited to 0-4 (the highest seen in real saves). Some weapons have fewer upgrades; the editor does not know which.
-- Weapons cannot be created from the catalogue. **Add weapon…** takes a real weapon from one of your other slots (so only weapons you own somewhere can be added), and the copy button duplicates one in the same slot. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
+- Weapons cannot be created from the catalogue. **Add weapon…** takes a real weapon from one of your other slots of the same campaign (so only weapons you own somewhere can be added; the game removes weapons of the other campaign), and the copy button duplicates one in the same slot. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
 - The item catalog is community-compiled and may contain mistakes.
 - Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.

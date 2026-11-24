@@ -21,6 +21,7 @@ const VERSION = (readJsonSafe(path.join(__dirname, '..', 'package.json'), {}).ve
 const ROOT = path.join(__dirname, '..');
 const CFG_PATH = path.join(__dirname, 'config.json');
 const SAVE_RE = /^data[0-9-]+(Slot)?\.bin$/;
+const isSeparateWaysSlot = (n) => Number((/^data(\d+)Slot\.bin$/.exec(n || '') || [])[1]) >= 100; // slots 100 and up are Separate Ways
 const DEFAULT_CFG = {
   saveDir: null, // auto-detected when empty, see detectSaveDir()
   port: 4784,
@@ -477,11 +478,12 @@ const routes = {
   },
   'POST /api/add': async (b) => { const S = need(b.name); guard(S); const r = INV.addItem(S, { itemId: b.itemId, count: b.count }); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/remove': async (b) => { const S = need(b.name); guard(S); INV.removeItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return fresh(S); },
-  // weapons found in the OTHER slots (as saved in the game folder): the least upgraded copy of every weapon
+  // weapons found in the OTHER slots of the SAME campaign (as saved in the game folder): the least upgraded copy of every weapon.
+  // The game removes weapons of the other campaign (a Handcannon put into a Separate Ways slot disappeared), so those are not offered.
   'POST /api/weapon-sources': async (b) => {
     need(b.name);
     const best = new Map();
-    for (const f of fileList().map((x) => x.name).filter((n) => /^data\d+Slot\.bin$/.test(n) && n !== b.name)) {
+    for (const f of fileList().map((x) => x.name).filter((n) => /^data\d+Slot\.bin$/.test(n) && n !== b.name && isSeparateWaysSlot(n) === isSeparateWaysSlot(b.name))) {
       let src; try { const buf = await unpackCached(f); src = { name: f, buf, parsed: parse(buf) }; } catch (e) { continue; }
       for (const w of INV.listWeapons(src)) {
         const lv = w.upg.reduce((t, u) => t + u.level, 0), old = best.get(w.itemId);
@@ -493,6 +495,7 @@ const routes = {
   'POST /api/add-weapon': async (b) => {
     const S = need(b.name); guard(S);
     if (!SAVE_RE.test(b.from || '') || !/Slot\.bin$/.test(b.from) || b.from === b.name) throw new Error('Invalid source slot');
+    if (isSeparateWaysSlot(b.from) !== isSeparateWaysSlot(b.name)) throw new Error('The game removes weapons of the other campaign (Separate Ways and the main game do not share weapons), so this copy would be lost. Take the weapon from a slot of the same campaign.');
     const buf = await unpackCached(b.from); const src = { name: b.from, buf, parsed: parse(buf) };
     const r = INV.addWeaponFrom(S, src, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) };
   },
