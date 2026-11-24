@@ -246,6 +246,19 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
     </footer>
   </div>
 </div>
+<div class="modal" id="wpnModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="plus">Add weapon from another slot</h3><span class="sp"></span><button class="sm ghost icon" id="wpnClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <p class="note" style="margin-top:0">Takes a real weapon from one of your other slots, with its upgrades, ammo and durability, and puts a copy into this case (in a free cell). Use "Reset upgrades" afterwards if you want a fresh one. Only weapons that exist in your other slots can be added.</p>
+      <div id="wpnList"></div>
+    </div>
+    <footer>
+      <span id="wpnSel" class="dim" style="flex:1">Nothing selected</span>
+      <button class="pri" id="wpnGo" disabled>Add to the case</button>
+    </footer>
+  </div>
+</div>
 <div class="modal" id="addModal">
   <div class="dlg">
     <header><h3 style="margin:0" data-ic="plus">Add item</h3><span class="sp"></span><button class="sm ghost icon" id="addClose" data-ic="close" title="Close"></button></header>
@@ -253,7 +266,7 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
       <div class="chips" id="addCats"></div>
       <div style="margin:10px 0"><input id="addQ" placeholder="Search by name or ID…"></div>
       <div id="addList"></div>
-      <p class="note">The names list is community-compiled and may contain mistakes. Weapons and throwables cannot be added; copy an existing one with the copy button instead.</p>
+      <p class="note">The names list is community-compiled and may contain mistakes. Weapons and throwables cannot be added here: use "Add weapon…" (takes one from another slot) or the copy button.</p>
     </div>
     <footer>
       <span id="addSel" class="dim" style="flex:1">Nothing selected</span>

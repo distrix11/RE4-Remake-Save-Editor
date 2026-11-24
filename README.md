@@ -21,7 +21,7 @@ It runs on your own computer, opens in your browser or its own window and never 
 - <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
   **add** items from a catalog of ~220 items, **duplicate**, **delete**;
-  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), and a **Sort** button that tidies the case.
+  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a real weapon from another of your slots) and a **Sort** button that tidies the case.
 - <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
@@ -111,7 +111,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
 - Weapon upgrade levels are limited to 0-4 (the highest seen in real saves). Some weapons have fewer upgrades; the editor does not know which.
-- Weapons cannot be added (copy an existing one instead); the exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
+- Weapons cannot be created from the catalogue. **Add weapon…** takes a real weapon from one of your other slots (so only weapons you own somewhere can be added), and the copy button duplicates one in the same slot. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
 - The item catalog is community-compiled and may contain mistakes.
 - Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.

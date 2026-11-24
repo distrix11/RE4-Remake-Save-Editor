@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const view = $('#view');
 let cfg = null, cur = null, data = null, tab = 'money';
 const ui = { inv: 0, q: '', cat: 'all', sort: 'game', dir: 1, view: 'list', sel: null, upg: {} };
-const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'quest-complete']);
+const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete']);
 const LS = 'RE4_item_names';
 const userNames = (() => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch { return {}; } })();
 const summaries = {};
@@ -159,7 +159,8 @@ function renderInventory(root) {
   sortSel.innerHTML = [['game', 'Game order'], ['name', 'By name'], ['cat', 'By category'], ['count', 'By count'], ['id', 'By ID']].map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
   sortSel.value = ui.sort;
   const add = document.createElement('button'); add.className = 'pri'; add.innerHTML = ic('plus') + 'Add item'; add.onclick = openAdd;
-  bar.append(q, sel, sortSel, Object.assign(document.createElement('span'), { className: 'sp' }), add);
+  const addW = document.createElement('button'); addW.innerHTML = ic('plus') + 'Add weapon…'; addW.title = 'Take a real weapon from one of your other slots'; addW.onclick = openWeapons;
+  bar.append(q, sel, sortSel, Object.assign(document.createElement('span'), { className: 'sp' }), ...(inv.index === 0 ? [addW] : []), add);
   root.append(bar);
 
   const holder = document.createElement('div'); root.append(holder);
@@ -318,6 +319,37 @@ function renderAdvancedGate(root) {
   ok.onchange = () => { go.disabled = !ok.checked; };
   go.onclick = async () => { try { await api('advanced-accept', {}); cfg.advancedAccepted = true; render(); } catch (e) { toast(e.message, 'err'); } };
 }
+// ---------------------------------------------------------------- add a weapon from another slot
+const wpn = { list: [], sel: null };
+const slotNo = (f) => { const m = /^data(\d+)Slot\.bin$/.exec(f); return m ? Number(m[1]) : 0; };
+const isSW = (f) => slotNo(f) >= 100; // slots 100 and up are Separate Ways
+async function openWeapons() {
+  $('#wpnModal').classList.add('on'); wpn.sel = null; $('#wpnGo').disabled = true; $('#wpnSel').textContent = 'Nothing selected';
+  $('#wpnList').innerHTML = '<div class="empty">Looking through your other slots…</div>';
+  try { wpn.list = (await api('weapon-sources', { name: cur })).weapons; drawWeapons(); }
+  catch (e) { $('#wpnList').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
+}
+function drawWeapons() {
+  const box = $('#wpnList'); box.innerHTML = '';
+  for (const w of wpn.list) {
+    const d = document.createElement('div'); d.className = 'pick' + (wpn.sel === w ? ' on' : '');
+    const ABBR = { fire: 'Fire', ammo: 'Cap', reload: 'Rld', rapid: 'Rpd', dura: 'Dur' };
+    const up = w.upg.filter((u) => u.key !== 'excl').map((u) => (ABBR[u.key] || u.key) + ' ' + u.level).join(' · ') + (w.upg.some((u) => u.key === 'excl' && u.level) ? ' + exclusive' : '');
+    d.innerHTML = '<span class="irow"><span class="tile c-weapon">' + ic('weapon') + '</span><span>' + esc(w.name || ('Weapon #' + w.itemId)) + '</span></span><span class="dim mono" style="font-size:12px">' + esc(slotTitle(w.slot)) + (isSW(w.slot) ? ' (Separate Ways)' : '') + ' · ' + esc(up) + '</span>';
+    d.onclick = () => { wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + (w.name || w.itemId); $('#wpnGo').disabled = false; drawWeapons(); };
+    box.append(d);
+  }
+  if (!wpn.list.length) box.innerHTML = '<div class="empty">No weapons were found in your other slots.</div>';
+}
+$('#wpnClose').onclick = () => $('#wpnModal').classList.remove('on');
+$('#wpnModal').onclick = (e) => { if (e.target.id === 'wpnModal') $('#wpnModal').classList.remove('on'); };
+$('#wpnGo').onclick = async () => {
+  const w = wpn.sel; if (!w) return;
+  if (isSW(w.slot) !== isSW(cur) && !confirm('This weapon comes from ' + (isSW(w.slot) ? 'Separate Ways' : 'the main campaign') + ' but you are editing ' + (isSW(cur) ? 'a Separate Ways slot' : 'a main-campaign slot') + '. The game may not accept it. Add it anyway?')) return;
+  $('#wpnModal').classList.remove('on');
+  await structural('add-weapon', { from: w.slot, idx: w.idx }, 'Weapon added (a copy of the one in ' + slotTitle(w.slot) + ', with its upgrades)');
+};
+
 // ---------------------------------------------------------------- tree (advanced)
 let treeState = { id: null, q: '' };
 async function renderTree(root) {

@@ -477,6 +477,25 @@ const routes = {
   },
   'POST /api/add': async (b) => { const S = need(b.name); guard(S); const r = INV.addItem(S, { itemId: b.itemId, count: b.count }); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/remove': async (b) => { const S = need(b.name); guard(S); INV.removeItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return fresh(S); },
+  // weapons found in the OTHER slots (as saved in the game folder): the least upgraded copy of every weapon
+  'POST /api/weapon-sources': async (b) => {
+    need(b.name);
+    const best = new Map();
+    for (const f of fileList().map((x) => x.name).filter((n) => /^data\d+Slot\.bin$/.test(n) && n !== b.name)) {
+      let src; try { const buf = await unpackCached(f); src = { name: f, buf, parsed: parse(buf) }; } catch (e) { continue; }
+      for (const w of INV.listWeapons(src)) {
+        const lv = w.upg.reduce((t, u) => t + u.level, 0), old = best.get(w.itemId);
+        if (!old || lv < old.lv) best.set(w.itemId, { ...w, slot: f, lv });
+      }
+    }
+    return { weapons: [...best.values()].sort((x, y) => String(x.name || x.itemId).localeCompare(String(y.name || y.itemId))) };
+  },
+  'POST /api/add-weapon': async (b) => {
+    const S = need(b.name); guard(S);
+    if (!SAVE_RE.test(b.from || '') || !/Slot\.bin$/.test(b.from) || b.from === b.name) throw new Error('Invalid source slot');
+    const buf = await unpackCached(b.from); const src = { name: b.from, buf, parsed: parse(buf) };
+    const r = INV.addWeaponFrom(S, src, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) };
+  },
   'POST /api/dup': async (b) => { const S = need(b.name); guard(S); const r = INV.duplicateItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/quest-complete': async (b) => { const S = need(b.name); const r = INV.completeQuest(S, b.idx === 'all' ? 'all' : Number(b.idx)); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/refresh': async (b) => fresh(need(b.name)),

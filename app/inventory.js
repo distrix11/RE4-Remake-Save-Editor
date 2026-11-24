@@ -183,16 +183,18 @@ function findSpot(m, fp) {
 }
 
 // ---- structural edits -------------------------------------------------------
-function cloneSubtree(S, id, parent) {
-  const nodes = S.parsed.nodes; const src = nodes[id];
+// Copies a subtree of the tree into S under `parent`. `from` is another open save to copy it from (default: S itself).
+function cloneSubtree(S, id, parent, from) {
+  const SRC = from || S;
+  const nodes = S.parsed.nodes; const src = SRC.parsed.nodes[id];
   if (src.k === 'a' && src.blob) throw new Error('Physics blocks cannot be copied');
   const n = Object.assign({}, src, { p: parent, id: nodes.length });
   nodes.push(n);
-  if (src.k === 'o') n.f = src.f.map(([name, cid, fh]) => [name, cloneSubtree(S, cid, n.id), fh]);
+  if (src.k === 'o') n.f = src.f.map(([name, cid, fh]) => [name, cloneSubtree(S, cid, n.id, from), fh]);
   else if (src.k === 'a') {
-    if (src.et === 0x11) n.items = src.items.map((cid) => cloneSubtree(S, cid, n.id));
-    else { n.data = Buffer.from(S.buf.subarray(src.off, src.off + src.cnt * src.esz)); n.items = []; }
-  } else if (src.str === undefined) n.data = Buffer.from(S.buf.subarray(src.off, src.off + src.sz));
+    if (src.et === 0x11) n.items = src.items.map((cid) => cloneSubtree(S, cid, n.id, from));
+    else { n.data = Buffer.from(SRC.buf.subarray(src.off, src.off + src.cnt * src.esz)); n.items = []; }
+  } else if (src.str === undefined) n.data = Buffer.from(SRC.buf.subarray(src.off, src.off + src.sz));
   return n.id;
 }
 // Re-emit the (modified) tree, then re-parse so every offset is valid again.
@@ -304,6 +306,41 @@ function duplicateItem(S, invIdx, idx) {
   rebuild(S);
   setEntry(S, lastEntry(S, invIdx), { slot: spot, newGuid: true });
   return { slot: spot };
+}
+// ---- weapons from another slot ---------------------------------------------------
+// The weapons of the case of a save, for the "add weapon from another slot" list.
+function listWeapons(S) {
+  const m = model(S)[0]; if (!m) return [];
+  return m.items.filter((i) => i.cls === 'WeaponItem' && i.upg).map((i) => ({
+    idx: i.idx, itemId: String(i.itemId.value), name: i.name, fp: i.fp,
+    ammo: i.ammo ? Number(i.ammo.value) : null, durability: i.durability ? Number(i.durability.value) : null,
+    upg: i.upg.map((u) => ({ key: u.key, level: Number(u.level.value) })),
+  }));
+}
+// Puts a copy of a real weapon entry of the case of `srcS` into the case of `dstS`: same structure (upgrade blocks, ammo, durability), a new GUID and a free cell.
+function addWeaponFrom(dstS, srcS, srcIdx) {
+  const sm = model(srcS)[0]; const it = sm && sm.items[srcIdx];
+  if (!it || it.cls !== 'WeaponItem') throw new Error('That is not a weapon');
+  const dm = model(dstS)[0]; if (!dm || !dm.grid) throw new Error('There is no attaché case in this slot');
+  const spot = findSpot(dm, footprint(it.itemId.value, false)); // throws if the case is full
+  const srcArr = itemList(srcS, inventories(srcS)[0]);
+  const arrNode = itemList(dstS, inventories(dstS)[0]);
+  const newId = cloneSubtree(dstS, srcArr.items[srcIdx], arrNode.id, srcS);
+  arrNode.items.push(newId); arrNode.cnt += 1;
+  rebuild(dstS);
+  setEntry(dstS, lastEntry(dstS, 0), { slot: spot, newGuid: true });
+  const dn = F(dstS, lastEntry(dstS, 0), 'CurrDirection'); if (dn) writeValue(dstS.buf, dn, '0');
+  // a weapon taken from a slot that was edited wrongly must not spread the mistake: levels above the maximum are cut to it and the exclusive
+  // upgrade (which needs every upgrade at the maximum) is taken away when one is lower
+  const w = weaponUpgradeNodes(dstS, 0, itemList(dstS, inventories(dstS)[0]).items.length - 1);
+  let allMax = true;
+  for (const u of upgradesOf(dstS, w.it) || []) {
+    if (u.key === 'excl') continue;
+    const lv = Number(u.level.value);
+    if (lv > MAX_UPG) writeLevel(dstS, w, u.key, MAX_UPG); else if (lv < MAX_UPG) allMax = false;
+  }
+  if (!allMax) dropExclusiveIfNeeded(dstS, w);
+  return { slot: spot, name: it.name, itemId: String(it.itemId.value) };
 }
 // Move / rotate an item inside the attaché case (position written in place).
 function moveItem(S, invIdx, idx, x, y, dir) {
@@ -637,6 +674,6 @@ function weaponStatus(S) {
 module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
-  CASE_DIMS, MAX_UPG, sortCase, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
+  CASE_DIMS, MAX_UPG, sortCase, listWeapons, addWeaponFrom, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
   moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
 };
