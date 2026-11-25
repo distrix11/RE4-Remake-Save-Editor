@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (for 0.9.4)
+## 0.9.4 (pre-release)
 - The file that starts the editor is now called **Start RE4 Save Editor.js** (it was `start.js`).
 - Settings > **Create desktop shortcut**: a "RE4 Save Editor" shortcut with the herb icon on the desktop.
 - Every weapon has its own picture now, an original model with the recognisable shape of the weapon, drawn to the cells it takes in the case (before: pictures from a general CC0 gun pack, many of them unlike the weapon).

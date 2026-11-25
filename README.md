@@ -13,7 +13,9 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.3). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.4). It has been tested on a limited set of saves; please report what you find.
+
+**New in 0.9.4:** own pictures for every weapon, animations, a red Leather case, and a desktop shortcut with an icon (Settings). [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.4)
 
 ## Features
 
@@ -28,12 +30,13 @@ It runs on your own computer, opens in your browser or its own window and never 
   It cannot unlock achievements.
 - <img src="icons/items/first_aid_spray.png" height="26" align="top"> **Safety**: a "game is running" warning, a notice when the slot file was changed outside the editor (with a reload button), an unsaved-changes indicator, a summary of every change before writing,
   automatic backups, restore from a backup or from your own file, and copying one slot into another.
-- <img src="icons/items/wrench.png" height="26" align="top"> **Settings**: choose the save folder or Steam account inside the editor, backup manager, "Copy diagnostics" for bug reports (no personal data).
+- <img src="icons/items/wrench.png" height="26" align="top"> **Settings**: choose the save folder or Steam account inside the editor, backup manager, "Copy diagnostics" for bug reports (no personal data), **Create desktop shortcut** (with an icon) and **Animations** (as in Windows, on or off).
 - <img src="icons/items/key_gold.png" height="26" align="top"> **Safe writes**: the file is written under a temporary name, decrypted back and compared before it replaces the original.
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
 - <img src="icons/items/herb_green.png" height="26" align="top"> **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with 3D-rendered item icons.
   The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models, weapons included, rendered by `scripts/icon-render`); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view.
+- <img src="icons/items/crown.png" height="26" align="top"> **Motion**: a start screen, the attaché case opens, items slide and settle into their cells, soft transitions between tabs and windows. If animation effects are turned off in Windows, choose Settings > Animations > On to see them.
 - <img src="icons/items/compass.png" height="26" align="top"> **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - <img src="icons/items/cog.png" height="26" align="top"> **Advanced**: a raw tree view of every field in the save file with search.
 
@@ -62,7 +65,7 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 
 ### Option A: release archive (no build)
 
-Download from [GitHub Releases](https://github.com/distrix11/RE4-Remake-Save-Editor/releases) or from [Nexus Mods](https://www.nexusmods.com/residentevil42023/mods/8173?tab=files), extract anywhere and start it:
+Download from [GitHub Releases](https://github.com/distrix11/RE4-Remake-Save-Editor/releases) or from [Nexus Mods](https://www.nexusmods.com/residentevil42023/mods/8173?tab=files), extract anywhere (into a new folder when updating) and start it:
 
 - GitHub, `...-windows-allinone.zip` (nothing to install and nothing to download): double-click `Start RE4 Save Editor.js`.
   The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
