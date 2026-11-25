@@ -1,6 +1,6 @@
 'use strict';
 // Builds the all-in-one Windows archive (used by make-dist.js with --allinone yes):
-// the editor + the official Node.js (SHA-256 checked against nodejs.org), started with start.js. Nothing to install, nothing to download.
+// the editor + the official Node.js (SHA-256 checked against nodejs.org), started with Start RE4 Save Editor.js. Nothing to install, nothing to download.
 // No program of our own is in it: an unsigned launcher .exe was flagged by Windows Defender and several other scanners.
 // (Nexus Mods does not accept executables, so this archive is for GitHub; the Nexus one needs an installed Node.js.)
 const fs = require('fs');
@@ -35,10 +35,10 @@ module.exports = async function allInOne(c) {
     'RE4 Save Editor (unofficial) - all-in-one', '',
     'Nothing to install.',
     '  1. Preferably close Resident Evil 4. Consider turning off Steam Cloud for the game.',
-    '  2. Extract this folder anywhere and double-click start.js.',
+    '  2. Extract this folder anywhere and double-click Start RE4 Save Editor.js.',
     '     The editor opens in its own window. Closing that window stops the editor.',
     '     - Windows may ask whether to run the script (it came from the internet): choose Open / Run.',
-    '     - If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host".', '',
+    '     - If Start RE4 Save Editor.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host".', '',
     'runtime\\node.exe is the unmodified official Node.js build (checked against the SHA-256 list from nodejs.org),',
     'signed by the OpenJS Foundation. The package contains no other programs.',
     'The save encryption (app/lime.js) is a JavaScript port of the open-source LimebrellaSharp (MIT).',

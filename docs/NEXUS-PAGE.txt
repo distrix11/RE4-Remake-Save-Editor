@@ -21,7 +21,7 @@ Windows 10/11, Steam version of Resident Evil 4 (2023), Node.js 20 or newer (LTS
 
 FILE
 RE4SaveEditor-0.9.3-nexus.zip  (main file)
-File description: Script-only package. Install Node.js LTS once, extract the zip, double-click start.js.
+File description: Script-only package. Install Node.js LTS once, extract the zip, double-click Start RE4 Save Editor.js.
 
 ==========================================================================================
 FULL DESCRIPTION (Nexus BBCode)
@@ -29,7 +29,7 @@ FULL DESCRIPTION (Nexus BBCode)
 
 [center][img]https://raw.githubusercontent.com/distrix11/RE4-Remake-Save-Editor/main/docs/nexus-header.png[/img]
 
-[size=4][b]Don't want to install anything?[/b] Get the [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]all-in-one version from GitHub[/url]: Node.js is inside, just extract it and double-click start.js.[/size]
+[size=4][b]Don't want to install anything?[/b] Get the [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]all-in-one version from GitHub[/url]: Node.js is inside, just extract it and double-click Start RE4 Save Editor.js.[/size]
 
 [url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
@@ -62,10 +62,11 @@ Edit your save in a clean local window: it runs on your PC and never sends your 
 This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed once (the "LTS" Windows Installer: Next, Next, Finish). If you would rather install nothing, use the [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]all-in-one version on GitHub[/url] instead.
 [list=1]
 [*]Preferably close Resident Evil 4.
-[*]Extract the whole zip anywhere and double-click [b]start.js[/b]. The editor opens in its own window; closing the window stops it.
+[*]Extract the whole zip anywhere and double-click [b]Start RE4 Save Editor.js[/b]. The editor opens in its own window; closing the window stops it.
+[*]Optional: [b]Settings > Create desktop shortcut[/b] puts a "RE4 Save Editor" shortcut with an icon on your desktop.
 [*]Pick a slot at the top, edit, press [b]Save to game[/b]. [b]Restore from backup...[/b] undoes a write at any time.
 [/list]
-[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts. (The all-in-one version is only on GitHub because it contains node.exe, and Nexus Mods does not accept .exe files.)[/size]
+[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If Start RE4 Save Editor.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts. (The all-in-one version is only on GitHub because it contains node.exe, and Nexus Mods does not accept .exe files.)[/size]
 
 [line]
 

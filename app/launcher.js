@@ -1,6 +1,6 @@
 'use strict';
 // Starts the editor server and shows it in its own app-style window (Edge or Chrome in "--app" mode: no tabs, no address bar).
-// Closing that window stops the editor (the server notices it itself, see /api/live). Started by start.js / start.bat; it prints errors to stdout (start.js shows them in a message box).
+// Closing that window stops the editor (the server notices it itself, see /api/live). Started by Start RE4 Save Editor.js / start.bat; it prints errors to stdout (Start RE4 Save Editor.js shows them in a message box).
 // Run by hand:  node app/launcher.js
 const fs = require('fs');
 const os = require('os');

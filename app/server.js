@@ -390,6 +390,12 @@ const routes = {
     applySaveDir(dir);
     return { ok: true, saveDir: dir };
   },
+  // desktop shortcut with an icon (a .js file itself cannot have one): done by Windows Script Host, only when the button is pressed
+  'POST /api/shortcut': async () => new Promise((resolve, reject) => {
+    const wscript = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'wscript.exe');
+    execFile(wscript, ['//B', '//Nologo', path.join(__dirname, 'make-shortcut.js')], { timeout: 20000, windowsHide: true },
+      (e) => (e ? reject(new Error('The shortcut could not be created' + (e.code === 2 ? ': "Start RE4 Save Editor.js" was not found in the editor folder.' : '. Create it by hand: right-click "Start RE4 Save Editor.js" > Send to > Desktop.'))) : resolve({ ok: true })));
+  }),
   'POST /api/browse': async () => new Promise((resolve, reject) => { // native folder dialog
     const ps = "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = 'Select the folder that contains your RE4 save files (data001Slot.bin ...)'; $d.ShowNewFolderButton = $false; if ($d.ShowDialog() -eq 'OK') { $d.SelectedPath }";
     execFile('powershell', ['-NoProfile', '-STA', '-Command', ps], { timeout: 300000 }, (e, out) => (e ? reject(new Error('Could not open the folder dialog: ' + e.message)) : resolve({ dir: String(out).trim() || null })));
@@ -538,7 +544,7 @@ const routes = {
   },
 };
 
-const NO_SAVE_OK = new Set(['POST /api/advanced-accept', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
+const NO_SAVE_OK = new Set(['POST /api/shortcut', 'POST /api/advanced-accept', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 // Every open window of the editor holds one connection to /api/live. Started by a launcher (EXIT_WITH_WINDOW), the server stops by itself a few
 // seconds after the last window is gone (or when none ever appears). The launcher cannot tell reliably: Edge may hand a new window to an old

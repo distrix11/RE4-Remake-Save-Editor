@@ -20,3 +20,5 @@ Use a spare slot (Copy slot… in the editor) and keep Steam Cloud off while tes
 8. Restore from backup, load.
 
 Note which game version you used and whether a game update happened since the last working test.
+
+- Start with "Start RE4 Save Editor.js", press Settings > Create desktop shortcut, close the editor and start it again from the shortcut (icon shown, window connects).

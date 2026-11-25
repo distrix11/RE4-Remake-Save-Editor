@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased (for 0.9.4)
+- The file that starts the editor is now called **Start RE4 Save Editor.js** (it was `start.js`).
+- Settings > **Create desktop shortcut**: a "RE4 Save Editor" shortcut with the herb icon on the desktop.
 - Every weapon has its own picture now, an original model with the recognisable shape of the weapon, drawn to the cells it takes in the case (before: pictures from a general CC0 gun pack, many of them unlike the weapon).
 - The Leather case is red, as in the game (Case view and icon).
 - Interface motion: a short start screen; the attaché case opens, items slide to their new cells (move, rotate, Sort), a new item or weapon is laid in and glows, removed ones fade; soft transitions between tabs, dialogs, banners and messages; "Save to game" pulses while there are unsaved edits and confirms the write; money counts up; a loading placeholder.

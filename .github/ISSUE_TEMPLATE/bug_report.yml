@@ -32,7 +32,7 @@ body:
       label: Which package are you using?
       options:
         - GitHub all-in-one (with Node.js inside)
-        - Nexus Mods script package (start.js)
+        - Nexus Mods script package (Start RE4 Save Editor.js)
         - Built from source (node app/server.js or start.bat)
     validations:
       required: true

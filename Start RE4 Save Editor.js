@@ -1,4 +1,5 @@
 // RE4 Save Editor: double-click this file to start the editor (Windows Script Host, no console window).
+// The editor can make a desktop shortcut with an icon for it: Settings > Create desktop shortcut.
 // It uses runtime\node.exe if there is one, otherwise the Node.js installed on this PC (version 20 or newer).
 // If there is no Node.js, it offers to open the download page of Node.js (https://nodejs.org). This script downloads nothing itself.
 var TITLE = 'RE4 Save Editor';

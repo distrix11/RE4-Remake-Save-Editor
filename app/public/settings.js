@@ -103,3 +103,8 @@ $('#bkClean').onclick = async () => {
 const animNote = () => { $('#setAnimNote').hidden = !(fx.mode() === 'auto' && fx.systemOff()); };
 $('#setAnim').value = fx.mode(); animNote();
 $('#setAnim').onchange = (e) => { fx.setMode(e.target.value); animNote(); };
+
+// ---------------------------------------------------------------- desktop shortcut
+$('#setShortcut').onclick = async () => {
+  try { await api('shortcut', {}); toast('Shortcut "RE4 Save Editor" created on the desktop', 'ok'); } catch (e) { toast(e.message, 'err'); }
+};

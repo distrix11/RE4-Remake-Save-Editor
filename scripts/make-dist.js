@@ -2,9 +2,9 @@
 // Builds the release archives into dist/ (not committed). All of them are plain JavaScript: the save encryption is built in (app/lime.js),
 // so nothing but Node.js is needed (bundled in the all-in-one archive).
 //
-//   nexus      start.js (double-click, Windows Script Host) and no .exe, .dll, .bat, .cmd, .ps1 at all: Nexus Mods does not accept them.
+//   nexus      Start RE4 Save Editor.js (double-click, Windows Script Host) and no .exe, .dll, .bat, .cmd, .ps1 at all: Nexus Mods does not accept them.
 //   github     the same plus start.bat.
-//   allinone   (--allinone yes) start.js + the official Node.js in runtime/: nothing to install and nothing to download.
+//   allinone   (--allinone yes) Start RE4 Save Editor.js + the official Node.js in runtime/: nothing to install and nothing to download.
 //
 // Usage: node scripts/make-dist.js [--ref <folder with rsz/rszre4.json>] [--version 0.9.0] [--allinone yes]
 const fs = require('fs');
@@ -30,7 +30,7 @@ const walk = (d, out = []) => { for (const e of fs.readdirSync(d, { withFileType
 function stageSnapshot(dir, withBat) {
   const files = run('git', ['ls-files', '-z'], { cwd: ROOT }).toString('utf8').split('\0').filter(Boolean);
   for (const f of files) {
-    if (f.startsWith('scripts/') || f.startsWith('.github/') || f.startsWith('docs/') || f.startsWith('launcher/') || f === 'build.bat') continue;
+    if (f.startsWith('scripts/') || f.startsWith('.github/') || f.startsWith('docs/') || f === 'build.bat') continue;
     if (f === 'start.bat' && !withBat) continue;
     const dest = path.join(dir, f); fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(path.join(ROOT, f), dest);
   }
@@ -54,12 +54,12 @@ Unofficial fan tool, not affiliated with Capcom or Valve. Use at your own risk a
 `;
 const START = (bat) => `How to start:
   1. Preferably close Resident Evil 4. Consider turning off Steam Cloud for the game.
-  2. Extract the whole zip anywhere and double-click ${bat ? 'start.bat (or start.js)' : 'start.js'}.
+  2. Extract the whole zip anywhere and double-click ${bat ? 'start.bat (or Start RE4 Save Editor.js)' : 'Start RE4 Save Editor.js'}.
      The editor opens in its own window. Closing that window stops the editor.
      - Windows may ask once whether you want to run the script (it came from the internet): choose Open / Run.
-     - If start.js opens in a text editor instead, right-click it, "Open with", "Microsoft Windows Based Script Host".
+     - If Start RE4 Save Editor.js opens in a text editor instead, right-click it, "Open with", "Microsoft Windows Based Script Host".
   3. This needs Node.js (version 20 or newer). If it is not installed, a message offers to open the Node.js download page:
-     install the "LTS" version (Windows Installer, Next, Next, Finish), then double-click start.js again. This script downloads nothing itself.
+     install the "LTS" version (Windows Installer, Next, Next, Finish), then double-click Start RE4 Save Editor.js again. This script downloads nothing itself.
      (The all-in-one zip on GitHub already contains Node.js and needs nothing: https://github.com/distrix11/RE4-Remake-Save-Editor/releases)
 
 If you have Node.js and prefer a terminal:  node app/server.js   (the editor opens in your browser at http://localhost:4784).

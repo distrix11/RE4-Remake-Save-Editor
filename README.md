@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/banner.png" alt="RE4 Save Editor" width="100%"></p>
 
 <p align="center"><a href="https://github.com/distrix11/RE4-Remake-Save-Editor/releases"><img src="docs/btn-github.png" alt="Download from GitHub Releases" height="56"></a>&nbsp;&nbsp;<a href="https://www.nexusmods.com/residentevil42023/mods/8173?tab=files"><img src="docs/btn-nexus.png" alt="Download from Nexus Mods" height="56"></a></p>
-<p align="center"><b>GitHub:</b> nothing to install, extract the zip and double-click <code>start.js</code>.<br><b>Nexus Mods:</b> script package, needs <a href="https://nodejs.org">Node.js</a> 20+, double-click <code>start.js</code>.</p>
+<p align="center"><b>GitHub:</b> nothing to install, extract the zip and double-click <code>Start RE4 Save Editor.js</code>.<br><b>Nexus Mods:</b> script package, needs <a href="https://nodejs.org">Node.js</a> 20+, double-click <code>Start RE4 Save Editor.js</code>.</p>
 
 # RE4 Remake Save Editor
 
@@ -55,7 +55,7 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 ## Requirements
 
 - Windows 10 / 11, Steam version of Resident Evil 4 (2023)
-- GitHub archive: nothing else, it bundles Node.js. The Nexus Mods package (`start.js`) needs [Node.js](https://nodejs.org) 20 or newer installed.
+- GitHub archive: nothing else, it bundles Node.js. The Nexus Mods package (`Start RE4 Save Editor.js`) needs [Node.js](https://nodejs.org) 20 or newer installed.
 - Building from source: [Node.js](https://nodejs.org) 20 or newer, [git](https://git-scm.com) and internet access for the first build
 
 ## Quick start
@@ -64,12 +64,12 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 
 Download from [GitHub Releases](https://github.com/distrix11/RE4-Remake-Save-Editor/releases) or from [Nexus Mods](https://www.nexusmods.com/residentevil42023/mods/8173?tab=files), extract anywhere and start it:
 
-- GitHub, `...-windows-allinone.zip` (nothing to install and nothing to download): double-click `start.js`.
+- GitHub, `...-windows-allinone.zip` (nothing to install and nothing to download): double-click `Start RE4 Save Editor.js`.
   The editor opens in its own app-style window (Edge or Chrome in `--app` mode; the default browser is used if neither is found). Closing the window stops the editor.
   The only program in the archive is `runtime/node.exe`, the unmodified official Node.js signed by the OpenJS Foundation; everything else is readable JavaScript.
   Windows may ask once whether to run the script; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
   SHA-256 sums and a VirusTotal link are in the notes of each release.
-- Nexus Mods, script-only package (it has no `.exe`, `.dll` or `.bat` because Nexus does not accept them): double-click `start.js`. It needs [Node.js](https://nodejs.org) 20 or newer (install the LTS version once); if it is missing, a message offers to open the download page. Windows may ask once whether to run the script; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
+- Nexus Mods, script-only package (it has no `.exe`, `.dll` or `.bat` because Nexus does not accept them): double-click `Start RE4 Save Editor.js`. It needs [Node.js](https://nodejs.org) 20 or newer (install the LTS version once); if it is missing, a message offers to open the download page. Windows may ask once whether to run the script; if it opens in a text editor, use "Open with > Microsoft Windows Based Script Host".
 
 If you prefer a terminal: `node app/server.js` opens the editor in your browser at http://localhost:4784 (close the black window to stop it).
 `scripts/make-dist.js` builds the archives (`--allinone yes` adds the all-in-one one); a GitHub Actions workflow does it for tags.
