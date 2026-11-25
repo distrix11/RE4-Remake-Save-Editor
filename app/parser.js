@@ -161,8 +161,9 @@ function writeValue(b, n, text) {
   } else if (n.sz === 4) {
     if (n.tag === 0xb) { const v = Number(s); if (!Number.isFinite(v)) throw new Error('A number is required'); b.writeFloatLE(v, n.off); }
     else {
-      const v = Number(s); if (!Number.isInteger(v) || v < -2147483648 || v > 4294967295) throw new Error('Allowed range: -2147483648..4294967295');
-      if (v < 0) b.writeInt32LE(v, n.off); else b.writeUInt32LE(v, n.off);
+      const v = Number(s); if (!Number.isInteger(v)) throw new Error('A whole number is required');
+      if (n.tag === 7) { if (v < 0 || v > 4294967295) throw new Error('Allowed range: 0..4294967295'); b.writeUInt32LE(v, n.off); }
+      else { if (v < -2147483648 || v > 2147483647) throw new Error('Allowed range: -2147483648..2147483647'); b.writeInt32LE(v, n.off); }
     }
   } else if (n.sz === 8) {
     let v; try { v = BigInt(s); } catch { throw new Error('An integer is required'); }

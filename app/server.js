@@ -332,6 +332,12 @@ function releaseNotes(version) {
   return out;
 }
 
+// [min, max, what] for the fields that the normal tabs edit. The maximum of money is a safe limit, not one read from the game.
+const FIELD_LIMITS = {
+  PTAS: [0, 99999999, 'Pesetas'], SpinelCount: [0, 999, 'Spinel'],
+  _CurrentItemCount: [1, 9999, 'Count'], _CurrentAmmoCount: [0, 999, 'Ammo'], _CurrentDurability: [0, 10000, 'Durability'],
+};
+
 const routes = {
   'POST /api/achievements': async (b) => {
     const steam = STEAM.readAchievements(cfg.saveDir);
@@ -469,12 +475,15 @@ const routes = {
       overview: isSlot ? INV.overview(S) : {}, inventories: isSlot ? INV.model(S) : [], quests: isSlot ? INV.quests(S) : [], treasures: isSlot ? INV.treasures(S) : null };
   },
   'POST /api/node': async (b) => { const S = need(b.name); return describe(S, b.id); },
+  // fields of the normal tabs: values the game itself uses (the Advanced tab only keeps to the type of the field)
   'POST /api/set': async (b) => {
     const S = need(b.name);
     let value;
     if (b.id !== undefined) {
       const n = S.parsed.nodes[b.id];
       if (!n || n.k !== 'v') throw new Error('Invalid node');
+      const lim = b.raw ? null : FIELD_LIMITS[n.n];
+      if (lim) { const v = Number(String(b.value).trim()); if (!Number.isInteger(v) || v < lim[0] || v > lim[1]) throw new Error(lim[2] + ': a whole number from ' + lim[0].toLocaleString('en-US') + ' to ' + lim[1].toLocaleString('en-US')); }
       value = writeValue(S.buf, n, b.value);
       S.edits[n.off] = true;
     } else if (b.off !== undefined) { // raw array element

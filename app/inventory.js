@@ -116,7 +116,7 @@ function model(S) {
     const size = F(S, inv, 'InventorySize');
     const sz = size ? scalar(S, F(S, size, 'CurrInventorySize')) : null;
     const grid = sz ? CASE_DIMS[sz.value] || null : null;
-    return { index, size: sz, grid, sizes: sz ? Object.entries(CASE_DIMS).map(([level, [w, h]]) => ({ level: Number(level), w, h })) : null, hasSlots: items.some((i) => i.slot), items };
+    return { index, kind: inv.c.split('.').pop(), size: sz, grid, sizes: sz ? Object.entries(CASE_DIMS).map(([level, [w, h]]) => ({ level: Number(level), w, h })) : null, hasSlots: items.some((i) => i.slot), items };
   });
 }
 // The description the game itself shows for a slot is stored after the data, in the language of the game:

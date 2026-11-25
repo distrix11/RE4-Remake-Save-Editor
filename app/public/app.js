@@ -59,7 +59,7 @@ async function loadFiles() {
     for (const f of files) { const o = document.createElement('option'); o.value = f.name; o.textContent = optLabel(f); g.append(o); }
     sel.append(g);
   };
-  og('Saves', slots); og('Technical files', tech);
+  og('Saves', slots); og('Service files of the game (advanced users only)', tech);
   sel.value = cur || '';
 }
 function optLabel(f) {
@@ -75,7 +75,12 @@ async function loadSummaries() {
     const o = [...$('#slot').options].find((x) => x.value === f.name); if (o) o.textContent = optLabel(f);
   }
 }
-$('#slot').onchange = (e) => { if (e.target.value) openFile(e.target.value); };
+$('#slot').onchange = (e) => {
+  const to = e.target.value; if (!to) return;
+  // the edits live only in the editor until they are written: opening another file drops them
+  if (data && data.dirty && cur && to !== cur && !confirm(slotTitle(cur) + ' has edits that are not saved to the game yet.\n\nOK: switch to ' + slotTitle(to) + ' and throw these edits away.\nCancel: stay here (press "Save to game" to keep them).')) { e.target.value = cur; return; }
+  openFile(to);
+};
 async function openFile(name) {
   view.innerHTML = '<div class="loading"><div class="spin"></div>Decrypting…<div class="skel"></div><div class="skel"></div></div>';
   try {
@@ -93,7 +98,7 @@ function field(sc, opts = {}) {
   if (opts.width) i.style.width = opts.width;
   i.onchange = async () => {
     try {
-      const r = await api('set', { name: cur, id: sc.id, value: i.value });
+      const r = await api('set', { name: cur, id: sc.id, value: i.value, raw: !!opts.raw });
       const old = sc.value; sc.value = r.value; i.value = r.value; if (opts.big) fx.countTo(i, old, r.value); i.classList.add('ok'); setTimeout(() => i.classList.remove('ok'), 900);
       if (opts.after) opts.after(r.value);
     } catch (e) { toast(e.message, 'err'); i.value = sc.value; i.classList.add('bad'); setTimeout(() => i.classList.remove('bad'), 1200); }
@@ -148,10 +153,19 @@ function renderMoney(root) {
 }
 
 // ---------------------------------------------------------------- inventory
-function invTitle(i) { return INV_TITLES[i] || 'Inventory #' + i; }
+// The save keeps more inventories than the four the game shows Leon (or Ada) with: copies kept for other parts of the story. They are named by their kind.
+const OTHER_KIND = { InventorySaveData: 'Other case', UniqueInventorySaveData: 'Other recipes and charms', KeyItemInventorySaveData: 'Other key items', TreasureInventorySaveData: 'Other treasures' };
+function invTitle(i) {
+  if (INV_TITLES[i]) return INV_TITLES[i];
+  const v = data && data.inventories[i]; const base = (v && OTHER_KIND[v.kind]) || 'Other inventory';
+  const same = data ? data.inventories.filter((x) => x.index >= 4 && x.items.length && (OTHER_KIND[x.kind] || 'Other inventory') === base) : [];
+  return same.length > 1 ? base + ' ' + (same.findIndex((x) => x.index === i) + 1) : base;
+}
 function renderInventory(root) {
   const invs = data.inventories;
-  const visible = invs.filter((v) => v.items.length || v.index < 4);
+  const others = invs.filter((v) => v.items.length && v.index >= 4);
+  if (ui.inv >= 4) ui.more = true;
+  const visible = invs.filter((v) => v.index < 4 || (ui.more && v.items.length));
   if (!visible.find((v) => v.index === ui.inv)) ui.inv = visible[0] ? visible[0].index : 0;
   const inv = invs[ui.inv];
 
@@ -159,9 +173,16 @@ function renderInventory(root) {
   const chips = document.createElement('div'); chips.className = 'chips';
   for (const v of visible) {
     const b = document.createElement('button'); b.className = 'chip' + (v.index === ui.inv ? ' on' : ''); b.innerHTML = ic(INV_ICON[v.index] || 'case') + esc(invTitle(v.index)) + '<span class="dim" style="margin-left:5px">(' + v.items.length + ')</span>';
+    if (v.index >= 4) b.title = 'Kept by the game for another part of the story (another character or chapter). Change it only if you know what it is.';
     b.onclick = () => { ui.inv = v.index; ui.cat = 'all'; render(); }; chips.append(b);
   }
+  if (others.length) {
+    const m = document.createElement('button'); m.className = 'chip ghost'; m.textContent = ui.more ? 'Hide other inventories' : 'Other inventories (' + others.length + ')…';
+    m.title = 'The save also keeps inventories for other parts of the story. They are not the ones you play with.';
+    m.onclick = () => { ui.more = !ui.more; if (!ui.more && ui.inv >= 4) ui.inv = 0; render(); }; chips.append(m);
+  }
   top.append(chips); root.append(top);
+  if (inv.index >= 4) { const n = document.createElement('p'); n.className = 'note'; n.style.marginTop = '0'; n.textContent = 'This inventory is kept by the game for another part of the story (another character or chapter); it is not the case you play with. Change it only if you know what it is.'; root.append(n); }
   if (inv.index === 0 && inv.sizes && inv.size) renderCaseBar(root, inv);
   const mapMode = ui.view === 'map' && inv.index === 0 && !!inv.grid;
   const view3 = ui.view === '3d' && inv.index === 0 && !!inv.grid;
@@ -202,6 +223,14 @@ function listIcon(it, name) {
   const art = name ? itemArt(name, it.cat, [2, 1], it.itemId.value).svg : null;
   return '<span class="licon">' + (art ? '<span class="tile wtile c-' + (it.cat || 'other') + '">' + art + '</span>' : '<span class="tile c-' + (it.cat || 'other') + '">' + ic(it.cat || 'box') + '</span>') + '</span>';
 }
+// which numbers of an item mean something in the game: guns have ammo, knives and the body armour durability, stackable things a count
+const BODY_ARMOR = '124001600';
+function fieldsOf(it) {
+  const knife = !!(it.upg && it.upg.some((u) => u.key === 'dura')) || /Knife/.test(it.name || '');
+  const weapon = it.cat === 'weapon' || (it.cls === 'WeaponItem' && it.cat !== 'throw');
+  const many = !!(it.count && Number(it.count.value) > 1);
+  return { count: many || !['weapon', 'throw', 'heal', 'acc', 'special'].includes(it.cat), ammo: weapon && !knife, durability: (weapon && knife) || String(it.itemId.value) === BODY_ARMOR };
+}
 function drawItems(holder, inv) {
   holder.innerHTML = '';
   const list = sortedItems(inv.items);
@@ -224,7 +253,8 @@ function drawItems(holder, inv) {
     tr.append(nameTd);
     const c = document.createElement('td'); c.innerHTML = `<span class="tag c-${it.cat || 'other'}">${ic(it.cat || 'box')}${esc(catName(it.cat))}</span>`; tr.append(c);
     const cell = (sc, cls) => { const td = document.createElement('td'); if (cls) td.className = cls; if (sc) td.append(field(sc, { width: '100%' })); else td.innerHTML = '<span class="dim">—</span>'; return td; };
-    tr.append(cell(it.count), cell(it.ammo, 'hide-s'), cell(it.durability, 'hide-s'));
+    const show = fieldsOf(it);
+    tr.append(cell(show.count && it.count), cell(show.ammo && it.ammo, 'hide-s'), cell(show.durability && it.durability, 'hide-s'));
     const a = document.createElement('td'); a.className = 'acts';
     const dup = document.createElement('button'); dup.className = 'sm icon'; dup.innerHTML = ic('copy'); dup.title = 'Create a copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: it.idx }, 'Copy created');
@@ -241,7 +271,7 @@ function drawItems(holder, inv) {
   card.append(t); holder.append(card);
   if (!list.length) holder.innerHTML = '<div class="empty">Nothing found</div>';
   const info = document.createElement('p'); info.className = 'note';
-  info.textContent = inv.grid ? `Case size: ${inv.grid[0]}×${inv.grid[1]} cells (estimate). New items go to the first free spot that fits; if they end up overlapping others in game, move them there.` : '';
+  info.textContent = inv.grid && inv.index === 0 ? `Case size: ${inv.grid[0]}×${inv.grid[1]} cells (estimate). New items go to the first free spot that fits; if they end up overlapping others in game, move them there.` : '';
   holder.append(info);
 }
 async function structural(op, body, okMsg) {
@@ -313,7 +343,8 @@ function drawAdd() {
   const list = $('#addList'); list.innerHTML = '';
   for (const [id, v] of rows) {
     const d = document.createElement('div'); d.className = 'pick' + (add.sel === id ? ' on' : '');
-    d.innerHTML = `<span class="irow"><span class="tile c-${v.c}">${ic(v.c)}</span><span>${esc(userNames[id] || v.n)}</span></span><span class="dim mono">${id}</span>`;
+    // the same picture as in the lists and the case
+    d.innerHTML = `<span class="irow">${listIcon({ itemId: { value: id }, cat: v.c }, v.n)}<span>${esc(userNames[id] || v.n)}</span></span><span class="dim mono">${id}</span>`;
     d.onclick = () => { add.sel = id; drawAdd(); }; list.append(d);
   }
   if (!rows.length) list.innerHTML = '<div class="empty">Not in the catalog. Type the ID in the search box and press Enter.</div>';
@@ -439,7 +470,7 @@ async function showNode(out, id) {
       valTd.append(i);
     } else {
       typeTd.textContent = ({ 1: 'enum', 2: 'bool', 4: 'u8', 7: 'u32', 8: 'int32', 9: 'u64', 10: 'int64', 11: 'float', 15: 'string', 16: 'vec' }[c.tag] || 't' + c.tag) + (c.sz ? ` (${c.sz})` : '');
-      if (c.editable) valTd.append(field({ id: c.id, value: c.value, editable: true })); else valTd.innerHTML = `<span class="mono">${esc(c.value)}</span>`;
+      if (c.editable) valTd.append(field({ id: c.id, value: c.value, editable: true }, { raw: true })); else valTd.innerHTML = `<span class="mono">${esc(c.value)}</span>`;
     }
     tr.append(typeTd, valTd); t.append(tr);
   }

@@ -60,12 +60,13 @@ function drawCase3D(holder, inv) {
   // the game shows the case lying down: the save's rows run across the screen, its columns run down
   const [GW, GH] = inv.grid; const W = GH, H = GW;
   const skin = CASE_SKINS[data && data.overview && data.overview.caseSkin] || CASE_SKINS[124176000];
-  const cell = clampN(Math.floor(860 / W), 28, 58), pad = 24;
+  const room = Math.min(860, (holder.clientWidth || 990) / 1.2 - 48); // the near edge looks about 1.2 times wider than the case
+  const cell = clampN(Math.floor(room / W), 22, 58), pad = 24;
   const w = W * cell + pad * 2, h = H * cell + pad * 2;
   const tilt = 34;
   const card = document.createElement('div'); card.className = 'card';
   const scene = document.createElement('div'); scene.className = 'scene3d';
-  scene.style.height = Math.round(h * Math.cos(tilt * Math.PI / 180) + h * 0.55 + 60) + 'px';
+  scene.style.height = Math.round(h * Math.cos(tilt * Math.PI / 180) + h * 0.3 + 60) + 'px';
   const box = document.createElement('div'); box.className = 'case3d';
   box.style.cssText = `width:${w}px;height:${h}px;--cell:${cell}px;--c1:${skin.c1};--c2:${skin.c2};--ce:${skin.edge};--ct:${skin.trim};--lining:${skin.lining || '#0c0f09'};transform:rotateX(${tilt}deg)`;
 
@@ -148,7 +149,7 @@ function drawCase3D(holder, inv) {
   const tools = document.createElement('div'); tools.className = 'toolbar'; tools.style.cssText = 'margin:0 0 6px';
   tools.innerHTML = `<span class="dim" style="font-size:12px">Your case: <b>${esc(skin.name)}</b> (taken from the save). Click an item to select it and drag it to move it. Green outline: it fits, red: it does not.</span>`;
   const sortBtn = document.createElement('button'); sortBtn.className = 'sm'; sortBtn.style.marginLeft = 'auto'; sortBtn.innerHTML = ic('sort') + 'Sort';
-  sortBtn.title = 'Pack the items to the left, grouped: weapons, throwables, healing, ammo, accessories, the rest. Undo with "Discard edits".';
+  sortBtn.title = 'Pack the items to the left, grouped: weapons, throwables, healing, ammo, accessories, the rest. Undo with Ctrl+Z or "Undo".';
   sortBtn.onclick = () => structural('sort', { inv: inv.index }, 'Case sorted');
   if (inv.index === 0) tools.append(sortBtn);
   card.append(tools, scene);
@@ -160,7 +161,7 @@ function drawCase3D(holder, inv) {
     const info = document.createElement('div');
     info.innerHTML = `<div class="iname">${esc(nm)}</div><div class="dim mono" style="font-size:11px">ID ${sel.itemId.value} · cell ${sel.slot.x},${sel.slot.y} · ${sel.fp[0]}×${sel.fp[1]} (estimate)</div>`;
     bar.append(info);
-    if (sel.count) { const l = document.createElement('label'); l.className = 'f'; l.style.width = '110px'; l.innerHTML = '<span>Count</span>'; l.append(field(sel.count, { width: '100%' })); bar.append(l); }
+    if (sel.count && fieldsOf(sel).count) { const l = document.createElement('label'); l.className = 'f'; l.style.width = '110px'; l.innerHTML = '<span>Count</span>'; l.append(field(sel.count, { width: '100%' })); bar.append(l); }
     const rot = document.createElement('button'); rot.className = 'sm'; rot.innerHTML = ic('rotate') + 'Rotate';
     rot.onclick = () => {
       const nd = sel.dir % 2 === 1 ? 0 : 1; const nfp = [sel.fp[1], sel.fp[0]];

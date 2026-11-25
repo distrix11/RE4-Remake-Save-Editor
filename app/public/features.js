@@ -6,7 +6,8 @@
 function updateDirty() {
   const el = $('#dirty'); if (el) el.hidden = !(data && data.dirty);
   const u = $('#bUndo'); if (u) u.disabled = !(data && data.undo);
-  const b = $('#bGame'); if (b) b.classList.toggle('pending', !!(data && data.dirty)); // "Save to game" asks for attention
+  const b = $('#bGame'); if (b) { b.classList.toggle('pending', !!(data && data.dirty)); b.disabled = !(data && cur && data.dirty); b.title = b.disabled ? 'Nothing to save: no edits yet' : 'Write the edits to the game (a summary is shown first)'; } // "Save to game" asks for attention
+  const r = $('#bRevert'); if (r) r.disabled = !(data && cur && data.dirty);
 }
 window.addEventListener('beforeunload', (e) => { if (data && data.dirty) { e.preventDefault(); e.returnValue = ''; } });
 

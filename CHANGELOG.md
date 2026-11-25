@@ -8,6 +8,14 @@
 - A new knife from **Add weapon…** has the durability of an unupgraded knife (it kept the durability of the knife it was copied from).
 - Merchant requests of **Separate Ways** have names, descriptions and rewards now (before: "Request without description").
 - **What's new** window: shown once when you first start a new version, with the changes and a link to GitHub. It can be opened again from the **?** dialog.
+- Fixed: a negative amount of money was written as about 4.3 billion. Pesetas take 0 to 99,999,999, Spinel 0 to 999; counts, ammo and durability are checked too (the Advanced tab only keeps to the type of the field).
+- Fixed: choosing another slot threw unsaved edits away without asking. Now the editor asks first.
+- The Inventory list shows only the numbers that mean something: count for things that stack, ammo for guns, durability for knives and the body armour.
+- The other inventories the save keeps (for other parts of the story) are named ("Other case", "Other key items"...) and hidden behind **Other inventories**.
+- **Add item** shows the picture of every item.
+- **Save to game** and **Discard edits** are available only when there are edits. The header buttons keep their places.
+- The case fits narrow windows, the tabs wrap instead of running off the side, and there is no empty band under the case.
+- The game's service files are listed apart as "Service files of the game (advanced users only)".
 
 ## 0.9.5 (pre-release)
 - New pictures for the treasures (jewellery, statues, clocks, gold and the rest) and the red herb (a tied bunch of pink flowers), closer to how they look in the game.
