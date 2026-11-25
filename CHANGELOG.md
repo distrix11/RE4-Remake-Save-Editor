@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased (for 0.9.5)
+- The leaf in the header sways under the mouse and shakes when clicked.
+
 ## 0.9.4 (pre-release)
 - The file that starts the editor is now called **Start RE4 Save Editor.js** (it was `start.js`).
 - Settings > **Create desktop shortcut**: a "RE4 Save Editor" shortcut with the herb icon on the desktop.

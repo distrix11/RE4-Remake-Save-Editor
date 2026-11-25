@@ -47,6 +47,15 @@ button.saved{animation:fx-saved .9s ease-out}
 .dirty:not([hidden]){animation:fx-pop .28s cubic-bezier(.2,.9,.3,1.5)}
 @keyframes fx-pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
 
+/* ---- the leaf in the header: sways under the mouse, shakes when clicked ---- */
+h1 .brand{cursor:pointer;transition:background .2s,box-shadow .2s}
+h1 .brand .ic{transform-origin:20% 92%}
+h1 .brand:hover{background:rgba(169,197,138,.22);box-shadow:0 0 12px rgba(169,197,138,.45)}
+h1 .brand:hover .ic{animation:fx-sway 1.4s ease-in-out infinite}
+h1 .brand.shake .ic{animation:fx-shake .9s cubic-bezier(.3,.7,.4,1)}
+@keyframes fx-sway{0%,100%{transform:rotate(0)}25%{transform:rotate(11deg)}75%{transform:rotate(-9deg)}}
+@keyframes fx-shake{0%{transform:rotate(0) scale(1)}12%{transform:rotate(-30deg) scale(1.25)}28%{transform:rotate(24deg) scale(1.2)}44%{transform:rotate(-17deg) scale(1.12)}60%{transform:rotate(11deg) scale(1.06)}76%{transform:rotate(-6deg)}90%{transform:rotate(3deg)}100%{transform:rotate(0) scale(1)}}
+
 /* ---- small things ---- */
 .chip:active:not(:disabled),button:active:not(:disabled){transform:translateY(1px)}
 .bar>i{animation:fx-grow .6s cubic-bezier(.2,.7,.3,1) both;transform-origin:0 50%}

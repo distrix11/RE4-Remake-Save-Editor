@@ -95,6 +95,13 @@ const fx = (() => {
     clearTimeout(button.fxTimer); button.fxTimer = setTimeout(() => { button.innerHTML = labels.get(button); button.classList.remove('saved'); }, 1800);
   }
 
+  // ---- the leaf in the header --------------------------------------------------
+  const brand = document.querySelector('h1 .brand');
+  if (brand) {
+    brand.onclick = () => { brand.classList.remove('shake'); void brand.offsetWidth; brand.classList.add('shake'); };
+    brand.addEventListener('animationend', (e) => { if (e.animationName === 'fx-shake') brand.classList.remove('shake'); });
+  }
+
   // ---- start-up screen ---------------------------------------------------------
   const splash = document.getElementById('splash');
   const hide = () => { if (!splash) return; splash.classList.add('out'); setTimeout(() => splash.remove(), 400); };
