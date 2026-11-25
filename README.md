@@ -13,9 +13,9 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.4). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.5). It has been tested on a limited set of saves; please report what you find.
 
-**New in 0.9.4:** own pictures for every weapon, animations, a red Leather case, and a desktop shortcut with an icon (Settings). [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.4)
+**New in 0.9.5:** Undo, keyboard keys in the Case view, a space check when adding weapons, pictures in the Inventory lists, many item icons redrawn, and fixed sizes of three accessories. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.5)
 
 ## Features
 
@@ -23,7 +23,7 @@ It runs on your own computer, opens in your browser or its own window and never 
 - <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
   **add** items from a catalog of ~220 items, **duplicate**, **delete**;
-  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots) and a **Sort** button that tidies the case.
+  **case size** selector; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; **Undo** (button or Ctrl+Z) takes back the last changes one by one.
 - <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
@@ -35,7 +35,7 @@ It runs on your own computer, opens in your browser or its own window and never 
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
 - <img src="icons/items/herb_green.png" height="26" align="top"> **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with 3D-rendered item icons.
-  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models, weapons included, rendered by `scripts/icon-render`); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view.
+  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models, weapons included, rendered by `scripts/icon-render`); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view; for the selected item R rotates (its picture turns too), Delete removes, the arrows move and Esc deselects.
 - <img src="icons/items/crown.png" height="26" align="top"> **Motion**: a start screen, the attaché case opens, items slide and settle into their cells, soft transitions between tabs and windows. If animation effects are turned off in Windows, choose Settings > Animations > On to see them.
 - <img src="icons/items/compass.png" height="26" align="top"> **Updates and About**: once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - <img src="icons/items/cog.png" height="26" align="top"> **Advanced**: a raw tree view of every field in the save file with search.
