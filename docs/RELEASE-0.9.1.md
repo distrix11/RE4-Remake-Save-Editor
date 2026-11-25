@@ -5,6 +5,9 @@ An unofficial, local save editor for **Resident Evil 4 (2023 remake), Steam, Win
 > [!WARNING]
 > **Pre-release. Use at your own risk.** Editing saves can corrupt them. The editor makes a backup before every write and keeps a protected first-run copy of every slot, but keep your own copies too. It is best to close the game before saving, and consider turning off Steam Cloud for RE4.
 
+> [!IMPORTANT]
+> **Windows Defender may flag RE4SaveEditor.exe of this version** as `Trojan:Win32/Wacatac.B!ml` and quarantine it. We believe this is a false positive: `!ml` is a machine-learning verdict that small unsigned launchers often get, the archive here still has the checksum below, and the source is open (`launcher/Launcher.cs`). The author is working on getting such false positives removed. Please use the newer version, [0.9.2](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.2): Defender has not flagged it so far. There is no need to turn Defender off or to add an exclusion.
+
 ## What is new in 0.9.1
 
 - **Separate Ways:** the case look now changes the case of Ada (it changed Leon only before), and Ada's weapons have names and icons (Blast Crossbow, Blacktail AC, Stingray, Tactical Knife) instead of empty cells.
