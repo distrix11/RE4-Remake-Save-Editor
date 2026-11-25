@@ -196,6 +196,11 @@ function sortedItems(items) {
   list = list.slice().sort((a, b) => { const x = key(a), y = key(b); return (x > y ? 1 : x < y ? -1 : 0) * ui.dir; });
   return list;
 }
+// picture of a list row: weapons have their own (the same as in the Case view), other things the category sign. All sit in a column of the same width.
+function listIcon(it, name) {
+  const art = it.cat === 'weapon' && name ? itemArt(name, 'weapon', [2, 1], it.itemId.value).svg : null;
+  return '<span class="licon">' + (art ? '<span class="tile wtile c-weapon">' + art + '</span>' : '<span class="tile c-' + (it.cat || 'other') + '">' + ic(it.cat || 'box') + '</span>') + '</span>';
+}
 function drawItems(holder, inv) {
   holder.innerHTML = '';
   const list = sortedItems(inv.items);
@@ -208,7 +213,7 @@ function drawItems(holder, inv) {
     const tr = document.createElement('tr');
     const nm = itemName(it);
     const nameTd = document.createElement('td');
-    nameTd.innerHTML = `<div class="irow"><span class="tile c-${it.cat || 'other'}">${ic(it.cat || 'box')}</span><div><div class="iname ${nm ? '' : 'u'}">${esc(nm || 'Item #' + it.itemId.value)}</div><div class="dim mono" style="font-size:11px">ID ${it.itemId.value}${it.slot ? ` · cell ${it.slot.x},${it.slot.y}` : ''}</div></div></div>`;
+    nameTd.innerHTML = `<div class="irow">${listIcon(it, nm)}<div><div class="iname ${nm ? '' : 'u'}">${esc(nm || 'Item #' + it.itemId.value)}</div><div class="dim mono" style="font-size:11px">ID ${it.itemId.value}${it.slot ? ` · cell ${it.slot.x},${it.slot.y}` : ''}</div></div></div>`;
     nameTd.querySelector('.iname').style.cursor = 'pointer'; nameTd.querySelector('.iname').title = 'Click to label';
     nameTd.querySelector('.iname').onclick = () => {
       const v = prompt('Name for ID ' + it.itemId.value, nm || ''); if (v === null) return;
