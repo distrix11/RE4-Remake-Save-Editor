@@ -163,5 +163,94 @@ export function makeExtra(THREE) {
     const base = M(c, 0.35, 0.3); cyl(g, 0.8, 0.22, base, 0, 0, 0, 36).rotation.x = Math.PI / 2; torus(g, 0.8, 0.06, gold, 0, 0, 0.11);
     const f = i % 3; if (f === 0) sph(g, 0.4, M(0xf0d8b8, 0, 0.5), 0, 0.05, 0.25, 1, 1.1, 0.7); else if (f === 1) { add(g, new THREE.OctahedronGeometry(0.45, 0), M(0xf0f0f0, 0.3, 0.3), 0, 0, 0.25); } else { add(g, new THREE.ConeGeometry(0.4, 0.9, 5), M(0xf0f0f0, 0.3, 0.3), 0, 0, 0.25).rotation.x = Math.PI / 2 * 0.0; }
     g.userData.view = [0.2, -0.45]; return g; }; });
+  // ---------- ammunition boxes, gunpowder and resources: colours and shapes as in the game, labels and pictograms of our own
+  const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+  const printed = (tex) => new THREE.MeshStandardMaterial({ map: tex, metalness: 0, roughness: 0.55 });
+  const label = (x, text, px, py, size, color, o = {}) => { x.font = (o.style || '900') + ' ' + size + 'px "Arial Narrow", Impact, sans-serif'; x.fillStyle = color; x.textAlign = o.align || 'left'; x.textBaseline = 'middle'; if (o.stroke) { x.lineWidth = size / 10; x.strokeStyle = o.stroke; x.strokeText(text, px, py, o.max); } x.fillText(text, px, py, o.max); };
+  // a standing round seen from the side: type 'pistol' | 'rifle' | 'shell' | 'magnum'
+  const round = (x, cx, bottom, w, h, type) => {
+    const brassG = x.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0); brassG.addColorStop(0, '#7a5a1c'); brassG.addColorStop(0.4, '#f4d98a'); brassG.addColorStop(1, '#8a671f');
+    if (type === 'shell') {
+      x.fillStyle = '#c2362b'; x.fillRect(cx - w / 2, bottom - h, w, h * 0.76); x.fillStyle = brassG; x.fillRect(cx - w / 2 - 3, bottom - h * 0.26, w + 6, h * 0.26); return;
+    }
+    const neck = type === 'rifle' ? 0.42 : 0.3;
+    x.fillStyle = brassG; x.fillRect(cx - w / 2, bottom - h * (1 - neck), w, h * (1 - neck)); x.fillRect(cx - w / 2 - 3, bottom - 8, w + 6, 8);
+    if (type === 'rifle') { x.beginPath(); x.moveTo(cx - w / 2, bottom - h * 0.58); x.lineTo(cx - w * 0.3, bottom - h * 0.7); x.lineTo(cx + w * 0.3, bottom - h * 0.7); x.lineTo(cx + w / 2, bottom - h * 0.58); x.fill(); }
+    const tipW = type === 'rifle' ? w * 0.6 : w; x.fillStyle = type === 'magnum' ? '#d4d9de' : '#c07a3e';
+    x.beginPath(); x.moveTo(cx - tipW / 2, bottom - h * (1 - neck)); x.quadraticCurveTo(cx - tipW / 2, bottom - h * 0.9, cx, bottom - h); x.quadraticCurveTo(cx + tipW / 2, bottom - h * 0.9, cx + tipW / 2, bottom - h * (1 - neck)); x.fill();
+  };
+  const boxArt = {
+    handgun: { side: 0x6d1214, draw: (x) => { x.fillStyle = '#8e161a'; x.fillRect(0, 0, 768, 512); x.fillStyle = '#17100f'; x.beginPath(); x.moveTo(0, 40); x.lineTo(768, 40); x.lineTo(690, 190); x.lineTo(0, 190); x.fill();
+      label(x, 'HANDGUN', 40, 118, 132, '#f4efe6', { max: 620 }); [90, 180, 270].forEach((cx) => round(x, cx, 470, 62, 210, 'pistol')); label(x, '9 mm', 720, 330, 96, '#f4efe6', { align: 'right' }); label(x, 'PISTOL AMMO', 720, 430, 62, '#f4efe6', { align: 'right' }); } },
+    shotgun: { side: 0xa8b41e, draw: (x) => { x.fillStyle = '#14703f'; x.fillRect(0, 0, 768, 512); x.fillStyle = '#c9cf2a'; x.fillRect(0, 400, 768, 112);
+      label(x, 'SHOTGUN', 384, 90, 140, '#f6f1da', { align: 'center', max: 700 }); x.strokeStyle = '#d9d437'; x.lineWidth = 12; for (const r of [110, 62, 18]) { x.beginPath(); x.arc(210, 270, r, 0, 7); x.stroke(); } [470, 560, 650].forEach((cx) => round(x, cx, 372, 66, 190, 'shell')); label(x, '12 GAUGE SLUGS', 384, 456, 74, '#14381f', { align: 'center', max: 720 }); } },
+    smg: { side: 0x1d3a7c, draw: (x) => { const g = x.createLinearGradient(0, 0, 768, 512); g.addColorStop(0, '#dfe5ee'); g.addColorStop(0.55, '#5b78b4'); g.addColorStop(1, '#1d3a7c'); x.fillStyle = g; x.fillRect(0, 0, 768, 512);
+      x.fillStyle = '#f4f6fa'; x.beginPath(); x.moveTo(0, 0); x.lineTo(250, 0); x.lineTo(0, 190); x.fill(); label(x, 'SMG', 40, 290, 190, '#1a2f78', { stroke: '#eef2f8', max: 330 }); [470, 540, 610, 680].forEach((cx) => round(x, cx, 330, 50, 200, 'pistol')); label(x, '9 mm  ·  50', 40, 430, 88, '#f4f6fa'); } },
+    magnum: { side: 0x14100f, draw: (x) => { x.fillStyle = '#141011'; x.fillRect(0, 0, 768, 512); x.fillStyle = '#c4231f'; x.fillRect(0, 360, 768, 152);
+      const g = x.createLinearGradient(0, 50, 0, 190); g.addColorStop(0, '#f2433a'); g.addColorStop(1, '#8e1713'); label(x, 'MAGNUM', 384, 125, 168, g, { align: 'center', max: 720, stroke: '#e9e3dc' }); [300, 384, 468].forEach((cx) => round(x, cx, 340, 56, 140, 'magnum')); label(x, '.45  CENTERFIRE', 384, 436, 84, '#141011', { align: 'center', max: 700 }); } },
+    rifle: { side: 0xc9cdd2, draw: (x) => { x.fillStyle = '#eceeef'; x.fillRect(0, 0, 768, 512); x.fillStyle = '#8b929b'; x.fillRect(0, 0, 768, 76); label(x, 'T A C T I C A L', 384, 40, 52, '#f4f5f6', { align: 'center' });
+      for (const [y, len] of [[130, 300], [200, 340], [270, 300]]) { x.save(); x.translate(748, y); x.rotate(-Math.PI / 2); round(x, 0, 0, 44, len, 'rifle'); x.restore(); }
+      label(x, 'RIFLE', 36, 220, 180, '#b3202a', { max: 400 }); label(x, 'RIFLE CARTRIDGES', 36, 400, 66, '#b3202a'); label(x, '.223  ·  50', 36, 465, 56, '#4a4f56'); } },
+  };
+  const ammoBoxModel = (kind) => () => {
+    const g = new THREE.Group(); const a = boxArt[kind]; const face = printed(canvasTex(768, 512, a.draw));
+    const side = M(a.side, 0, 0.6); add(g, new THREE.BoxGeometry(2.4, 1.6, 0.8), [side, side, side, side, face, side], 0, 0, 0);
+    add(g, new THREE.BoxGeometry(2.42, 0.05, 0.82), M(0xd9d4c8, 0, 0.7), 0, 0.805, 0);
+    g.userData.view = [0.42, -0.3]; return g;
+  };
+  for (const k of ['handgun', 'shotgun', 'smg', 'magnum', 'rifle']) B['ammo_' + k] = ammoBoxModel(k);
+
+  B.gunpowder = () => {
+    const g = new THREE.Group(); const tin = M(0x33363a, 0.65, 0.5);
+    const top = canvasTex(512, 512, (x) => {
+      x.fillStyle = '#2b2d30'; x.beginPath(); x.arc(256, 256, 256, 0, 7); x.fill(); x.strokeStyle = '#26406e'; x.lineWidth = 14; x.beginPath(); x.arc(256, 256, 232, 0, 7); x.stroke();
+      const text = 'GUNPOWDER'; x.fillStyle = '#e9e4d2'; x.font = '900 66px Impact, "Arial Narrow", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      [...text].forEach((ch, i) => { const a = -1.05 + (i * 2.1) / (text.length - 1); x.save(); x.translate(256 + Math.sin(a) * 180, 256 - Math.cos(a) * 180); x.rotate(a); x.fillText(ch, 0, 0); x.restore(); });
+      const gold = x.createLinearGradient(0, 200, 0, 380); gold.addColorStop(0, '#ffe27a'); gold.addColorStop(1, '#b9801a'); x.fillStyle = gold;
+      x.beginPath(); x.moveTo(90, 370); x.quadraticCurveTo(190, 330, 270, 220); x.quadraticCurveTo(350, 300, 430, 370); x.quadraticCurveTo(260, 400, 90, 370); x.fill();
+      let r = 7; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647; for (let i = 0; i < 520; i++) { const px = 100 + rnd() * 320, py = 372 - rnd() * Math.max(4, 150 - Math.abs(px - 270) * 0.95); x.fillStyle = rnd() < 0.5 ? '#fff0a0' : '#9a6a14'; x.fillRect(px, py, 4, 4); }
+      round(x, 165, 372, 62, 220, 'pistol'); label(x, 'DANGER · FLAMMABLE', 256, 412, 28, '#d8d3c2', { align: 'center', max: 260 });
+    });
+    top.center.set(0.5, 0.5); top.rotation = Math.PI / 2; // the cap of a cylinder is mapped turned by a quarter
+    add(g, new THREE.CylinderGeometry(1.2, 1.2, 0.55, 64), [tin, new THREE.MeshStandardMaterial({ map: top, color: 0xa9a9a9, metalness: 0, roughness: 0.85 }), tin], 0, 0, 0);
+    const ring = (y, r, t, m) => { add(g, new THREE.TorusGeometry(r, t, 12, 64), m, 0, y, 0).rotation.x = Math.PI / 2; };
+    ring(0.275, 1.19, 0.045, M(0x787d83, 0.8, 0.35)); ring(-0.03, 1.215, 0.03, M(0x17191c, 0.5, 0.6)); ring(-0.275, 1.19, 0.045, M(0x55595e, 0.7, 0.4));
+    g.userData.view = [0.9, 0]; return g;
+  };
+
+  // a sack lying on its side with scrap spilling out of the mouth
+  const bag = (cloth, stuff, seed) => () => {
+    const g = new THREE.Group(); let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+    const weave = canvasTex(256, 256, (x) => { x.fillStyle = cloth; x.fillRect(0, 0, 256, 256); for (let i = 0; i < 5200; i++) { x.fillStyle = rnd() < 0.5 ? 'rgba(0,0,0,.22)' : 'rgba(255,255,255,.09)'; x.fillRect(rnd() * 256, rnd() * 256, 2 + rnd() * 3, 1.5); } });
+    const geo = new THREE.SphereGeometry(1, 120, 80); const pos = geo.attributes.position; const v = new THREE.Vector3();
+    // profile along the sack: x position, half height, half width (mouth -> body -> gathered part -> flat flaring end)
+    const prof = [[-1.15, 0.6, 0.72], [-0.7, 0.72, 0.9], [0.0, 0.62, 0.85], [0.55, 0.4, 0.55], [0.9, 0.2, 0.42], [1.3, 0.14, 0.72], [1.75, 0.05, 0.9]];
+    const at = (x, i) => { let k = 1; while (k < prof.length - 1 && x > prof[k][0]) k++; const p0 = prof[k - 1], p1 = prof[k]; const f = Math.min(1, Math.max(0, (x - p0[0]) / (p1[0] - p0[0]))); return p0[i] + (p1[i] - p0[i]) * f; };
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const t = (v.x + 1) / 2; const x = -1.15 + t * 2.9; const ang = Math.atan2(v.y, v.z);
+      const fold = 1 + 0.11 * Math.sin(ang * 5 + x * 4) * Math.sin(x * 3 + 1) + 0.07 * Math.sin(x * 9 + ang * 3) + 0.04 * Math.sin(x * 17 - ang * 7);
+      const y = Math.sin(ang) * at(x, 1) * fold, z = Math.cos(ang) * at(x, 2) * (2 - fold) + (x > 0.9 ? 0.12 * Math.sin(x * 7) : 0);
+      pos.setXYZ(i, x, Math.max(-0.5, y), z);
+    }
+    geo.computeVertexNormals();
+    add(g, geo, new THREE.MeshStandardMaterial({ map: weave, roughness: 0.95, metalness: 0 }), 0, 0, 0);
+    const hole = add(g, new THREE.CircleGeometry(0.62, 40), M(0x0d0b0a, 0, 1), -1.16, 0.02, 0); hole.rotation.y = -Math.PI / 2; hole.scale.set(1.08, 0.88, 1);
+    const lip = add(g, new THREE.TorusGeometry(0.64, 0.085, 12, 48), new THREE.MeshStandardMaterial({ map: weave, roughness: 0.95 }), -1.09, 0, 0); lip.rotation.y = Math.PI / 2; lip.scale.set(1.08, 0.9, 1); lip.position.x = -1.14;
+    const mats = stuff.map((c) => M(c, 0.75, 0.42));
+    const m = () => mats[Math.floor(rnd() * mats.length)];
+    for (let i = 0; i < 70; i++) {
+      const piece = new THREE.Group(); const kind = Math.floor(rnd() * 4); const mm = m();
+      if (kind === 0) add(piece, new THREE.CylinderGeometry(0.09 + rnd() * 0.08, 0.09 + rnd() * 0.08, 0.22 + rnd() * 0.3, 14), mm);
+      else if (kind === 1) { const R = 0.1 + rnd() * 0.13; add(piece, new THREE.CylinderGeometry(R, R, 0.07, 20), mm); for (let t = 0; t < 8; t++) { const a = t * Math.PI / 4; add(piece, new THREE.BoxGeometry(0.06, 0.07, 0.06), mm, Math.cos(a) * (R + 0.02), 0, Math.sin(a) * (R + 0.02)).rotation.y = -a; } add(piece, new THREE.CylinderGeometry(R * 0.3, R * 0.3, 0.09, 12), M(0x15120f, 0.3, 0.8)); }
+      else if (kind === 2) add(piece, new THREE.TorusGeometry(0.07 + rnd() * 0.07, 0.03, 8, 18), mm);
+      else add(piece, new THREE.BoxGeometry(0.1 + rnd() * 0.3, 0.05 + rnd() * 0.08, 0.06 + rnd() * 0.1), mm);
+      const out = rnd(); piece.position.set(-1.15 - out * 1.05, -0.46 + rnd() * (0.8 * (1 - out) * (1 - out)), (rnd() - 0.5) * (1.05 + out * 0.9)); piece.scale.setScalar(1 - out * 0.35);
+      piece.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3); g.add(piece);
+    }
+    g.userData.view = [0.72, 0.42, -0.36]; return g;
+  };
+  B.resources_s = bag('#2c3c63', [0x8a4a28, 0x6f3a22, 0xa0603a, 0x4a3024], 11); // blue sack, rusty scrap
+  B.resources_l = bag('#7d5a3a', [0xaeb4ba, 0x787f86, 0xc9a24e, 0x55595e], 29); // brown sack, gears and brass
   return B;
 }

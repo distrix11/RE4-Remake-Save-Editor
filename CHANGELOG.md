@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased (for 0.9.5)
+- New pictures for the ammunition boxes (a colour for every kind), the gunpowder tin and the two bags of resources, closer to how they look in the game.
 - The Inventory lists show the picture of every item and weapon instead of the category sign.
 - **Undo** (button and Ctrl+Z): takes back the last changes one by one, up to 30.
 - Keys in the Case view for the selected item: R rotate, Delete remove, arrows move, Esc deselect.
