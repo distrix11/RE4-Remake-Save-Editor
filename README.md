@@ -13,7 +13,7 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.1). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.2). It has been tested on a limited set of saves; please report what you find.
 
 ## Features
 
