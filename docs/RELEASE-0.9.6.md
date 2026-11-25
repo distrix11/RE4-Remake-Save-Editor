@@ -51,7 +51,7 @@ dbc384f43aea557c8dccaec7727a22e2acbe85f2f0383592eed841ebb4fbe185  RE4SaveEditor-
 
 A smaller script-only package (needs [Node.js](https://nodejs.org) 20+ installed) is published on Nexus Mods. To build from source: `git clone`, run `build.bat` once, then `start.bat`.
 
-**VirusTotal:** [report for this file](https://www.virustotal.com/gui/file/dbc384f43aea557c8dccaec7727a22e2acbe85f2f0383592eed841ebb4fbe185).
+**VirusTotal:** [1 engine](https://www.virustotal.com/gui/file/dbc384f43aea557c8dccaec7727a22e2acbe85f2f0383592eed841ebb4fbe185) flags this archive (a generic heuristic for scripts, as in earlier versions; a false positive in our opinion); the other engines report it clean. The number can change when the file is re-scanned: the link shows the current result.
 
 ## Quick start
 
