@@ -13,9 +13,9 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.6). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.7). It has been tested on a limited set of saves; please report what you find.
 
-**New in 0.9.6:** a start screen with your slots, grenades, Upgrade all weapons / Repair knives / Fill ammo stacks, named Separate Ways requests, safer editing (money limits, a question before unsaved edits are dropped, key items protected), new key item pictures. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.6)
+**New in 0.9.7:** item sizes checked in the game (some items could be put on top of others and the game deleted them), a warning for items that overlap, a mini case on every slot card, a refresh button. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.7)
 
 ## Features
 

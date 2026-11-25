@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased (for 0.9.7)
+## 0.9.7 (pre-release)
+- **Fixed item sizes** (checked in the game): Magnum and SMG ammo, large resources, mixed herb vials and the TMP stock. Before, a new item could be put on top of them and the game deleted it.
+- Items that overlap or stick out of the case are shown in **red**, with a **Sort the case** button and a warning before writing.
+- **Start screen**: every slot shows a small picture of its own case.
+- **Refresh** button next to the slot list.
+- Merchant requests: blue medallion requests are left to the game (it counts the medallions you really destroy).
+
+### Details
 - Case sizes checked in the game: Magnum Ammo, Submachine Gun Ammo and Resources (L) take 2 cells, the TMP Stock 3×2, the mixed herb vials 1×2. Before, a new item could be put on top of them.
 - Merchant requests: **Complete** is checked in the game for the request goals (the reward is given). Blue medallion requests are left to the game: it counts the medallions really destroyed and ignores a mark.
 - Items that overlap another one or stick out of the case are shown in red, a banner names them with a **Sort the case** button, and the summary before writing warns that the game would delete them.

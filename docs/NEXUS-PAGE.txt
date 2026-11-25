@@ -11,7 +11,7 @@ TAGS (suggestions)
 save editor, utility, inventory, attache case, money, pesetas, weapon upgrades, backup, tool
 
 VERSION
-0.9.6   (pre-release)
+0.9.7   (pre-release)
 
 SHORT SUMMARY (max ~350 characters)
 Unofficial local save editor for Resident Evil 4 (2023) on Steam: add weapons, change money, edit and sort your attaché case with drag and drop, upgrade weapons, change case size and look, with automatic backups. Runs on your PC, sends nothing anywhere.
@@ -20,7 +20,7 @@ REQUIREMENTS FIELD
 Windows 10/11, Steam version of Resident Evil 4 (2023), Node.js 20 or newer (LTS). No .NET needed.
 
 FILE
-RE4SaveEditor-0.9.6-nexus.zip  (main file)
+RE4SaveEditor-0.9.7-nexus.zip  (main file)
 File description: Script-only package. Install Node.js LTS once, extract the zip, double-click Start RE4 Save Editor.js.
 
 ==========================================================================================
@@ -34,7 +34,7 @@ FULL DESCRIPTION (Nexus BBCode)
 [url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
 
-[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.6). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. It is best to close the game before saving (writing from the main menu and then loading the slot also works), and consider turning off Steam Cloud for RE4.
+[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.7). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. It is best to close the game before saving (writing from the main menu and then loading the slot also works), and consider turning off Steam Cloud for RE4.
 
 [line]
 
@@ -47,9 +47,9 @@ Edit your save in a clean local window: it runs on your PC and never sends your 
 [*][b]Add weapons[/b]: [b]Add weapon...[/b] puts a new weapon into your case (15 for the main campaign, 7 for Separate Ways), or copies one from another of your slots of the same campaign, and shows whether it fits. Not all new weapons are tested yet, and the game deletes bonus or DLC weapons you have not unlocked.
 [*][b]Weapon upgrades[/b]: levels 0-4 set with steps like at the Merchant, [b]Full upgrade[/b] and [b]Upgrade all weapons[/b], and a switch for the exclusive upgrade.
 [*][b]Quick buttons[/b]: [b]Repair knives[/b] and [b]Fill ammo stacks[/b].
-[*][b]Also[/b]: merchant requests (main game and Separate Ways), treasures, achievement hints (read-only) and an [i]Advanced[/i] raw view for experienced users.
+[*][b]Also[/b]: merchant requests (main game and Separate Ways; blue medallions are left to the game), treasures, achievement hints (read-only) and an [i]Advanced[/i] raw view for experienced users.
 [*][b]Undo[/b] (button or Ctrl+Z) takes back your last changes one by one; [b]Ctrl+S[/b] saves to the game after the summary.
-[*][b]Safe by design[/b]: a summary of every change before writing, writes are decrypted back and compared before they replace the file, backup manager with restore, copy one slot into another.
+[*][b]Safe by design[/b]: items that overlap or stick out of the case are shown in red (the game would delete them), a summary of every change before writing, writes are decrypted back and compared before they replace the file, backup manager with restore, copy one slot into another.
 [/list]
 
 [center][img]https://raw.githubusercontent.com/distrix11/RE4-Remake-Save-Editor/main/docs/screenshots/08-case-view.png[/img]
@@ -95,13 +95,10 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [size=2][i]Unofficial fan tool, not affiliated with Capcom or Valve. Resident Evil is a trademark of Capcom. The package contains no game assets.[/i][/size]
 
 ==========================================================================================
-CHANGELOG ENTRY FOR THE FILE (version 0.9.6)
+CHANGELOG ENTRY FOR THE FILE (version 0.9.7)
 ==========================================================================================
-- Start screen with a card for every save slot.
-- Grenades can be added (hand, heavy, flash).
-- New buttons above the case: Upgrade all weapons, Repair knives, Fill ammo stacks.
-- Separate Ways: the merchant requests have names, descriptions and rewards.
-- Safer: money cannot become a wrong number, switching slots asks before dropping edits, key items warn before you delete them.
-- Easier to use: own question windows, Ctrl+S, upgrade steps like at the Merchant, a More menu in the header.
-- New pictures for the key items.
-- Fixed: a negative amount of money was written as about 4.3 billion; the Heavy and Flash Grenade take two cells.
+- Fixed item sizes (checked in the game): Magnum and SMG ammo, large resources, mixed herb vials and the TMP stock. Before, a new item could be put on top of them and the game deleted it.
+- Items that overlap or stick out of the case are shown in red, with a Sort the case button and a warning before writing.
+- Start screen: every slot shows a small picture of its own case.
+- Refresh button next to the slot list.
+- Merchant requests: blue medallion requests are left to the game (it counts the medallions you really destroy).
