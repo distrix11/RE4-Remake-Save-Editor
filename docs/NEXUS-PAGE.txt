@@ -11,7 +11,7 @@ TAGS (suggestions)
 save editor, utility, inventory, attache case, money, pesetas, weapon upgrades, backup, tool
 
 VERSION
-0.9.2   (pre-release)
+0.9.3   (pre-release)
 
 SHORT SUMMARY (max ~350 characters)
 Unofficial local save editor for Resident Evil 4 (2023) on Steam: add weapons, change money, edit and sort your attaché case with drag and drop, upgrade weapons, change case size and look, with automatic backups. Runs on your PC, sends nothing anywhere.
@@ -20,7 +20,7 @@ REQUIREMENTS FIELD
 Windows 10/11, Steam version of Resident Evil 4 (2023), Node.js 20 or newer (LTS). No .NET needed.
 
 FILE
-RE4SaveEditor-0.9.2-nexus.zip  (main file)
+RE4SaveEditor-0.9.3-nexus.zip  (main file)
 File description: Script-only package. Install Node.js LTS once, extract the zip, double-click start.js.
 
 ==========================================================================================
@@ -34,7 +34,7 @@ FULL DESCRIPTION (Nexus BBCode)
 [url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
 
-[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.2). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. It is best to close the game before saving (writing from the main menu and then loading the slot also works), and consider turning off Steam Cloud for RE4.
+[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.3). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. It is best to close the game before saving (writing from the main menu and then loading the slot also works), and consider turning off Steam Cloud for RE4.
 
 [line]
 
@@ -92,11 +92,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [size=2][i]Unofficial fan tool, not affiliated with Capcom or Valve. Resident Evil is a trademark of Capcom. The package contains no game assets.[/i][/size]
 
 ==========================================================================================
-CHANGELOG ENTRY FOR THE FILE (version 0.9.2)
+CHANGELOG ENTRY FOR THE FILE (version 0.9.3)
 ==========================================================================================
-- New weapons: "Add weapon..." now adds a new weapon from a built-in list (15 for the main game, 7 for Separate Ways); not all of them are tested. Bonus and DLC weapons have a warning: the game deletes what you have not unlocked.
-- Fixed the sizes of long weapons in the case (the game could delete a weapon that did not fit).
-- Fixed saves that store their inventories in another order or contain an unknown empty object.
-- Fixed: after closing and reopening the editor its window could not connect.
-- The exclusive upgrade switch now sets all the values the game uses with it.
-- Better "Sprinter" achievement hint.
+- No changes to the editor itself: if you use 0.9.2 from Nexus, you do not need to update.
+- The GitHub all-in-one version no longer has its own launcher .exe (some antivirus programs flagged it); it is started with start.js and still needs nothing to install.
