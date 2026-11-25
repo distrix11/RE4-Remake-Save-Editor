@@ -51,7 +51,7 @@ SHA-256:
 
 A smaller script-only package (needs [Node.js](https://nodejs.org) 20+ installed) is published on Nexus Mods. To build from source: `git clone`, run `build.bat` once, then `start.bat`.
 
-**VirusTotal:** [report for this file](https://www.virustotal.com/gui/file/8dfd88ffe838e213948e21ca06ef0ac5994ce1f86aa29d9810e949486022ea28).
+**VirusTotal:** [1 engine](https://www.virustotal.com/gui/file/8dfd88ffe838e213948e21ca06ef0ac5994ce1f86aa29d9810e949486022ea28) flags this archive (NANO-Antivirus, `Trojan.Script.Heuristic-js.iacgm`, a generic heuristic for scripts; a false positive in our opinion); the other engines report it clean. The number can change when the file is re-scanned: the link shows the current result.
 
 ## Quick start
 
