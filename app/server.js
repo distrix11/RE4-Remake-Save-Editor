@@ -328,7 +328,8 @@ function releaseNotes(version) {
   const lines = text.split(/\r?\n/); const start = lines.findIndex((l) => l === '## ' + version || l.startsWith('## ' + version + ' '));
   if (start < 0) return [];
   const out = [];
-  for (const l of lines.slice(start + 1)) { if (l.startsWith('## ')) break; if (l.startsWith('- ')) out.push(l.slice(2).trim()); }
+  // only the short list at the top of the section: the full list follows under "### Details"
+  for (const l of lines.slice(start + 1)) { if (l.startsWith('## ') || l.startsWith('### ')) break; if (l.startsWith('- ')) out.push(l.slice(2).trim()); }
   return out;
 }
 

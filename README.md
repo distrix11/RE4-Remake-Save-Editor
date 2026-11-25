@@ -13,16 +13,16 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.5). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.6). It has been tested on a limited set of saves; please report what you find.
 
-**New in 0.9.5:** Undo, keyboard keys in the Case view, a space check when adding weapons, pictures in the Inventory lists, many item icons redrawn, and fixed sizes of three accessories. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.5)
+**New in 0.9.6:** a start screen with your slots, grenades, Upgrade all weapons / Repair knives / Fill ammo stacks, named Separate Ways requests, safer editing (money limits, a question before unsaved edits are dropped, key items protected), new key item pictures. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.6)
 
 ## Features
 
 - <img src="icons/items/gold_bar.png" height="26" align="top"> **Money**: Pesetas and Spinel.
 - <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
-  **add** items from a catalog of ~220 items, **duplicate**, **delete**;
+  **add** items from a catalog of ~220 items (grenades included), **duplicate**, **delete**;
   **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; **Undo** (button or Ctrl+Z) takes back the last changes one by one, **Ctrl+S** saves to the game (after the summary), **Upgrade all weapons** fully upgrades the whole case, and the start screen shows a card for every slot.
 - <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).

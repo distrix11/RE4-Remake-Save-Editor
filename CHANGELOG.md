@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased (for 0.9.6)
+## 0.9.6 (pre-release)
+- **Start screen** with a card for every save slot.
+- **Grenades** can be added (hand, heavy, flash).
+- New buttons above the case: **Upgrade all weapons**, **Repair knives**, **Fill ammo stacks**.
+- **Separate Ways**: the merchant requests have names, descriptions and rewards.
+- Safer: money cannot become a wrong number, switching slots asks before dropping edits, key items warn before you delete them.
+- Easier to use: own question windows, **Ctrl+S**, upgrade steps like at the Merchant, a **More** menu in the header.
+- New pictures for the key items.
+
+### Details
 - **Grenades** (hand, heavy, flash) can be added with **Add item**.
 - Fixed the case size of the Heavy and Flash Grenade (two cells, not one): the game deleted one that stuck out of the case.
 - Buttons **Repair knives** and **Fill ammo stacks** above the case.
