@@ -18,10 +18,6 @@ in the save data into readable names. Source: https://github.com/alphazolam/RE_R
 
 MIT License, Copyright (c) 2021 alphazolam
 
-## Ultimate Gun Pack (Quaternius)
-
-The weapon pictures in `icons/weapons` are renders of the CC0 3D models from the Ultimate Gun Pack by Quaternius (https://quaternius.com). CC0 1.0, no attribution required; the models are in `icons/models` of the repository (not in the release archives).
-
 ## Node.js
 
 The all-in-one release archive bundles the unmodified official Node.js Windows build as `runtime/node.exe`

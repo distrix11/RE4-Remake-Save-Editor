@@ -84,7 +84,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [list]
 [*]Save encryption: JavaScript port of [url=https://github.com/mi5hmash/LimebrellaSharp]LimebrellaSharp[/url] by Michał Gębicki (MIT).
 [*]Field names: [url=https://github.com/alphazolam/RE_RSZ]RE_RSZ[/url] by alphazolam (MIT).
-[*]Gun icons: renders of the CC0 [url=https://quaternius.com]Ultimate Gun Pack[/url] by Quaternius. All other icons are original models made for this project.
+[*]All item and weapon icons are original models made for this project.
 [*]Item list: the community "Ultimate Item ID List" by kTeo.
 [*]Open source under the MIT licence: [url=https://github.com/distrix11/RE4-Remake-Save-Editor]github.com/distrix11/RE4-Remake-Save-Editor[/url]
 [/list]

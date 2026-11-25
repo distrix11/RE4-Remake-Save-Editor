@@ -1,6 +1,0 @@
-Creative Commons CC0 1.0 Universal (public domain dedication)
-
-The 3D models in this folder are "Ultimate Gun Pack" by Quaternius (https://quaternius.com, https://quaternius.itch.io/50-lowpoly-guns),
-released under CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
-Attribution is not required; it is given here anyway. The PNG pictures in icons/weapons were rendered from these models by
-scripts/icon-render/render-icons.js.

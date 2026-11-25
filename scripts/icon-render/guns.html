@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+// Renders one model of builders-guns.js, filling a box of its w x h case cells. ?k=<name>; window.GUNS lists names and sizes.
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { makeGuns } from './builders-guns.js';
+const guns = makeGuns(THREE);
+window.GUNS = Object.entries(guns).map(([k, v]) => [k, v.w, v.h]);
+const q = new URLSearchParams(location.search); const it = guns[q.get('k')];
+if (it) {
+  const W = innerWidth, H = innerHeight;
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  r.setSize(W, H); r.setClearColor(0x000000, 0); r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.15; document.body.append(r.domElement);
+  const scene = new THREE.Scene();
+  scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+  const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-3, 5, 4); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xbcd8ff, 1.1); rim.position.set(4, 2, -3); scene.add(rim);
+  const model = it.build(); const turn = new THREE.Group(); turn.add(model); turn.rotation.set(0.2, -0.2, 0); scene.add(turn);
+  // fit what is seen into the box with a small margin
+  turn.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(turn), size = box.getSize(new THREE.Vector3()), mid = box.getCenter(new THREE.Vector3());
+  const k = Math.min((it.w * 0.95) / size.x, (it.h * 0.9) / size.y);
+  const cam = new THREE.OrthographicCamera(-it.w / 2 / k, it.w / 2 / k, it.h / 2 / k, -it.h / 2 / k, 0.1, 100);
+  cam.position.set(mid.x, mid.y, 20); cam.lookAt(mid.x, mid.y, 0);
+  r.render(scene, cam);
+}
+window.__done = true;
+</script>

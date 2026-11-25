@@ -98,3 +98,8 @@ $('#bkClean').onclick = async () => {
   if (!confirm('Delete all automatic backups except the newest ' + keep + ' of each file? The first-run copy is kept.')) return;
   try { const r = await api('backup-cleanup', { keep }); toast('Removed ' + r.removed + ' old backup files.', 'ok'); openBackups(); } catch (e) { toast(e.message, 'err'); }
 };
+
+// ---------------------------------------------------------------- animations
+const animNote = () => { $('#setAnimNote').hidden = !(fx.mode() === 'auto' && fx.systemOff()); };
+$('#setAnim').value = fx.mode(); animNote();
+$('#setAnim').onchange = (e) => { fx.setMode(e.target.value); animNote(); };

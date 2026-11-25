@@ -27,7 +27,7 @@
 276440256|Boot Knife|weapon
 276445056|Primal Knife|weapon
 278035456|Sentinel Nine|weapon
-278037056|Skull Crusher|weapon
+278037056|Skull Shaker|weapon
 278198656|Blast Crossbow|weapon
 278200256|Blacktail AC|weapon
 278203456|Stingray (Separate Ways)|weapon

@@ -10,6 +10,8 @@ const ROOT = path.resolve(__dirname, '..');
 const EDGE = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Microsoft/Edge/Application/msedge.exe', 'C:/Program Files/Google/Chrome/Application/chrome.exe'].find(fs.existsSync);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 're4art-'));
 fs.cpSync(path.join(ROOT, 'icons', 'items'), path.join(tmp, 'items'), { recursive: true });
+fs.cpSync(path.join(ROOT, 'icons', 'weapons'), path.join(tmp, 'weapons'), { recursive: true });
+const guns = ['sg09r', 'red9', 'matilda', 'handcannon', 'butterfly', 'riot_gun', 'w870', 'sawed_off', 'skull', 'striker', 'm1903', 'stingray', 'cqbr', 'le5', 'tmp', 'chicago', 'crossbow', 'bolt_thrower', 'knife_combat', 'knife_primal', 'rocket'];
 
 const css = `*{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',Arial,sans-serif;color:#e4ecd8;background:radial-gradient(900px 400px at 15% 0%,#2b3a22 0,#161d12 70%)}
 img{display:block}.mono{font-family:Consolas,monospace}`;
@@ -32,13 +34,14 @@ const groups = [
   ['Throwables', '#9aa86a', ['grenade_hand', 'grenade_heavy', 'grenade_flash', 'egg_white', 'egg_brown', 'egg_gold']],
   ['Treasures', '#f0d472', ['gem_ruby', 'gem_emerald', 'gem_sapphire', 'crown', 'chalice', 'mask', 'pocket_watch', 'hourglass', 'lynx', 'mirror', 'chessboard', 'perfume']],
   ['Key items', '#8cb4d8', ['key_gold', 'head_lion', 'sword_gold', 'keycard_1', 'emblem_hex', 'lantern', 'litho_a', 'token_gold', 'halo_wheel', 'cubic_device', 'dynamite', 'unicorn_horn']],
-  ['Case skins, accessories, more', '#d8dde0', ['case_silver', 'case_black', 'case_leather', 'case_gold', 'case_classic', 'scope', 'laser', 'knife', 'rocket_launcher', 'recipe', 'map', 'armor']],
+  ['Case skins, accessories, more', '#d8dde0', ['case_silver', 'case_black', 'case_leather', 'case_gold', 'case_classic', 'scope', 'scope_bio', 'laser', 'stock_tmp', 'recipe', 'map', 'armor']],
 ];
 const gallery = `<!doctype html><meta charset="utf-8"><style>${css}
 body{width:1280px;padding:28px 32px 32px}h2{margin:0 0 4px;font-size:26px;color:#a9c58a;letter-spacing:3px}.sub{color:#cfd9c1;margin:0 0 20px;font-size:17px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.card{border:2px solid;border-radius:10px;padding:12px 14px;background:rgba(0,0,0,.22)}
 .card h3{margin:0 0 8px;font-size:18px;letter-spacing:1px}.row{display:flex;flex-wrap:wrap;gap:4px}.row div{width:84px;height:84px;background:rgba(255,255,255,.05);border-radius:6px;padding:2px}
-</style><body><h2>ITEM ICONS</h2><p class="sub">About 150 original 3D-rendered icons, one for every item of the catalogue (shown in the Case view).</p>
+</style><body><h2>ITEM ICONS</h2><p class="sub">Original 3D-rendered icons, one for every item and weapon of the catalogue (shown in the Case view).</p>
+<div class="card" style="border-color:#c9a24a;margin-bottom:18px"><h3 style="color:#c9a24a">Weapons</h3><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${guns.map((n) => `<div style="width:162px;height:74px;background:rgba(255,255,255,.05);border-radius:6px;padding:4px"><img src="weapons/own_${n}.png" style="width:100%;height:100%;object-fit:contain"></div>`).join('')}</div></div>
 <div class="grid">${groups.map(([t, c, l]) => `<div class="card" style="border-color:${c}"><h3 style="color:${c}">${t}</h3><div class="row">${l.map((n) => `<div>${img(n, 80)}</div>`).join('')}</div></div>`).join('')}</div>`;
 
 const shot = (name, html, w, h) => {
@@ -63,5 +66,5 @@ h1{margin:0;font-size:150px;letter-spacing:18px;color:#a9c58a;font-weight:800;li
 shot('nexus-header', nexusHeader, 1600, 400);
 shot('nexus-cover', nexusCover, 1920, 1080);
 shot('banner', banner, 1280, 320);
-shot('icon-gallery', gallery, 1280, 790);
+shot('icon-gallery', gallery, 1280, 1095);
 fs.rmSync(tmp, { recursive: true, force: true });

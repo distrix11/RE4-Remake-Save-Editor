@@ -4,7 +4,7 @@
 const CASE_SKINS = {
   124176000: { name: 'Silver', c1: '#c3cacf', c2: '#7b858c', edge: '#4f585e', trim: '#e9edf0', latch: '#d5dadd' },
   124177600: { name: 'Black', c1: '#3a3e42', c2: '#15171a', edge: '#0b0c0e', trim: '#5a6066', latch: '#8c949a' },
-  124179200: { name: 'Leather', c1: '#8a5430', c2: '#4a2a14', edge: '#2e1809', trim: '#c58a55', latch: '#c9ad6a' },
+  124179200: { name: 'Leather', c1: '#8e2c26', c2: '#4c1311', edge: '#2e0b0a', trim: '#bd5a48', latch: '#c9ad6a', lining: '#3d1012' }, // red, as in the game
   124192000: { name: 'Gold', c1: '#f0d472', c2: '#a97d1f', edge: '#6b4e0f', trim: '#fff3b8', latch: '#fff0a8' },
   124193600: { name: 'Classic', c1: '#8b8559', c2: '#4b472c', edge: '#2c2917', trim: '#bdb685', latch: '#c9ad6a' },
 };
@@ -22,7 +22,7 @@ function drawCase3D(holder, inv) {
   const scene = document.createElement('div'); scene.className = 'scene3d';
   scene.style.height = Math.round(h * Math.cos(tilt * Math.PI / 180) + h * 0.55 + 60) + 'px';
   const box = document.createElement('div'); box.className = 'case3d';
-  box.style.cssText = `width:${w}px;height:${h}px;--cell:${cell}px;--c1:${skin.c1};--c2:${skin.c2};--ce:${skin.edge};--ct:${skin.trim};transform:rotateX(${tilt}deg)`;
+  box.style.cssText = `width:${w}px;height:${h}px;--cell:${cell}px;--c1:${skin.c1};--c2:${skin.c2};--ce:${skin.edge};--ct:${skin.trim};--lining:${skin.lining || '#0c0f09'};transform:rotateX(${tilt}deg)`;
 
   const lid = document.createElement('div'); lid.className = 'lid3d';
   lid.innerHTML = '<div class="lidpad"></div><div class="strap" style="top:30%"></div><div class="strap" style="top:60%"></div>';
@@ -40,8 +40,10 @@ function drawCase3D(holder, inv) {
   const ovl3 = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   const fits3 = (it, x, y, fp) => x >= 0 && y >= 0 && x + fp[0] <= GW && y + fp[1] <= GH &&
     !inv.items.some((o) => o !== it && o.slot && ovl3({ x, y, w: fp[0], h: fp[1] }, { x: o.slot.x, y: o.slot.y, w: o.fp[0], h: o.fp[1] }));
+  const drawn = []; // for the animations (fx.js)
   for (const it of inv.items) {
     if (!it.slot) continue;
+    const key = it.guid || it.itemId.value + ':' + it.idx;
     const nm = itemName(it) || '#' + it.itemId.value;
     const el = document.createElement('div');
     el.className = 'i3 c-' + (it.cat || 'other') + (ui.sel === it.idx ? ' sel' : '');
@@ -84,10 +86,12 @@ function drawCase3D(holder, inv) {
         if (!t || (t[0] === it.slot.x && t[1] === it.slot.y)) return;
         if (!fits3(it, t[0], t[1], it.fp)) { toast('The item does not fit here or overlaps another one (sizes are estimates)', 'err'); return; }
         ui.sel = it.idx;
+        fx.caseDropped(key, t[1] * cell, t[0] * cell);
         await structural('move', { inv: inv.index, idx: it.idx, x: t[0], y: t[1] }, 'Item moved');
       };
     };
     foam.append(el);
+    drawn.push({ key, el });
   }
   shell.append(foam);
   const latches = document.createElement('div'); latches.className = 'latches3d'; latches.style.setProperty('--cl', skin.latch);
@@ -128,4 +132,5 @@ function drawCase3D(holder, inv) {
   } else bar.innerHTML = '<span class="dim">Click an item to select it; drag it to move it.</span>';
   card.append(bar);
   holder.append(card);
+  fx.caseDrawn(cur + '|' + inv.index, foam, lid, drawn);
 }

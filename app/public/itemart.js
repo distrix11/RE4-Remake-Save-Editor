@@ -30,15 +30,18 @@
     bow: `<path d="M30 8c-14 10-14 40 0 50" fill="none" stroke="#7a5430" stroke-width="5" stroke-linecap="round"/><path d="M30 8l62 26-62 26" fill="none" stroke="#d8d2b8" stroke-width="1.5"/><rect x="28" y="28" width="76" height="7" rx="2" fill="url(#gDark)" ${O}/><path d="M104 31h10l-6 5z" fill="url(#gMetal)" ${O}/>`,
     knife: `<path d="M8 36L84 24l18 4-4 8-16 2z" fill="url(#gMetal)" ${O}/><path d="M12 35l68-10" stroke="#fff" stroke-width="1.4" opacity=".7"/><rect x="82" y="20" width="6" height="20" rx="2" fill="url(#gBrass)" ${O}/><rect x="88" y="23" width="26" height="13" rx="5" fill="url(#gDark)" ${O}/>`,
   };
-  // rendered pictures (icons/weapons/*.png, from the CC0 Ultimate Gun Pack by Quaternius); knives, rocket launchers and the bow stay vector
+  // rendered pictures of every weapon (icons/weapons/own_*.png, original models: scripts/icon-render/builders-guns.js), each drawn in the shape
+  // of its case cells; the vector drawings above are used only for weapons that are not in the catalogue. The first matching name wins.
   const GUN_PNG = [
-    [/sg-09|handgun/, 'pistol_1'], [/punisher/, 'pistol_2'], [/minecart|red9/, 'pistol_3'], [/blacktail/, 'pistol_4'], [/sentinel/, 'pistol_5'], [/matilda/, 'pistol_6'],
-    [/handcannon/, 'revolver_1'], [/killer7/, 'revolver_2'], [/butterfly/, 'revolver_3'],
-    [/riot/, 'shotgun_1'], [/w-870|shotgun/, 'shotgun_2'], [/striker/, 'shotgun_4'], [/sweeper/, 'shotgun_shortstock'],
-    [/m1903|sr /, 'sniperrifle_6'], [/stingray|semi/, 'assaultrifle_5'], [/cqbr/, 'assaultrifle2_1'],
-    [/tmp/, 'submachinegun_4'], [/le 5/, 'submachinegun_2'],
+    [/sawed-off/, 'sawed_off'], [/w-870|^shotgun/, 'w870'], [/riot/, 'riot_gun'], [/striker/, 'striker'], [/skull/, 'skull'],
+    [/sg-09|^handgun/, 'sg09r'], [/punisher/, 'punisher'], [/red9/, 'red9'], [/blacktail ac/, 'blacktail_ac'], [/blacktail/, 'blacktail'], [/matilda/, 'matilda'], [/sentinel/, 'sentinel_nine'],
+    [/handcannon/, 'handcannon'], [/killer7/, 'killer7'], [/butterfly/, 'butterfly'], [/tmp/, 'tmp'], [/le 5/, 'le5'], [/sweeper/, 'chicago'],
+    [/m1903|sr /, 'm1903'], [/cqbr/, 'cqbr'], [/stingray|semi/, 'stingray'],
+    [/bolt thrower/, 'bolt_thrower'], [/crossbow/, 'crossbow'], [/\bbow\b/, 'krauser_bow'],
+    [/rocket.*special/, 'rocket_special'], [/rocket.*infinite/, 'rocket_infinite'], [/rocket/, 'rocket'],
+    [/fighting knife/, 'knife_fighting'], [/kitchen/, 'knife_kitchen'], [/boot/, 'knife_boot'], [/tactical/, 'knife_tactical'], [/primal/, 'knife_primal'], [/knife|kunai/, 'knife_combat'],
   ];
-  const gunPng = (n) => { const t = n.toLowerCase(); const m = GUN_PNG.find(([re]) => re.test(t)); return m ? '<img class="art" alt="" src="icons/weapons/' + m[1] + '.png">' : null; };
+  const gunPng = (n) => { const t = n.toLowerCase(); const m = GUN_PNG.find(([re]) => re.test(t)); return m ? '<img class="art" alt="" src="icons/weapons/own_' + m[1] + '.png">' : null; };
   const weapon = (n) => {
     n = n.toLowerCase();
     if (/knife|kunai/.test(n)) return W.knife;
@@ -136,7 +139,6 @@
     ['heal', /green herb/, 'herb_green'], ['heal', /red herb/, 'herb_red'], ['heal', /yellow herb/, 'herb_yellow'], ['heal', /first aid/, 'first_aid_spray'], ['heal', /bass/, 'bass'], ['heal', /viper/, 'viper'], ['heal', /beetle/, 'beetle'],
     ['ammo', /handgun/, 'ammo_handgun'], ['ammo', /magnum/, 'ammo_magnum'], ['ammo', /shotgun/, 'ammo_shotgun'], ['ammo', /rifle/, 'ammo_rifle'], ['ammo', /submachine/, 'ammo_smg'], ['ammo', /bolts/, 'bolts'], ['ammo', /explosive/, 'arrows_explosive'],
     ['ammo', /gunpowder/, 'gunpowder'], ['ammo', /resources \(l\)/, 'resources_l'], ['ammo', /resources/, 'resources_s'], ['ammo', /mine/, 'mine'],
-    ['weapon', /knife/, 'knife'], ['weapon', /rocket/, 'rocket_launcher'], ['weapon', /bolt thrower|crossbow/, 'bolt_thrower'], ['weapon', /bow/, 'krauser_bow'],
     ['treasure', /dirty pearl/, 'pendant_dirty'], ['treasure', /pearl pendant/, 'pendant_pearl'], ['treasure', /pocket watch/, 'pocket_watch'], ['treasure', /headdress/, 'headdress'], ['treasure', /pipe/, 'pipe'], ['treasure', /pearl bangle/, 'bangle_pearl'],
     ['treasure', /red gemstone ring/, 'ring_ruby'], ['treasure', /gold bangle/, 'bangle_gold'], ['treasure', /iluminados pendant/, 'pendant_illum'], ['treasure', /mirror/, 'mirror'], ['treasure', /hourglass/, 'hourglass'], ['treasure', /perfume/, 'perfume'],
     ['treasure', /chessboard/, 'chessboard'], ['treasure', /staff/, 'staff'], ['treasure', /scratched emerald/, 'gem_scratched'], ['treasure', /ruby/, 'gem_ruby'], ['treasure', /emerald/, 'gem_emerald'], ['treasure', /sapphire/, 'gem_sapphire'],
@@ -167,9 +169,8 @@
     const pic = itemPng(n, cat); if (pic) return { svg: pic, horizontal: false, turn: false };
     try {
       if (cat === 'weapon') {
-        // guns stay horizontal like in the game; only knives and the like are turned upright in tall boxes
-        const gp = !/knife|rocket|bolt thrower|bow/i.test(n) && gunPng(n);
-        svg = gp || wrap('0 0 120 60', weapon(n)); horizontal = true;
+        // drawn lying (knives with the point to the left), turned by 90 degrees in a tall box
+        svg = gunPng(n) || wrap('0 0 120 60', weapon(n)); horizontal = true;
       }
       else if (cat === 'heal') {
         svg = /spray/.test(t) ? spray : /bass/.test(t) ? fish : /viper/.test(t) ? viper : /beetle/.test(t) ? beetle : herb(n);

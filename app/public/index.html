@@ -146,7 +146,7 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 .case3d{position:relative;transform-style:preserve-3d;transform-origin:50% 0}
 .shell3d{position:absolute;inset:0;background:linear-gradient(160deg,var(--c1),var(--c2));border:2px solid var(--ce);border-radius:8px;
   box-shadow:0 1px 0 var(--ce),0 2px 0 var(--ce),0 3px 0 var(--ce),0 4px 0 var(--ce),0 5px 0 var(--ce),0 6px 0 var(--ce),0 7px 0 var(--ce),0 8px 0 var(--ce),0 9px 0 var(--ce),0 10px 0 var(--ce),0 11px 0 var(--ce),0 12px 0 var(--ce),0 34px 40px rgba(0,0,0,.55)}
-.foam3d{position:absolute;background-color:#0c0f09;border:2px solid var(--ce);border-radius:3px;background-image:linear-gradient(rgba(169,197,138,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.18) 1px,transparent 1px);background-size:var(--cell) var(--cell);box-shadow:inset 0 0 22px #000}
+.foam3d{position:absolute;background-color:var(--lining,#0c0f09);border:2px solid var(--ce);border-radius:3px;background-image:linear-gradient(rgba(169,197,138,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.18) 1px,transparent 1px);background-size:var(--cell) var(--cell);box-shadow:inset 0 0 22px #000}
 .lid3d{position:absolute;left:0;right:0;bottom:100%;height:100%;transform-origin:50% 100%;transform:rotateX(-58deg);margin-bottom:2px;
   background:linear-gradient(160deg,var(--c1),var(--c2));border:2px solid var(--ce);border-radius:8px}
 .lidpad{position:absolute;inset:14px;background:repeating-linear-gradient(45deg,rgba(0,0,0,.35) 0 6px,rgba(0,0,0,.2) 6px 12px);border:1px solid var(--ce);border-radius:4px}
@@ -177,8 +177,10 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 .ghost3.ok{background:rgba(120,200,90,.28);box-shadow:0 0 0 2px #8cd05a inset}
 .ghost3.bad{background:rgba(210,70,55,.3);box-shadow:0 0 0 2px #d24a3a inset}
 </style>
+<link rel="stylesheet" href="fx.css">
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="sp-box"><img class="sp-herb" src="icons/items/herb_green.png" alt=""><div class="sp-name">RE4 <b>Save Editor</b></div><div class="sp-line"><i></i></div></div></div>
 <header>
   <h1><span class="brand" data-ic="leaf"></span><span>RE4 <b>Save Editor</b></span></h1>
   <select id="slot" title="Save file"></select>
@@ -227,6 +229,10 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
       </div>
       <p class="note">Found on this PC (one entry per Steam account):</p>
       <div id="setCands"></div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:14px">Animations
+        <select id="setAnim"><option value="auto">As in Windows</option><option value="on">On</option><option value="off">Off</option></select>
+      </label>
+      <p class="note" id="setAnimNote" hidden>Animation effects are turned off in Windows, so "As in Windows" means no animations here. Choose "On" to see them.</p>
       <div class="toolbar" style="margin-top:14px">
         <button id="setBackups" data-ic="restore">Manage backups…</button>
         <button id="setDiag" data-ic="file">Copy diagnostics</button>
@@ -313,6 +319,7 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 </div>
 <div id="toast"></div>
 <script src="icons.js"></script>
+<script src="fx.js"></script>
 <script src="app.js"></script>
 <script src="features.js"></script>
 <script src="itemart.js"></script>

@@ -568,7 +568,7 @@ const server = http.createServer(async (req, res) => {
       const body = req.method === 'POST' ? await readJson(req) : {};
       return send(res, 200, await routes[key](body));
     }
-    // pictures: icons/weapons (bundled, rendered from CC0 models), icons/items (bundled, original 3D renders) and icons/user (your own, named <item id>.png)
+    // pictures: icons/weapons (bundled, original 3D models), icons/items (bundled, original 3D renders) and icons/user (your own, named <item id>.png)
     const im = new RegExp('^/icons/(weapons|items|user|images)/([\\w.-]+\\.(png|webp|jpg))$', 'i').exec(url.pathname);
     if (im) { const ip = path.join(__dirname, '..', 'icons', im[1].toLowerCase(), im[2]); if (!fs.existsSync(ip)) return send(res, 404, 'not found', 'text/plain'); return send(res, 200, fs.readFileSync(ip), MIME['.' + im[3].toLowerCase()]); }
     const f = path.join(__dirname, 'public', url.pathname === '/' ? 'index.html' : url.pathname);

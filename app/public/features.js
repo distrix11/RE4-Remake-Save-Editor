@@ -3,7 +3,10 @@
 // case size, weapon upgrades, slot copy. Shares globals with app.js (loaded after it).
 
 // ---------------------------------------------------------------- unsaved changes
-function updateDirty() { const el = $('#dirty'); if (el) el.hidden = !(data && data.dirty); }
+function updateDirty() {
+  const el = $('#dirty'); if (el) el.hidden = !(data && data.dirty);
+  const b = $('#bGame'); if (b) b.classList.toggle('pending', !!(data && data.dirty)); // "Save to game" asks for attention
+}
 window.addEventListener('beforeunload', (e) => { if (data && data.dirty) { e.preventDefault(); e.returnValue = ''; } });
 
 let diffTarget = null;

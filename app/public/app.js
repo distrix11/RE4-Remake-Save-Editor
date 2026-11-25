@@ -20,8 +20,8 @@ async function api(path, body) {
 }
 let tt;
 function toast(msg, kind) {
-  const t = $('#toast'); t.textContent = msg; t.className = kind || ''; t.style.display = 'block';
-  clearTimeout(tt); tt = setTimeout(() => (t.style.display = 'none'), kind === 'err' ? 9000 : 4500);
+  const t = $('#toast'); t.textContent = msg; t.className = (kind || '') + ' show';
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), kind === 'err' ? 9000 : 4500);
 }
 const hours = (us) => { const s = Math.floor(Number(us) / 1e6); return `${Math.floor(s / 3600)} h ${Math.floor(s / 60) % 60} min`; };
 const slotTitle = (n) => { const m = /^data(\d+)Slot\.bin$/.exec(n); return m ? 'Slot ' + m[1] : n === 'data00-1.bin' ? 'Game settings' : n === 'data000.bin' ? 'Profile (service)' : n; };
@@ -61,7 +61,7 @@ async function loadSummaries() {
 }
 $('#slot').onchange = (e) => { if (e.target.value) openFile(e.target.value); };
 async function openFile(name) {
-  view.innerHTML = '<div class="empty">Decrypting…</div>';
+  view.innerHTML = '<div class="loading"><div class="spin"></div>Decrypting…<div class="skel"></div><div class="skel"></div></div>';
   try {
     data = await api('open', { name }); cur = name; showWarnings(data.warnings); tab = data.isSlot ? 'money' : 'tree'; ui.inv = 0; ui.q = ''; ui.cat = 'all'; treeState.id = null; treeState.q = '';
     $('#slot').value = name; setButtons(); render();
@@ -78,7 +78,7 @@ function field(sc, opts = {}) {
   i.onchange = async () => {
     try {
       const r = await api('set', { name: cur, id: sc.id, value: i.value });
-      sc.value = r.value; i.value = r.value; i.classList.add('ok'); setTimeout(() => i.classList.remove('ok'), 900);
+      const old = sc.value; sc.value = r.value; i.value = r.value; if (opts.big) fx.countTo(i, old, r.value); i.classList.add('ok'); setTimeout(() => i.classList.remove('ok'), 900);
       if (opts.after) opts.after(r.value);
     } catch (e) { toast(e.message, 'err'); i.value = sc.value; i.classList.add('bad'); setTimeout(() => i.classList.remove('bad'), 1200); }
   };
@@ -96,6 +96,7 @@ function render() {
   }
   view.append(tabs);
   const body = document.createElement('div'); view.append(body);
+  fx.view(body, [cur, tab, tab === 'inv' ? ui.inv + ui.view : ''].join('|'));
   if (tab === 'money') renderMoney(body); else if (tab === 'inv') renderInventory(body); else if (tab === 'quests') renderQuests(body); else if (tab === 'treasures') renderTreasures(body); else if (tab === 'achievements') renderAchievements(body); else if (!cfg.advancedAccepted) renderAdvancedGate(body); else renderTree(body);
 }
 
@@ -434,6 +435,7 @@ async function save(target, force, forceChanged) {
     if (r.changed) { if (confirm('This slot was changed outside the editor since you opened it (the game saved it?). Writing now overwrites that change with what you see here. Write anyway?')) return save(target, force, true); return; }
     toast(target === 'game' ? 'Written to the game.\nBackup of the original: ' + r.backup : 'File saved: ' + r.path, 'ok');
     if (data) data.dirty = false; updateDirty();
+    fx.saved($(target === 'game' ? '#bGame' : '#bOut'));
     await loadFiles();
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -476,7 +478,7 @@ async function doRestore(route, body, force) {
   } catch (e) { toast(e.message, 'err'); }
 }
 
-loadFiles().then(() => {
+loadFiles().finally(() => fx.ready()).then(() => {
   if (cfg.noSaveDir) { view.innerHTML = '<div class="empty">The RE4 Remake save folder was not found.<br>Create <span class="mono">app/config.json</span> and set the path in it:<br><span class="mono">{ "saveDir": "C:/Program Files (x86)/Steam/userdata/&lt;account-id&gt;/2050650/remote/win64_save" }</span></div>'; return; }
   view.innerHTML = '<div class="empty">Choose a save slot in the list above.</div>'; loadSummaries();
 }).catch((e) => toast(e.message, 'err'));
