@@ -252,5 +252,129 @@ export function makeExtra(THREE) {
   };
   B.resources_s = bag('#2c3c63', [0x8a4a28, 0x6f3a22, 0xa0603a, 0x4a3024], 11); // blue sack, rusty scrap
   B.resources_l = bag('#7d5a3a', [0xaeb4ba, 0x787f86, 0xc9a24e, 0x55595e], 29); // brown sack, gears and brass
+  // ---------- herbs: bunches of feathery sprigs on thin stems, one bunch per herb of the mix
+  const herbModel = (colors) => () => {
+    const g = new THREE.Group(); let r = 5; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+    const stemM = M(0x6e5a34, 0, 0.8);
+    const tube = (pts, rad, m, into) => { const c = new THREE.CatmullRomCurve3(pts.map((q) => new THREE.Vector3(...q))); add(into, new THREE.TubeGeometry(c, 24, rad, 7, false), m); return c; };
+    const leafShape = new THREE.Shape(); leafShape.moveTo(0, 0); leafShape.quadraticCurveTo(0.075, 0.1, 0, 0.3); leafShape.quadraticCurveTo(-0.075, 0.1, 0, 0);
+    const leafGeo = new THREE.ShapeGeometry(leafShape);
+    // one frond: a curved midrib with leaflets in pairs, smaller towards the tip
+    const frond = (into, from, dir, len, mats) => {
+      const d = new THREE.Vector3(...dir).normalize(), o = new THREE.Vector3(...from);
+      const mid = o.clone().addScaledVector(d, len * 0.5).add(new THREE.Vector3((rnd() - 0.5) * 0.25, 0.06, (rnd() - 0.5) * 0.25));
+      const end = o.clone().addScaledVector(d, len).add(new THREE.Vector3(d.x * 0.12, -0.12 * rnd(), 0));
+      const c = new THREE.CatmullRomCurve3([o, mid, end]); add(into, new THREE.TubeGeometry(c, 16, 0.014, 5, false), mats[0]);
+      const n = Math.round(len * 15);
+      for (let i = 1; i <= n; i++) {
+        const t = i / (n + 1), at = c.getPoint(t), tan = c.getTangent(t), size = (1 - t * 0.65) * (0.85 + rnd() * 0.3);
+        for (const side of [-1, 1]) {
+          const leaf = new THREE.Mesh(leafGeo, mats[1 + Math.floor(rnd() * (mats.length - 1))]);
+          const out = new THREE.Vector3(-tan.y, tan.x, 0).normalize().multiplyScalar(side).addScaledVector(tan, 0.75).add(new THREE.Vector3(0, 0, (rnd() - 0.5) * 0.7)).normalize();
+          leaf.position.copy(at); leaf.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), out); leaf.scale.setScalar(size); into.add(leaf);
+        }
+      }
+    };
+    const shades = (hex) => [stemM, ...[1, 0.78, 1.2].map((k) => new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).multiplyScalar(k), roughness: 0.75, metalness: 0, side: THREE.DoubleSide, emissive: new THREE.Color(hex).multiplyScalar(0.12) }))];
+    colors.forEach((hex, ci) => {
+      const bunch = new THREE.Group(); const lean = colors.length === 1 ? 0 : (ci - (colors.length - 1) / 2) * 0.62; const mats = shades(hex);
+      tube([[0, 0, 0], [0.03, 0.55, 0], [-0.02, 1.15, 0.02], [0.05, 1.75, 0]], 0.035, stemM, bunch);
+      frond(bunch, [0.05, 1.7, 0], [0.12, 1, 0], 0.95, mats);
+      for (let i = 0; i < 9; i++) { const y = 0.25 + i * 0.17, side = i % 2 ? 1 : -1; frond(bunch, [0, y, 0], [side * (0.5 + rnd() * 0.35), 0.75 + rnd() * 0.35, (rnd() - 0.5) * 0.6], 0.8 + rnd() * 0.5 - i * 0.02, mats); }
+      bunch.rotation.z = -lean; bunch.position.set(lean * 0.12, 0, ci * 0.08); g.add(bunch);
+    });
+    tube([[0, 0.02, 0], [0.1, -0.35, 0], [-0.08, -0.62, 0.03], [-0.34, -0.95, 0]], 0.028, M(0x7a5a38, 0, 0.9), g);
+    g.userData.view = [0.12, -0.15, -0.3]; return g;
+  };
+  const HG = 0x5f9448, HR = 0xb0392c, HY = 0xc9ae35;
+  Object.assign(B, {
+    herb_green: herbModel([HG]), herb_red: herbModel([HR]), herb_yellow: herbModel([HY]),
+    herb_gg: herbModel([HG, HG]), herb_ggg: herbModel([HG, HG, HG]), herb_gr: herbModel([HG, HR]), herb_gy: herbModel([HG, HY]), herb_ry: herbModel([HR, HY]),
+    herb_ggy: herbModel([HG, HY, HG]), herb_gry: herbModel([HG, HR, HY]),
+  });
+
+  // ---------- first aid spray: pale olive can with a white shoulder and nozzle, our own lettering
+  B.first_aid_spray = () => {
+    const g = new THREE.Group();
+    const wrap = canvasTex(1024, 640, (x) => {
+      x.fillStyle = '#9a9d80'; x.fillRect(0, 0, 1024, 640); x.fillStyle = '#b9bc9c'; x.fillRect(0, 96, 1024, 448);
+      x.fillStyle = '#4f6b2c'; x.fillRect(0, 96, 1024, 16); x.fillRect(0, 528, 1024, 16);
+      x.fillStyle = '#5d7a34'; x.fillRect(487, 140, 50, 150); x.fillRect(437, 190, 150, 50);
+      label(x, 'FIRST AID', 512, 368, 76, '#20241a', { align: 'center', max: 360 }); label(x, 'SPRAY', 512, 444, 60, '#20241a', { align: 'center' });
+      x.fillStyle = '#8c3b26'; x.beginPath(); x.arc(512, 496, 20, 0, 7); x.fill(); x.fillStyle = '#e8e4d0'; x.fillRect(508, 484, 8, 24); x.fillRect(500, 492, 24, 8);
+    });
+    const white = M(0xdedbcd, 0.15, 0.4), rim = M(0x9aa0a4, 0.85, 0.3);
+    add(g, new THREE.CylinderGeometry(0.62, 0.62, 2.3, 64, 1, true, Math.PI), printed(wrap), 0, 0, 0);
+    add(g, lathe([[0.63, 1.15], [0.66, 1.2], [0.6, 1.26], [0.55, 1.46], [0.36, 1.62], [0.14, 1.68], [0, 1.68]], 48), white);
+    add(g, new THREE.TorusGeometry(0.625, 0.045, 12, 64), rim, 0, 1.16, 0).rotation.x = Math.PI / 2;
+    add(g, new THREE.TorusGeometry(0.625, 0.06, 12, 64), rim, 0, -1.16, 0).rotation.x = Math.PI / 2;
+    cyl(g, 0.6, 0.1, rim, 0, -1.18, 0, 48); cyl(g, 0.1, 0.22, rim, 0, 1.76, 0); box(g, 0.34, 0.24, 0.24, M(0x6d7378, 0.7, 0.4), 0.03, 1.96, 0); cyl(g, 0.05, 0.14, dark, 0.23, 1.98, 0, 10).rotation.z = Math.PI / 2;
+    g.userData.view = [0.16, -0.12, 0.62]; return g;
+  };
+
+  // ---------- grenades: one shape, the colour tells the kind
+  const grenadeModel = (body, ink, lines) => () => {
+    const g = new THREE.Group(); const bodyM = M(body, 0.35, 0.55);
+    const print = canvasTex(1024, 512, (x) => {
+      x.fillStyle = '#' + body.toString(16).padStart(6, '0'); x.fillRect(0, 0, 1024, 512);
+      for (let i = 0, r = 3; i < 2600; i++) { r = (r * 16807) % 2147483647; const a = r / 2147483647; r = (r * 16807) % 2147483647; x.fillStyle = i % 2 ? 'rgba(0,0,0,.16)' : 'rgba(255,255,255,.06)'; x.fillRect(a * 1024, (r / 2147483647) * 512, 4, 4); }
+      lines.forEach((t, i) => label(x, t, 512, 120 + i * 78, i ? 48 : 54, ink, { align: 'center', max: 340 }));
+    });
+    add(g, new THREE.CylinderGeometry(0.72, 0.76, 1.5, 64, 1, true, Math.PI), printed(print), 0, 0, 0);
+    add(g, lathe([[0.76, -0.75], [0.72, -0.92], [0.55, -1.02], [0, -1.04]], 48), bodyM);
+    add(g, lathe([[0.72, 0.75], [0.62, 0.92], [0.42, 1.02], [0.34, 1.06], [0, 1.06]], 48), bodyM);
+    add(g, new THREE.TorusGeometry(0.765, 0.055, 12, 64), bodyM, 0, -0.5, 0).rotation.x = Math.PI / 2;
+    const metal = M(0xa9a58f, 0.75, 0.42);
+    cyl(g, 0.3, 0.2, metal, 0, 1.12, 0); box(g, 0.46, 0.34, 0.4, metal, 0, 1.38, 0); cyl(g, 0.09, 0.5, metal, 0, 1.38, 0, 12).rotation.x = Math.PI / 2;
+    const lever = new THREE.CatmullRomCurve3([[0.1, 1.56, 0], [0.55, 1.45, 0], [0.82, 0.8, 0], [0.86, -0.35, 0]].map((q) => new THREE.Vector3(...q)));
+    const strip = add(g, new THREE.TubeGeometry(lever, 30, 0.075, 8, false), metal); strip.scale.z = 2.2;
+    torus(g, 0.36, 0.035, M(0xc9ccd0, 0.9, 0.3), -0.22, 1.14, 0.42, 1.15, 0.2, 0);
+    sph(g, 0.09, metal, -0.34, 1.42, 0.1);
+    g.userData.view = [0.28, -0.04, 0.22]; return g;
+  };
+  B.grenade_hand = grenadeModel(0x3c4724, '#c9c7a6', ['HAND GRENADE', 'MK 2  LOT 30-32', 'FRAGMENTATION']);
+  B.grenade_flash = grenadeModel(0x243a6b, '#d3dcec', ['FLASH GRENADE', 'MK 1  LOT 30-32', 'ILLUMINATING']);
+  B.grenade_heavy = grenadeModel(0x6e2019, '#ecd6c8', ['HEAVY GRENADE', 'MK 3  LOT 30-32', 'HIGH EXPLOSIVE']);
+
+  // ---------- mines: a cardboard tray with two rows of cups
+  B.mine = () => {
+    const g = new THREE.Group(); const shell = M(0x3f5566, 0.55, 0.45), glow = M(0xd87a14, 0.25, 0.35, { emissive: 0x5a2c00 }), card = M(0x6b4526, 0, 0.85);
+    box(g, 4.6, 0.08, 2.0, card, 0, 0, 0); box(g, 4.62, 0.025, 2.02, M(0x8a5e36, 0, 0.85), 0, 0.045, 0);
+    for (let i = 0; i < 5; i++) for (let j = 0; j < 2; j++) {
+      const x = -1.76 + i * 0.88, z = -0.48 + j * 0.96;
+      add(g, lathe([[0, -0.72], [0.26, -0.72], [0.34, -0.55], [0.3, -0.4], [0.34, -0.2], [0.34, 0]], 32), shell, x, 0, z);
+      add(g, new THREE.CylinderGeometry(0.34, 0.37, 0.4, 32, 1, true), shell, x, 0.24, z);
+      cyl(g, 0.27, 0.06, glow, x, 0.34, z, 32);
+      add(g, new THREE.TorusGeometry(0.3, 0.05, 8, 32), shell, x, 0.4, z).rotation.x = Math.PI / 2;
+      for (let t = 0; t < 4; t++) { const a = t * Math.PI / 2 + Math.PI / 4; box(g, 0.22, 0.22, 0.11, shell, x + Math.cos(a) * 0.31, 0.47, z + Math.sin(a) * 0.31).rotation.y = -a + Math.PI / 2; }
+    }
+    g.userData.view = [0.62, -0.45, 0.14]; return g;
+  };
+
+  // ---------- bolts: blue shafts, black points and vanes; explosive arrows: red-vaned arrows in a black quiver
+  const arrow = (shaft, vane, len) => {
+    const a = new THREE.Group();
+    cyl(a, 0.07, len, shaft, 0, 0, 0, 20).rotation.z = Math.PI / 2;
+    add(a, new THREE.ConeGeometry(0.085, 0.32, 20), M(0x2a2d31, 0.85, 0.3), len / 2 + 0.16, 0, 0).rotation.z = -Math.PI / 2;
+    cyl(a, 0.082, 0.12, M(0xb9c0c6, 0.9, 0.25), len / 2 - 0.06, 0, 0, 20).rotation.z = Math.PI / 2;
+    for (let i = 0; i < 3; i++) { const fin = extrude([[0, 0.05], [0.12, 0.3], [0.62, 0.27], [0.85, 0.05]], 0.012, vane, 0.004); fin.position.x = -len / 2 + 0.06; const holder = new THREE.Group(); holder.add(fin); holder.rotation.x = i * Math.PI * 2 / 3 + 0.3; a.add(holder); }
+    cyl(a, 0.085, 0.1, black, -len / 2, 0, 0, 20).rotation.z = Math.PI / 2;
+    return a;
+  };
+  B.bolts = () => {
+    const g = new THREE.Group(); const blue = M(0x24497a, 0.7, 0.34), vane = M(0x25272b, 0.2, 0.6, { side: THREE.DoubleSide });
+    [[0.2, 0.2, 0], [0, 0, 0.02], [-0.2, -0.2, 0.04], [0.08, 0.2, 0.34], [-0.12, 0, 0.36], [-0.32, -0.2, 0.38]].forEach(([y, x, z], i) => place(g, arrow(blue, vane, 3.2), x * 0.8 + (i % 2) * 0.05, y, z));
+    box(g, 0.2, 0.7, 0.58, black, -0.55, -0.02, 0.2);
+    g.userData.view = [0.42, -0.3, -0.55]; return g;
+  };
+  B.arrows_explosive = () => {
+    const g = new THREE.Group(); const case_ = M(0x2b2d2e, 0.25, 0.6), red = M(0xa51f1a, 0.15, 0.5, { side: THREE.DoubleSide }), shaft = M(0x1d1f22, 0.7, 0.4);
+    cyl(g, 0.34, 2.7, case_, -0.35, 0, 0, 40).rotation.z = Math.PI / 2;
+    [-1.68, -0.55, 0.45, 0.98].forEach((x) => cyl(g, 0.37, 0.09, M(0x3b3e40, 0.35, 0.55), x, 0, 0, 40).rotation.z = Math.PI / 2);
+    [-0.12, 0.12].forEach((y) => sph(g, 0.055, brass, 0.78, y, 0.34));
+    torus(g, 0.17, 0.035, M(0x1a1c1e, 0.7, 0.4), 0.35, -0.46, 0);
+    [[0.14, 0.1, 0], [-0.12, -0.08, 0.12], [0.02, 0.3, -0.12]].forEach(([y, dx, z]) => { const a = arrow(shaft, red, 1.7); a.rotation.y = Math.PI; place(g, a, 1.35 + dx, y, z, 0, Math.PI, y * 0.35); });
+    g.userData.view = [0.3, -0.3, 2.42]; return g;
+  };
   return B;
 }

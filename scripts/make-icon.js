@@ -1,14 +1,14 @@
 'use strict';
 // Builds app/icon.ico (the icon of the desktop shortcut) from the 3D herb: renders it at several sizes with scripts/icon-render and
 // packs the PNGs into one .ico (PNG-compressed entries, Windows Vista and later). Dev tool, needs internet and Edge/Chrome.
-// Usage: node scripts/make-icon.js [item]      (default item: herb_green)
+// Usage: node scripts/make-icon.js [item]      (default item: herb_logo)
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
-const item = process.argv[2] || 'herb_green';
+const item = process.argv[2] || 'herb_logo';
 const sizes = [16, 24, 32, 48, 64, 128, 256];
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 're4ico-'));
 const pngs = sizes.map((s) => {
