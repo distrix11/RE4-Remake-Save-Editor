@@ -1,6 +1,6 @@
 'use strict';
 // Starts the editor server and shows it in its own app-style window (Edge or Chrome in "--app" mode: no tabs, no address bar).
-// Closing that window stops the editor. Started by start.js / start.bat; it prints errors to stdout (start.js shows them in a message box).
+// Closing that window stops the editor (the server notices it itself, see /api/live). Started by start.js / start.bat; it prints errors to stdout (start.js shows them in a message box).
 // Run by hand:  node app/launcher.js
 const fs = require('fs');
 const os = require('os');
@@ -40,7 +40,8 @@ function findBrowser() {
   let server = null;
   const running = await runningVersion();
   if (running === null) {
-    server = spawn(process.execPath, [path.join(__dirname, 'server.js')], { cwd: ROOT, env: { ...process.env, NO_BROWSER: '1' }, windowsHide: true, stdio: 'ignore' });
+    server = spawn(process.execPath, [path.join(__dirname, 'server.js')], { cwd: ROOT, env: { ...process.env, NO_BROWSER: '1', EXIT_WITH_WINDOW: '1' }, windowsHide: true, stdio: 'ignore', detached: true });
+    server.unref();
     let exited = null; server.on('exit', (code) => { exited = code; });
     for (let i = 0; i < 60 && exited === null && (await runningVersion()) === null; i++) await sleep(250);
     if (exited !== null) fail(`The editor stopped right after starting (code ${exited}). Another program may be using port ${port}; close it or change "port" in app/config.json.`);
@@ -51,15 +52,14 @@ function findBrowser() {
 
   const browser = findBrowser();
   if (!browser) {
-    // no Edge/Chrome: use the default browser; the server keeps running until it is stopped (Task Manager: node.exe)
+    // no Edge/Chrome: use the default browser; the server stops by itself after the tab is closed
     spawn('cmd', ['/c', 'start', '', url], { windowsHide: true, stdio: 'ignore', detached: true }).unref();
-    if (server) server.unref();
     console.log(`Edge or Chrome was not found, the editor was opened in your default browser at ${url}`);
     process.exit(0);
   }
   // an own profile folder keeps this window apart from the normal browser, so we can tell when it is closed
   const profile = path.join(process.env.LOCALAPPDATA || os.tmpdir(), 'RE4SaveEditor', 'window');
-  const win = spawn(browser, [`--app=${url}`, `--user-data-dir=${profile}`, '--window-size=1240,900', '--no-first-run', '--no-default-browser-check'], { stdio: 'ignore' });
+  const win = spawn(browser, [`--app=${url}`, `--user-data-dir=${profile}`, '--window-size=1240,900', '--no-first-run', '--no-default-browser-check'], { stdio: 'ignore', detached: true });
   win.on('error', (e) => { if (server) server.kill(); fail('Could not open the window: ' + e.message); });
-  win.on('exit', () => { if (server) server.kill(); process.exit(0); });
+  win.on('spawn', () => { win.unref(); process.exit(0); });
 })().catch((e) => fail(e.message));

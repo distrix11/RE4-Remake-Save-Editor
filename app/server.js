@@ -499,8 +499,11 @@ const routes = {
     }
     return { weapons: [...best.values()].sort((x, y) => String(x.name || x.itemId).localeCompare(String(y.name || y.itemId))) };
   },
+  // ready-made weapons (app/weapons.json) of the campaign of this slot
+  'POST /api/weapon-library': async (b) => { need(b.name); return { weapons: INV.libraryList(isSeparateWaysSlot(b.name)) }; },
   'POST /api/add-weapon': async (b) => {
     const S = need(b.name); guard(S);
+    if (b.lib) { const r = INV.addWeaponFromLibrary(S, String(b.lib), isSeparateWaysSlot(b.name)); S.dirty = true; return { ...r, ...fresh(S) }; }
     if (!SAVE_RE.test(b.from || '') || !/Slot\.bin$/.test(b.from) || b.from === b.name) throw new Error('Invalid source slot');
     if (isSeparateWaysSlot(b.from) !== isSeparateWaysSlot(b.name)) throw new Error('The game removes weapons of the other campaign (Separate Ways and the main game do not share weapons), so this copy would be lost. Take the weapon from a slot of the same campaign.');
     const buf = await unpackCached(b.from); const src = { name: b.from, buf, parsed: parse(buf) };
@@ -537,11 +540,28 @@ const routes = {
 
 const NO_SAVE_OK = new Set(['POST /api/advanced-accept', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
+// Every open window of the editor holds one connection to /api/live. Started by a launcher (EXIT_WITH_WINDOW), the server stops by itself a few
+// seconds after the last window is gone (or when none ever appears). The launcher cannot tell reliably: Edge may hand a new window to an old
+// process or stay alive in the background.
+const windows = new Set();
+let exitTimer = null;
+function stopWithoutWindows(ms) {
+  if (!process.env.EXIT_WITH_WINDOW) return;
+  clearTimeout(exitTimer);
+  exitTimer = setTimeout(() => { if (!windows.size) process.exit(0); }, ms);
+}
+function holdWindow(req, res) {
+  res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store' });
+  res.write('retry: 1000\n\n');
+  windows.add(res); clearTimeout(exitTimer);
+  res.on('close', () => { windows.delete(res); if (!windows.size) stopWithoutWindows(8000); });
+}
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://x');
     if (req.headers.host && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host)) return send(res, 403, { error: 'forbidden' });
     const key = req.method + ' ' + url.pathname;
+    if (key === 'GET /api/live') return holdWindow(req, res);
     if (routes[key]) {
       if (!cfg.saveDir && !NO_SAVE_OK.has(key)) throw new Error('Save folder not found. Choose it in Settings (gear button) or set saveDir in app/config.json.');
       if (req.method === 'POST' && !(req.headers['content-type'] || '').startsWith('application/json')) return send(res, 415, { error: 'json only' });
@@ -569,6 +589,7 @@ server.listen(cfg.port, '127.0.0.1', () => {
   const url = 'http://localhost:' + cfg.port;
   console.log('RE4 Save Editor: ' + url + (cfg.saveDir ? '' : '  (save folder not found, see README)'));
   console.log('Close this window to stop the editor.');
+  stopWithoutWindows(90000);
   setTimeout(() => { if (cfg.updateCheck !== false) UPD.check(VERSION, false).catch(() => {}); }, 4000);
   setInterval(() => { if (cfg.updateCheck !== false) UPD.check(VERSION, false).catch(() => {}); }, 6 * 3600 * 1000).unref();
   if (!process.env.NO_BROWSER) { // open the default browser (set NO_BROWSER=1 to disable)

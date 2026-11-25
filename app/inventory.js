@@ -48,7 +48,16 @@ function sections(S) {
   return nodes[root.f[0][1]].items.map((i) => nodes[i]);
 }
 function invManager(S) { return sections(S).find((o) => o.c.endsWith('InventoryManager.GameSaveData')); }
-function inventories(S) { const m = invManager(S); return m ? F(S, m, 'InventorySaveDatas').items.map((i) => S.parsed.nodes[i]) : []; }
+// The inventories in a fixed order: [0] case, [1] recipes/cases/charms, [2] key items, [3] treasures, then the rest as stored.
+// The order inside the save is not the same in every save (some have the treasures first), and the rest of the editor counts on this order.
+const INV_KINDS = ['chainsaw.InventorySaveData', 'chainsaw.UniqueInventorySaveData', 'chainsaw.KeyItemInventorySaveData', 'chainsaw.TreasureInventorySaveData'];
+function inventories(S) {
+  const m = invManager(S); if (!m) return [];
+  const list = F(S, m, 'InventorySaveDatas').items.map((i) => S.parsed.nodes[i]);
+  const head = INV_KINDS.map((k) => list.find((n) => n.c === k));
+  if (head.some((n) => !n)) return list;
+  return [...head, ...list.filter((n) => !head.includes(n))];
+}
 function itemList(S, inv) { return F(S, inv, 'InventoryItems') || F(S, inv, 'Items'); }
 function itemObj(S, entry) { const item = F(S, entry, 'Item'); return item && item.k === 'o' ? item : entry; }
 function guidOf(S, entry) {
@@ -317,19 +326,19 @@ function listWeapons(S) {
     upg: i.upg.map((u) => ({ key: u.key, level: Number(u.level.value) })),
   }));
 }
-// Puts a copy of a real weapon entry of the case of `srcS` into the case of `dstS`: same structure (upgrade blocks, ammo, durability), a new GUID and a free cell.
-function addWeaponFrom(dstS, srcS, srcIdx) {
-  const sm = model(srcS)[0]; const it = sm && sm.items[srcIdx];
-  if (!it || it.cls !== 'WeaponItem') throw new Error('That is not a weapon');
+// Puts a copy of the weapon entry node `srcNodeId` of `srcS` into the case of `dstS`: same structure (upgrade blocks, ammo, durability), a new GUID and a free cell.
+function placeWeapon(dstS, srcS, srcNodeId, itemId, name) {
   const dm = model(dstS)[0]; if (!dm || !dm.grid) throw new Error('There is no attaché case in this slot');
-  const spot = findSpot(dm, footprint(it.itemId.value, false)); // throws if the case is full
-  const srcArr = itemList(srcS, inventories(srcS)[0]);
+  // lying as it is, or turned if only that fits; a weapon that sticks out of the case or covers another item is deleted by the game
+  let spot, dir = 0;
+  try { spot = findSpot(dm, footprint(itemId, false)); }
+  catch (e) { const turned = freeRect(dm, ...footprint(itemId, true)); if (!turned) throw e; spot = turned; dir = 1; }
   const arrNode = itemList(dstS, inventories(dstS)[0]);
-  const newId = cloneSubtree(dstS, srcArr.items[srcIdx], arrNode.id, srcS);
+  const newId = cloneSubtree(dstS, srcNodeId, arrNode.id, srcS);
   arrNode.items.push(newId); arrNode.cnt += 1;
   rebuild(dstS);
   setEntry(dstS, lastEntry(dstS, 0), { slot: spot, newGuid: true });
-  const dn = F(dstS, lastEntry(dstS, 0), 'CurrDirection'); if (dn) writeValue(dstS.buf, dn, '0');
+  const dn = F(dstS, lastEntry(dstS, 0), 'CurrDirection'); if (dn) writeValue(dstS.buf, dn, String(dir));
   // a weapon taken from a slot that was edited wrongly must not spread the mistake: levels above the maximum are cut to it and the exclusive
   // upgrade (which needs every upgrade at the maximum) is taken away when one is lower
   const w = weaponUpgradeNodes(dstS, 0, itemList(dstS, inventories(dstS)[0]).items.length - 1);
@@ -340,7 +349,93 @@ function addWeaponFrom(dstS, srcS, srcIdx) {
     if (lv > MAX_UPG) writeLevel(dstS, w, u.key, MAX_UPG); else if (lv < MAX_UPG) allMax = false;
   }
   if (!allMax) dropExclusiveIfNeeded(dstS, w);
-  return { slot: spot, name: it.name, itemId: String(it.itemId.value) };
+  matchExclusiveState(dstS, w);
+  markObtained(dstS, itemId);
+  return { slot: spot, name, itemId: String(itemId) };
+}
+// Real saves: a weapon with the exclusive upgrade has condition 2 and a pattern of 1 or 2; without it both are 0. Kept in step with the switch.
+function matchExclusiveState(S, w) {
+  const lb = F(S, w.cl, '_LimitBreakLevelInWeapon'); const e = lb && lb.items && lb.items.length ? S.parsed.nodes[lb.items[0]] : null;
+  const lv = e && F(S, e, '_NowLevel'); if (!lv) return;
+  const on = Number(readValue(S.buf, lv)) > 0;
+  for (const name of ['_CurrentCondition', '_LimitBreakCustomPattern']) {
+    const n = F(S, w.it, name); if (!n) continue;
+    if (!on) writeValue(S.buf, n, '0'); else if (Number(readValue(S.buf, n)) === 0) writeValue(S.buf, n, '2');
+  }
+}
+// The save keeps a list of every item with an "obtained" flag. Every weapon the game itself put into a case has it set.
+function markObtained(S, itemId) {
+  const mgr = invManager(S); const list = mgr && F(S, mgr, 'ItemGetDataList'); if (!list || !list.items) return;
+  for (const i of list.items) {
+    const o = S.parsed.nodes[i]; const id = F(S, o, 'ItemID'); const got = F(S, o, 'IsGet');
+    if (id && got && String(readValue(S.buf, id)) === String(itemId)) writeValue(S.buf, got, '1');
+  }
+}
+function addWeaponFrom(dstS, srcS, srcIdx) {
+  const sm = model(srcS)[0]; const it = sm && sm.items[srcIdx];
+  if (!it || it.cls !== 'WeaponItem') throw new Error('That is not a weapon');
+  const srcArr = itemList(srcS, inventories(srcS)[0]);
+  return placeWeapon(dstS, srcS, srcArr.items[srcIdx], it.itemId.value, it.name);
+}
+
+// ---- weapon library ------------------------------------------------------------
+// A weapon entry written out as plain JSON (structure + raw bytes), so that it can be kept in a file and put into any save later.
+function exportTemplate(S, nodeId) {
+  const n = S.parsed.nodes[nodeId]; const hex = (off, len) => S.buf.subarray(off, off + len).toString('hex');
+  if (n.k === 'o') return { k: 'o', n: n.n, ch: n.ch, c: n.c, f: n.f.map(([name, cid, fh]) => [name, exportTemplate(S, cid), fh]) };
+  if (n.k === 'a') {
+    if (n.blob) throw new Error('Physics blocks cannot be exported');
+    const o = { k: 'a', n: n.n, fh: n.fh, et: n.et, esz: n.esz, cnt: n.cnt, fl: n.fl };
+    if (n.et === 0x11) o.items = n.items.map((cid) => exportTemplate(S, cid)); else o.data = hex(n.off, n.cnt * n.esz);
+    return o;
+  }
+  const o = { k: 'v', n: n.n, fh: n.fh, tag: n.tag, sz: n.sz };
+  if (n.str !== undefined) o.str = n.str; else o.data = hex(n.off, n.sz);
+  return o;
+}
+// the reverse: a small "save" (nodes + bytes) that cloneSubtree can copy from
+function importTemplate(tpl) {
+  const nodes = []; const parts = []; let size = 0;
+  const put = (hex) => { const b = Buffer.from(hex, 'hex'); const off = size; parts.push(b); size += b.length; return off; };
+  const walk = (t, parent) => {
+    const n = { id: nodes.length, p: parent }; nodes.push(n);
+    if (t.k === 'o') { Object.assign(n, { k: 'o', n: t.n, ch: t.ch, c: t.c }); n.f = t.f.map(([name, c, fh]) => [name, walk(c, n.id), fh]); }
+    else if (t.k === 'a') { Object.assign(n, { k: 'a', n: t.n, fh: t.fh, et: t.et, esz: t.esz, cnt: t.cnt, fl: t.fl }); if (t.et === 0x11) n.items = t.items.map((c) => walk(c, n.id)); else { n.items = []; n.off = put(t.data); } }
+    else { Object.assign(n, { k: 'v', n: t.n, fh: t.fh, tag: t.tag, sz: t.sz }); if (t.str !== undefined) n.str = t.str; else n.off = put(t.data); }
+    return n.id;
+  };
+  const root = walk(tpl, -1);
+  return { buf: Buffer.concat(parts), parsed: { nodes }, root };
+}
+// The ready-made weapons of weapons.json: { "<itemId>": { name?, sw: bool, tree } }. sw = a weapon of Separate Ways (the game drops weapons of the other campaign).
+let LIB = null;
+function weaponLibrary() {
+  if (!LIB) { try { LIB = JSON.parse(fs.readFileSync(path.join(__dirname, 'weapons.json'), 'utf8')).weapons || {}; } catch { LIB = {}; } }
+  return LIB;
+}
+function caseEntry(S, idx) { return S.parsed.nodes[itemList(S, inventories(S)[0]).items[idx]]; }
+// The game deletes a weapon the profile has no right to; the editor cannot see that right in a save, so it warns.
+const LOCKED_NOTE = {
+  '275157056': 'Bonus weapon: the game deletes it unless you have unlocked it.',
+  '275638656': 'Bonus weapon: the game may delete it unless you have unlocked it.',
+  '278035456': 'Extra content (DLC): the game may delete it if you do not own it.',
+};
+function libraryList(separateWays) {
+  return Object.entries(weaponLibrary()).filter(([, w]) => !!w.sw === !!separateWays).map(([id, w]) => {
+    const cat = CATALOG[id];
+    return { itemId: id, name: cat ? cat.n : (w.name || 'Weapon (ID ' + id + ')'), upg: w.upg || [], note: LOCKED_NOTE[id] || null };
+  }).sort((x, y) => x.name.localeCompare(y.name));
+}
+// A fresh weapon from the library: no upgrades, no exclusive upgrade, nothing loaded.
+function addWeaponFromLibrary(dstS, itemId, separateWays) {
+  const w = weaponLibrary()[String(itemId)];
+  if (!w || !!w.sw !== !!separateWays) throw new Error('This weapon is not available for this campaign');
+  const src = importTemplate(w.tree);
+  const cat = CATALOG[String(itemId)];
+  const r = placeWeapon(dstS, src, src.root, itemId, cat ? cat.n : (w.name || 'Weapon ' + itemId));
+  const idx = itemList(dstS, inventories(dstS)[0]).items.length - 1;
+  setAllUpgrades(dstS, 0, idx, 0);
+  return r;
 }
 // Move / rotate an item inside the attaché case (position written in place).
 function moveItem(S, invIdx, idx, x, y, dir) {
@@ -456,7 +551,7 @@ function writeLevel(S, w, key, level) {
   if (key === 'excl') {
     const lb = F(S, w.cl, '_LimitBreakLevelInWeapon'); const e = lb && lb.items && lb.items.length ? S.parsed.nodes[lb.items[0]] : null;
     const n = e && F(S, e, '_NowLevel'); if (!n) throw new Error('This weapon has no exclusive upgrade');
-    writeValue(S.buf, n, String(level)); return 1;
+    writeValue(S.buf, n, String(level)); matchExclusiveState(S, w); return 1;
   }
   const u = UPG.find((x) => x.key === key); if (!u) throw new Error('Unknown upgrade');
   const list = F(S, w.cl, u.arr); let done = 0;
@@ -479,7 +574,7 @@ function writeLevel(S, w, key, level) {
 function dropExclusiveIfNeeded(S, w) {
   const lb = F(S, w.cl, '_LimitBreakLevelInWeapon'); const e = lb && lb.items && lb.items.length ? S.parsed.nodes[lb.items[0]] : null;
   const n = e && F(S, e, '_NowLevel');
-  if (n && Number(readValue(S.buf, n)) > 0) { writeValue(S.buf, n, '0'); return true; }
+  if (n && Number(readValue(S.buf, n)) > 0) { writeValue(S.buf, n, '0'); matchExclusiveState(S, w); return true; }
   return false;
 }
 function setUpgrade(S, invIdx, idx, key, level) {
@@ -674,6 +769,6 @@ function weaponStatus(S) {
 module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
-  CASE_DIMS, MAX_UPG, sortCase, listWeapons, addWeaponFrom, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
+  CASE_DIMS, MAX_UPG, sortCase, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
   moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
 };

@@ -44,7 +44,7 @@ Edit your save in a clean local window: it runs on your PC and never sends your 
 [*][b]Money[/b]: Pesetas and Spinel.
 [*][b]Attaché case[/b]: add, copy and delete items (about 220 in the catalogue), change counts, ammo and durability, the [b]case size[/b] and the [b]case look[/b] (Silver, Black, Leather, Gold, Classic).
 [*][b]Case view[/b]: your case lying down like in the game, with about 150 original 3D-rendered icons. Drag items to move them, rotate them, or press [b]Sort[/b] to tidy the case.
-[*][b]Weapon upgrades[/b]: levels 0-4, a [b]Full upgrade[/b] button and a switch for the exclusive upgrade. [b]Add weapon...[/b] takes a real weapon from another of your slots of the same campaign.
+[*][b]Weapon upgrades[/b]: levels 0-4, a [b]Full upgrade[/b] button and a switch for the exclusive upgrade. [b]Add weapon...[/b] adds a new weapon from a built-in list, or copies one from another of your slots of the same campaign.
 [*][b]Also[/b]: merchant requests, treasures, achievement hints (read-only) and an [i]Advanced[/i] raw view for experienced users.
 [*][b]Safe by design[/b]: a summary of every change before writing, writes are decrypted back and compared before they replace the file, backup manager with restore, copy one slot into another.
 [/list]
@@ -71,7 +71,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [size=5][b]Good to know[/b][/size]
 [list]
 [*]Item sizes in the case are estimates; a few items may look slightly different in the game.
-[*]Weapon upgrade levels are limited to 0-4. Weapons can only be added from your other slots of the same campaign (or copied); grenades cannot be added.
+[*]Weapon upgrade levels are limited to 0-4. Not every weapon is in the list of new weapons; grenades cannot be added. The game deletes bonus or DLC weapons you have not unlocked.
 [*]Tested on a limited set of saves and one game version. After a game patch the editor can disable structural edits and tells you why.
 [*]Windows and the Steam version only.
 [*]The package is plain JavaScript you can read, with no executables. One antivirus engine out of ~60 on VirusTotal shows a generic script heuristic for the start script (a false positive); the [url=https://github.com/distrix11/RE4-Remake-Save-Editor]full source is on GitHub[/url].

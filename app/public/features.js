@@ -218,4 +218,5 @@ async function pollFile() {
     el.append(re, keepB); el.hidden = false;
   } catch { /* server not reachable: keep the previous state */ }
 }
+new EventSource('/api/live'); // tells the server that a window is open; it stops by itself when the last one is closed
 pollGame(); setInterval(pollGame, 4000); pollFile(); setInterval(pollFile, 4000);

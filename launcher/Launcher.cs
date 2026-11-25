@@ -31,6 +31,7 @@ static class Launcher
             {
                 var psi = new ProcessStartInfo(node, "\"" + server + "\"") { WorkingDirectory = dir, UseShellExecute = false, CreateNoWindow = true };
                 psi.EnvironmentVariables["NO_BROWSER"] = "1"; // this launcher opens the window itself
+                psi.EnvironmentVariables["EXIT_WITH_WINDOW"] = "1"; // the server stops itself after the window is closed
                 srv = Process.Start(psi);
                 for (int i = 0; i < 60 && !IsUp(url) && !srv.HasExited; i++) Thread.Sleep(250);
                 if (srv.HasExited) return Fail("The editor stopped right after starting (code " + srv.ExitCode + "). Another program may be using port " + port + "; close it or change \"port\" in app/config.json.");
@@ -55,15 +56,13 @@ static class Launcher
             {
                 // an own profile folder keeps this window separate from the normal browser, so we can tell when it is closed
                 string prof = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RE4SaveEditor", "window");
-                var bp = Process.Start(new ProcessStartInfo(browser, "--app=" + url + " --user-data-dir=\"" + prof + "\" --window-size=1240,900 --no-first-run --no-default-browser-check") { UseShellExecute = false });
-                bp.WaitForExit();
-                if (srv != null && !srv.HasExited) { try { srv.Kill(); } catch { } }
+                Process.Start(new ProcessStartInfo(browser, "--app=" + url + " --user-data-dir=\"" + prof + "\" --window-size=1240,900 --no-first-run --no-default-browser-check") { UseShellExecute = false });
                 return 0;
             }
             catch { /* fall through to the default browser */ }
         }
         try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
-        MessageBox.Show("Edge or Chrome was not found, so the editor was opened in your default browser at " + url + "\n\nIt keeps running in the background until you end node.exe in Task Manager.", "RE4 Save Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show("Edge or Chrome was not found, so the editor was opened in your default browser at " + url + "\n\nIt stops by itself a few seconds after you close that tab.", "RE4 Save Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
         return 0;
     }
 

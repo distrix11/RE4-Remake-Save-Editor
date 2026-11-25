@@ -159,7 +159,7 @@ function renderInventory(root) {
   sortSel.innerHTML = [['game', 'Game order'], ['name', 'By name'], ['cat', 'By category'], ['count', 'By count'], ['id', 'By ID']].map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
   sortSel.value = ui.sort;
   const add = document.createElement('button'); add.className = 'pri'; add.innerHTML = ic('plus') + 'Add item'; add.onclick = openAdd;
-  const addW = document.createElement('button'); addW.innerHTML = ic('plus') + 'Add weapon…'; addW.title = 'Take a real weapon from one of your other slots'; addW.onclick = openWeapons;
+  const addW = document.createElement('button'); addW.innerHTML = ic('plus') + 'Add weapon…'; addW.title = 'Add a new weapon, or copy one from your other slots'; addW.onclick = openWeapons;
   bar.append(q, sel, sortSel, Object.assign(document.createElement('span'), { className: 'sp' }), ...(inv.index === 0 ? [addW] : []), add);
   root.append(bar);
 
@@ -326,11 +326,21 @@ const isSW = (f) => slotNo(f) >= 100; // slots 100 and up are Separate Ways
 async function openWeapons() {
   $('#wpnModal').classList.add('on'); wpn.sel = null; $('#wpnGo').disabled = true; $('#wpnSel').textContent = 'Nothing selected';
   $('#wpnList').innerHTML = '<div class="empty">Looking through your other slots…</div>';
-  try { wpn.list = (await api('weapon-sources', { name: cur })).weapons; drawWeapons(); }
+  try { wpn.lib = (await api('weapon-library', { name: cur })).weapons; wpn.list = (await api('weapon-sources', { name: cur })).weapons; drawWeapons(); }
   catch (e) { $('#wpnList').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
 }
 function drawWeapons() {
   const box = $('#wpnList'); box.innerHTML = '';
+  const head = (t) => { const h = document.createElement('div'); h.className = 'dim'; h.style.cssText = 'margin:10px 2px 4px;font-weight:600'; h.textContent = t; box.append(h); };
+  if ((wpn.lib || []).length) head('New weapons (no upgrades, empty magazine)');
+  for (const w of wpn.lib || []) {
+    const d = document.createElement('div'); d.className = 'pick' + (wpn.sel === w ? ' on' : '');
+    d.innerHTML = '<span class="irow"><span class="tile c-weapon">' + ic('weapon') + '</span><span>' + esc(itemName({ itemId: { value: w.itemId }, name: w.name }) || w.name) + '</span></span><span class="dim mono" style="font-size:12px">ID ' + esc(w.itemId) + '</span>' + (w.note ? '<span style="flex-basis:100%;font-size:12px;color:#ff9d2e">' + esc(w.note) + '</span>' : '');
+    if (w.note) d.style.flexWrap = 'wrap';
+    d.onclick = () => { wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + w.name; $('#wpnGo').disabled = false; drawWeapons(); };
+    box.append(d);
+  }
+  if (wpn.list.length) head('Copies from your other slots (with their upgrades)');
   for (const w of wpn.list) {
     const d = document.createElement('div'); d.className = 'pick' + (wpn.sel === w ? ' on' : '');
     const ABBR = { fire: 'Fire', ammo: 'Cap', reload: 'Rld', rapid: 'Rpd', dura: 'Dur' };
@@ -339,13 +349,15 @@ function drawWeapons() {
     d.onclick = () => { wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + (w.name || w.itemId); $('#wpnGo').disabled = false; drawWeapons(); };
     box.append(d);
   }
-  if (!wpn.list.length) box.innerHTML = '<div class="empty">No weapons were found in your other slots.</div>';
+  if (!wpn.list.length && !(wpn.lib || []).length) box.innerHTML = '<div class="empty">No weapons are available for this campaign.</div>';
 }
 $('#wpnClose').onclick = () => $('#wpnModal').classList.remove('on');
 $('#wpnModal').onclick = (e) => { if (e.target.id === 'wpnModal') $('#wpnModal').classList.remove('on'); };
 $('#wpnGo').onclick = async () => {
   const w = wpn.sel; if (!w) return;
+  if (w.note && !confirm(w.name + '\n\n' + w.note + '\n\nAdd it anyway?')) return;
   $('#wpnModal').classList.remove('on');
+  if (!w.slot) { await structural('add-weapon', { lib: w.itemId }, 'Weapon added (new, no upgrades; use Full upgrade if you want)'); return; }
   await structural('add-weapon', { from: w.slot, idx: w.idx }, 'Weapon added (a copy of the one in ' + slotTitle(w.slot) + ', with its upgrades)');
 };
 

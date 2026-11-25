@@ -118,7 +118,7 @@ function parseOnce(b, skip, decisions) {
 
   function parseObj(name, parent) {
     const n = u32(), ch = u32();
-    if (!NAMES.c[ch] && !(n === 0 && ch === 0)) fail('unknown class 0x' + ch.toString(16));
+    if (!NAMES.c[ch] && n !== 0) fail('unknown class 0x' + ch.toString(16));
     const node = add({ k: 'o', n: name, p: parent, ch, c: NAMES.c[ch] || '', f: [] });
     seenCount.set(ch, (seenCount.get(ch) || 0) + 1);
     let sf = seenFields.get(ch); if (!sf) seenFields.set(ch, (sf = new Set()));

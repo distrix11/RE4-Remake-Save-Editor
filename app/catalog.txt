@@ -32,6 +32,9 @@
 278200256|Blacktail AC|weapon
 278203456|Stingray (Separate Ways)|weapon
 278206656|Tactical Knife|weapon
+278217856|Rifle SR M1903 (Separate Ways)|weapon
+278195456|Sawed-off W-870 (Separate Ways)|weapon
+278216256|Red9 (Separate Ways)|weapon
 278521856|Krauser's Bow|weapon
 277075456|Hand Grenade|throw
 277077056|Heavy Grenade|throw
