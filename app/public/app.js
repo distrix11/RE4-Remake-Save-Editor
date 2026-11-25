@@ -271,13 +271,13 @@ function renderQuests(root) {
   for (const q of data.quests) {
     const st = questState(q);
     const tr = document.createElement('tr');
+    const info = cfg.questInfo && cfg.questInfo[q.id];
     const goals = q.subs.map((s) => {
       const ok = s.completed && Number(s.completed.value) === 1;
-      const nm = s.type === 'Item' ? 'Bring: ' + (s.itemName || '#' + s.item) + (s.num ? ' ×' + s.num : '') : s.type === 'Flag' ? 'Goal' : 'Event';
+      const nm = s.type === 'Item' ? 'Bring: ' + (s.itemName || (info && info.item) || '#' + s.item) + (s.num ? ' ×' + s.num : '') : s.type === 'Flag' ? 'Goal' : 'Event';
       return `<span class="tag ${ok ? 'st-done' : ''}" style="margin:0 4px 4px 0">${ic(ok ? 'check' : 'circle')}${esc(nm)}</span>`;
     }).join('');
     const doable = q.subs.some((s) => s.type !== 'Item' && s.completed && Number(s.completed.value) !== 1);
-    const info = cfg.questInfo && cfg.questInfo[q.id];
     const conf = info ? ({ sure: '', likely: ' <span class="tag" title="The name is inferred from goal types and progress, not read from the file">probably</span>', unknown: ' <span class="tag" title="Several requests match">not determined</span>' }[info.c] || '') : '';
     const head = info ? `<div class="iname">${esc(info.n)}${conf}</div><div class="dim" style="font-size:12px;margin:2px 0 4px">${esc(info.d)}${info.r ? ' Reward: ' + info.r + ' Spinel.' : ''}</div>` : '<div class="iname u">Request without description</div>';
     tr.innerHTML = `<td class="mono">${q.id}</td><td>${head}${goals}</td><td><span class="tag ${st === 'done' ? 'st-done' : st === 'part' ? 'st-part' : ''}">${ic(st === 'done' ? 'check' : 'circle')}${label[st]}</span></td><td class="hide-s mono">${q.retry}</td>`;

@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased (for 0.9.6)
+- Merchant requests of **Separate Ways** have names, descriptions and rewards now (before: "Request without description").
 - **What's new** window: shown once when you first start a new version, with the changes and a link to GitHub. It can be opened again from the **?** dialog.
 
 ## 0.9.5 (pre-release)

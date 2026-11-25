@@ -1,5 +1,5 @@
 {
-  "_note": "Names come from public guides (Prima Games, HoldToReset); descriptions are written in our own words. Mapping of save IDs to requests: 'sure' = confirmed (by the required item in the save, or by a player who saw the requests in game); 'likely' = deduced from goal type, order and progress of test slots; 'unknown' = several candidates.",
+  "_note": "Names come from public guides (Prima Games, HoldToReset; Separate Ways, IDs 11001-11007: Platget, Gameranx); descriptions are written in our own words. Mapping of save IDs to requests: 'sure' = confirmed (by the required item in the save, or by a player who saw the requests in game); 'likely' = deduced from goal type, order and progress of test slots; 'unknown' = several candidates.",
   "10001": { "n": "Destroy the Blue Medallions 1", "d": "Destroy the blue medallions (5 of them in the original, Farm).", "r": 3, "c": "likely" },
   "10002": { "n": "Viper Hunter", "d": "Sell three Vipers to the Merchant.", "r": 4, "c": "sure" },
   "10003": { "n": "Grave Robber", "d": "Destroy the emblems on the tombstones near the church. Two goals.", "r": 2, "c": "likely" },
@@ -18,5 +18,12 @@
   "10016": { "n": "The Disgrace of the Salazar Family", "d": "Deface Ramon's portrait. One goal.", "r": 4, "c": "sure" },
   "10017": { "n": "Destroy the Blue Medallions 6", "d": "Destroy the blue medallions (5 of them, cliffside ruins).", "r": 5, "c": "likely" },
   "10018": { "n": "The Wandering Dead", "d": "Defeat the strong enemy in the incubation lab. One goal.", "r": 8, "c": "sure" },
-  "10019": { "n": "Even More Pest Control", "d": "Exterminate four rats in the waste disposal area. Four goals.", "r": 3, "c": "sure" }
+  "10019": { "n": "Even More Pest Control", "d": "Exterminate four rats in the waste disposal area. Four goals.", "r": 3, "c": "sure" },
+  "11001": { "n": "Eradicate the Blue Medallions", "d": "Destroy the blue medallions (4 of them, the cliffs).", "r": 6, "c": "likely" },
+  "11002": { "n": "Jacket of All Trades", "d": "Sell the sheepskin jacket (carried by a villager in the abandoned factory) to the Merchant.", "r": 7, "c": "sure", "item": "Sheepskin Jacket" },
+  "11003": { "n": "Eradicate the Blue Medallions 2", "d": "Destroy the blue medallions (5 of them, the courtyard).", "r": 7, "c": "likely" },
+  "11004": { "n": "Lord of the Waterway", "d": "Catch the big fish in the waterway and sell it to the Merchant.", "r": 8, "c": "sure", "item": "Lord of the Waterway (fish)" },
+  "11005": { "n": "Bug Buster", "d": "Kill three hidden Novistadors. Three goals.", "r": 8, "c": "likely" },
+  "11006": { "n": "Beautiful Beetles", "d": "Sell two Ornate Beetles to the Merchant.", "r": 10, "c": "sure" },
+  "11007": { "n": "Bug Buster 2", "d": "Kill three more hidden Novistadors. Three goals.", "r": 9, "c": "likely" }
 }
