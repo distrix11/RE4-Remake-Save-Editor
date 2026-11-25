@@ -41,6 +41,20 @@ document.addEventListener('keydown', async (e) => {
   } finally { caseKeys.busy = false; }
 });
 
+// An item picture lies or stands by its own shape. In a box of the other shape (the item was turned) it is turned by 90 degrees,
+// as in the game. The shape of a picture is known when it has loaded.
+function turnToFit(inside, bw, bh) {
+  const art = inside.firstElementChild; const img = art && (art.matches('img') ? art : art.querySelector('img.art'));
+  if (!img || Math.max(bw, bh) < Math.min(bw, bh) * 1.2) return; // a square box: nothing to turn
+  const apply = () => {
+    const w = img.naturalWidth, h = img.naturalHeight; if (!w || !h) return;
+    if (!((w > h * 1.15 && bh > bw) || (h > w * 1.15 && bw > bh))) return;
+    const turned = document.createElement('div'); turned.className = 'turned'; turned.style.width = (bh - 4) + 'px'; turned.style.height = (bw - 4) + 'px';
+    art.replaceWith(turned); turned.append(art);
+  };
+  if (img.complete) apply(); else img.addEventListener('load', apply, { once: true });
+}
+
 function drawCase3D(holder, inv) {
   holder.innerHTML = '';
   // the game shows the case lying down: the save's rows run across the screen, its columns run down
@@ -90,6 +104,7 @@ function drawCase3D(holder, inv) {
     else if (art.svg) inner = art.svg;
     else inner = `<span class="fallback">${ic(it.cat || 'box')}</span>`;
     el.innerHTML = '<div class="in">' + inner + (it.count && Number(it.count.value) > 1 ? '<span class="cn">' + it.count.value + '</span>' : '') + '</div>';
+    if (it.cat !== 'weapon' && art.svg) turnToFit(el.querySelector('.in'), bw, bh); // weapons are handled above (art.turn)
     el.onpointerdown = (e) => {
       if (e.button !== 0) return;
       e.preventDefault(); el.setPointerCapture(e.pointerId);

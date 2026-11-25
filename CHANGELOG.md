@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased (for 0.9.5)
+- Case view: the picture of an item turns with the item (R or Rotate), as in the game, and fills its cells better.
 - New pictures for the Black Bass, the viper and the Ornate Beetle.
 - Mixed herbs are drawn as corked vials with a layer of powder per herb, as in the game.
 - New pictures for the single herbs (bunches of feathery leaves), the first aid spray, the three grenades (one shape, green, blue and red), the mines, the bolts and the explosive arrows. The leaf stays the logo of the editor.

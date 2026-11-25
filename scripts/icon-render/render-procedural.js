@@ -41,6 +41,8 @@ const server = http.createServer((req, res) => { const u = req.url.split('?')[0]
     fs.writeFileSync(path.join(OUT, n + '.png'), Buffer.from(shot.data, 'base64')); console.log('ok', n);
   }
   ws.close(); proc.kill(); server.close(); await sleep(300);
+  // cut the empty margins off (see trim.js)
+  require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'trim.js'), ...todo, '--dir', OUT], { stdio: 'inherit' });
   try { fs.rmSync(prof, { recursive: true, force: true }); } catch { /* ignore */ }
   process.exit(0);
 })().catch((e) => { console.error(e); process.exit(1); });

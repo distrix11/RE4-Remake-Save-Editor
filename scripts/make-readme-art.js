@@ -14,7 +14,7 @@ fs.cpSync(path.join(ROOT, 'icons', 'weapons'), path.join(tmp, 'weapons'), { recu
 const guns = ['sg09r', 'red9', 'matilda', 'handcannon', 'butterfly', 'riot_gun', 'w870', 'sawed_off', 'skull', 'striker', 'm1903', 'stingray', 'cqbr', 'le5', 'tmp', 'chicago', 'crossbow', 'bolt_thrower', 'knife_combat', 'knife_primal', 'rocket'];
 
 const css = `*{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',Arial,sans-serif;color:#e4ecd8;background:radial-gradient(900px 400px at 15% 0%,#2b3a22 0,#161d12 70%)}
-img{display:block}.mono{font-family:Consolas,monospace}`;
+img{display:block;object-fit:contain}.mono{font-family:Consolas,monospace}`;
 const img = (n, s) => `<img src="items/${n}.png" width="${s}" height="${s}">`;
 
 const banner = `<!doctype html><meta charset="utf-8"><style>${css}
