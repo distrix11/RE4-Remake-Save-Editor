@@ -196,10 +196,10 @@ function sortedItems(items) {
   list = list.slice().sort((a, b) => { const x = key(a), y = key(b); return (x > y ? 1 : x < y ? -1 : 0) * ui.dir; });
   return list;
 }
-// picture of a list row: weapons have their own (the same as in the Case view), other things the category sign. All sit in a column of the same width.
+// picture of a list row: the same as in the Case view (the category sign only for things without a picture or a name).
 function listIcon(it, name) {
-  const art = it.cat === 'weapon' && name ? itemArt(name, 'weapon', [2, 1], it.itemId.value).svg : null;
-  return '<span class="licon">' + (art ? '<span class="tile wtile c-weapon">' + art + '</span>' : '<span class="tile c-' + (it.cat || 'other') + '">' + ic(it.cat || 'box') + '</span>') + '</span>';
+  const art = name ? itemArt(name, it.cat, [2, 1], it.itemId.value).svg : null;
+  return '<span class="licon">' + (art ? '<span class="tile wtile c-' + (it.cat || 'other') + '">' + art + '</span>' : '<span class="tile c-' + (it.cat || 'other') + '">' + ic(it.cat || 'box') + '</span>') + '</span>';
 }
 function drawItems(holder, inv) {
   holder.innerHTML = '';

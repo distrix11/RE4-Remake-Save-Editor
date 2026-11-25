@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased (for 0.9.5)
-- The Inventory list shows the picture of every weapon instead of the same weapon sign.
+- The Inventory lists show the picture of every item and weapon instead of the category sign.
 - **Undo** (button and Ctrl+Z): takes back the last changes one by one, up to 30.
 - Keys in the Case view for the selected item: R rotate, Delete remove, arrows move, Esc deselect.
 - **Add weapon…** shows the picture of every weapon and whether it fits the case now (fits, fits turned, no room, with the size).
