@@ -571,5 +571,174 @@ export function makeExtra(THREE) {
     sph(g, 0.09, edge, 1.42, -0.18, 0.24); sph(g, 0.07, edge, 1.72, -0.24, 0.24);
     g.userData.view = [0.28, -0.35, 0.05]; return g;
   };
+  // ---------- treasures -------------------------------------------------------------------------------------------------
+  const au = M(0xd9ac48, 0.9, 0.28, { emissive: 0x241700 }), auDim = M(0xa8822f, 0.85, 0.4, { emissive: 0x140d00 }), ag = M(0xc9cdd2, 0.9, 0.28);
+  const enamel = M(0x2b47a0, 0.55, 0.2), teal = M(0x2c8f8a, 0.45, 0.25), pearl = M(0xe9e2d4, 0.25, 0.2, { emissive: 0x2a2620 }), ivory = M(0xe7dcc2, 0.05, 0.5);
+  const rubyM = M(0xb81f3a, 0.4, 0.12, { emissive: 0x3a0610, flatShading: true }), amber = M(0xc7461a, 0.35, 0.12, { emissive: 0x4a1200 }), jade = M(0x2fa98c, 0.4, 0.15, { emissive: 0x07352a, flatShading: true });
+  const rosy = M(0xd66a86, 0.4, 0.15, { emissive: 0x35101c, flatShading: true }), amethyst = M(0xa06fd0, 0.45, 0.12, { emissive: 0x2a1145, flatShading: true, transparent: true, opacity: 0.92 });
+  const jewel = (g, r, m, x, y, z, sy = 1) => { const o = add(g, new THREE.OctahedronGeometry(r, 1), m, x, y, z); o.scale.set(1, sy, 0.75); return o; };
+  const path3 = (pts, closed = false) => new THREE.CatmullRomCurve3(pts.map((q) => new THREE.Vector3(...q)), closed);
+  const pipeTube = (g, pts, r, m, seg = 60, closed = false) => add(g, new THREE.TubeGeometry(path3(pts, closed), seg, r, 12, closed), m);
+  const beads = (g, pts, n, r, m, closed = false) => { const c = path3(pts, closed); for (let i = 0; i < n; i++) sph(g, r, Array.isArray(m) ? m[i % m.length] : m, ...c.getPoint(i / (closed ? n : n - 1)).toArray()); };
+  const ringOf = (n, R, f, y = 0) => { for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; f(Math.cos(a) * R, y, Math.sin(a) * R, a, i); } };
+  const hoop = (g, R, r, m, y = 0) => { add(g, new THREE.TorusGeometry(R, r, 12, 80), m, 0, y, 0).rotation.x = Math.PI / 2; };
+  const tilt = (g, x, y, z = 0) => { g.userData.view = [x, y, z]; return g; };
+  const turned = (g, profile, m, seg = 48, x = 0, y = 0, z = 0) => add(g, lathe(profile, seg), m, x, y, z);
+  const band = (g, R, h, m, y = 0, open = 0) => add(g, new THREE.CylinderGeometry(R, R, h, 80, 1, true, open / 2, Math.PI * 2 - open), m.clone ? Object.assign(m.clone(), { side: THREE.DoubleSide }) : m, 0, y, 0);
+
+  // bangles: a band seen from above and in front
+  // a solid flat ring lying down: radius, thickness, height, opening (centred on +z before turning)
+  const flatRing = (g, R, t, h, m, open = 0, turn = 0) => { const w = new THREE.Group(); const o = add(w, new THREE.TorusGeometry(R, t, 16, 100, Math.PI * 2 - open), m); o.rotation.x = Math.PI / 2; o.rotation.z = Math.PI / 2 + open / 2; o.scale.z = h / (2 * t); w.rotation.y = turn; g.add(w); return w; };
+  const onRing = (R, a, y = 0) => [Math.sin(a) * R, y, Math.cos(a) * R];
+  const blue = M(0x3a63c8, 0.4, 0.2, { emissive: 0x0e1c4a });
+  B.bangle_gold = () => { const g = new THREE.Group(); const open = 0.85; flatRing(g, 1.2, 0.09, 0.52, au, open); flatRing(g, 1.25, 0.07, 0.3, blue, open + 0.16);
+    for (let i = 0; i < 15; i++) { const a = open / 2 + 0.28 + i / 14 * (Math.PI * 2 - open - 0.56); const [x, y, z] = onRing(1.33, a, i % 2 ? 0.05 : -0.05); sph(g, 0.07, ivory, x, y, z); sph(g, 0.03, au, ...onRing(1.39, a, y)); }
+    for (const a of [open / 2, -open / 2]) { const e = box(g, 0.22, 0.6, 0.22, au, ...onRing(1.2, a)); e.rotation.y = a; } return tilt(g, 0.55, -0.45); };
+  B.bangle_elegant = () => { const g = new THREE.Group(); flatRing(g, 1.2, 0.09, 0.56, au); flatRing(g, 1.25, 0.065, 0.24, blue);
+    ringOf(12, 1.31, (x, y, z, a) => { if (z < 1.1) { const d = box(g, 0.09, 0.4, 0.09, au, x, y, z); d.rotation.y = -a; } });
+    const medal = new THREE.Group(); add(medal, new THREE.CylinderGeometry(0.46, 0.46, 0.14, 40), au).rotation.x = Math.PI / 2; torus(medal, 0.37, 0.05, au, 0, 0, 0.09); sph(medal, 0.2, blue, 0, 0, 0.08, 1, 1, 0.5); ringOf(8, 0.28, (x, y) => sph(medal, 0.05, ivory, x, 0, 0.1)); for (let i = 0; i < 8; i++) sph(medal, 0.045, ivory, Math.cos(i / 8 * Math.PI * 2) * 0.28, Math.sin(i / 8 * Math.PI * 2) * 0.28, 0.1); medal.position.set(0, 0, 1.34); g.add(medal); return tilt(g, 0.45, -0.35); };
+  B.bangle_pearl = () => { const g = new THREE.Group(); flatRing(g, 1.25, 0.11, 0.22, au, 1.25, Math.PI);
+    for (let i = 0; i < 5; i++) sph(g, 0.23, pearl, ...onRing(1.29, -0.7 + i * 0.35, 0.03)); for (const a of [Math.PI - 0.625, Math.PI + 0.625]) sph(g, 0.17, au, ...onRing(1.25, a)); return tilt(g, 0.55, 0.15); };
+  B.bangle_splendid = () => { const g = new THREE.Group(); ringOf(10, 1.18, (x, y, z, a, i) => { const seg = new THREE.Group(); box(seg, 0.66, 0.6, 0.12, au); if (i % 2) { box(seg, 0.54, 0.26, 0.16, blue); for (const d of [-0.2, 0.2]) box(seg, 0.54, 0.05, 0.17, ivory, 0, d, 0); } else { box(seg, 0.44, 0.74, 0.14, au); box(seg, 0.26, 0.5, 0.18, blue); sph(seg, 0.09, au, 0, 0, 0.1); } seg.position.set(x, 0, z); seg.rotation.y = -a + Math.PI / 2; g.add(seg); }); return tilt(g, 0.45, -0.25); };
+
+  B.ring_ruby = () => { const g = new THREE.Group(); add(g, new THREE.TorusGeometry(1, 0.17, 20, 80), au); const seat = new THREE.Group(); add(seat, new THREE.CylinderGeometry(0.42, 0.3, 0.3, 32), au); sph(seat, 0.33, amber, 0, 0.17, 0, 1, 0.55, 1); add(seat, new THREE.TorusGeometry(0.37, 0.05, 10, 40), au, 0, 0.17, 0).rotation.x = Math.PI / 2; seat.position.set(0, -1.08, 0.12); seat.rotation.x = Math.PI * 0.72; g.add(seat);
+    for (const m of [-1, 1]) for (let i = 0; i < 4; i++) { const a = -Math.PI / 2 + m * (0.38 + i * 0.16); sph(g, 0.05, auDim, Math.cos(a), Math.sin(a), 0.19); } return tilt(g, -0.55, -0.35, 0.25); };
+
+  const pendant2 = (stoneM, cord) => () => { const g = new THREE.Group(); const pts = [[-0.05, -1.15, 0], [-0.95, -0.4, 0], [-1.15, 0.6, 0], [-0.55, 1.45, 0], [0.3, 1.5, 0], [0.75, 0.75, 0], [0.72, -0.2, 0], [0.12, -1.15, 0]];
+    beads(g, pts, 34, 0.12, cord); const med = new THREE.Group(); sph(med, 0.42, au, 0, 0, 0, 1, 1.05, 0.3); sph(med, 0.28, stoneM, 0, 0, 0.12, 1, 1.1, 0.4); torus(med, 0.36, 0.05, au, 0, 0, 0.1); med.position.set(0.03, -1.58, 0); g.add(med); return tilt(g, 0.12, -0.2, -0.12); };
+  B.pendant_pearl = pendant2(ivory, [pearl, pearl, M(0xd8a03c, 0.5, 0.25)]);
+  B.pendant_dirty = pendant2(M(0x6d6248, 0.2, 0.7), [M(0xa59a82, 0.15, 0.65), M(0x8a8069, 0.15, 0.7), M(0x7a6330, 0.4, 0.6)]);
+  B.pendant_illum = () => { const g = new THREE.Group(); sph(g, 0.82, auDim, 0, 0, 0, 1, 1.35, 0.3); sph(g, 0.66, amber, 0, 0, 0.14, 1, 1.38, 0.45); const f = add(g, new THREE.TorusGeometry(0.72, 0.08, 12, 60), au, 0, 0, 0.1); f.scale.set(1, 1.37, 1);
+    ringOf(14, 1, (x, y, z, a) => sph(g, 0.07, au, Math.cos(a) * 0.74, Math.sin(a) * 1.01, 0.14)); sph(g, 0.17, au, 0, 1.15, 0); add(g, new THREE.TorusGeometry(0.24, 0.07, 10, 30), au, 0, 1.42, 0); pipeTube(g, [[0, -1.1, 0], [0.12, -1.35, 0], [-0.1, -1.55, 0], [0.04, -1.9, 0]], 0.06, au, 30); return tilt(g, 0.15, -0.3, 0.3); };
+  B.necklace = () => { const g = new THREE.Group(); const arc = (x) => -0.62 * (1 - (x / 2.2) ** 2); const pts = [-2.2, -1.5, -0.75, 0, 0.75, 1.5, 2.2].map((x) => [x, arc(x), 0]);
+    pipeTube(g, [[-2.2, 0, 0], [-1.6, 0.55, 0], [0, 0.75, 0], [1.6, 0.55, 0], [2.2, 0, 0]], 0.035, au);
+    pipeTube(g, pts, 0.07, au); [-1.45, -0.72, 0, 0.72, 1.45].forEach((x, i) => { const y = arc(x) - 0.16; const m = new THREE.Group(); sph(m, 0.3, au, 0, 0, 0, 1, 1.15, 0.3); sph(m, 0.17, i % 2 ? rosy : amber, 0, 0, 0.1, 1, 1.2, 0.5); torus(m, 0.25, 0.04, au, 0, 0, 0.08); m.position.set(x, y, 0); g.add(m); box(g, 0.04, 0.3, 0.04, au, x, y - 0.45, 0); jewel(g, 0.13, i % 2 ? jade : amethyst, x, y - 0.66, 0, 1.4); });
+    for (const x of [-1.08, -0.36, 0.36, 1.08, -1.85, 1.85]) { sph(g, 0.1, rosy, x, arc(x) - 0.12, 0.05); jewel(g, 0.08, jade, x, arc(x) - 0.34, 0, 1.4); } return tilt(g, 0.15, 0); };
+
+  B.monocle = () => { const g = new THREE.Group(); add(g, new THREE.CylinderGeometry(0.95, 0.95, 0.12, 60), M(0x6f7690, 0.6, 0.18, { emissive: 0x15182a }), 0, -0.35, 0).rotation.x = Math.PI / 2; torus(g, 0.98, 0.11, au, 0, -0.35, 0); torus(g, 1.1, 0.035, ag, 0, -0.35, 0);
+    for (let i = 0; i < 9; i++) sph(g, 0.09, ag, -0.55 + i * 0.14, 0.66 + Math.sin(i / 8 * Math.PI) * 0.18, 0.04); pipeTube(g, [[0.5, 0.65, 0], [0.9, 1.15, 0], [1.15, 1.35, 0], [0.95, 1.55, 0]], 0.09, au, 30);
+    beads(g, [[0.9, 1.55, 0], [0, 1.45, 0], [-0.5, 1.1, 0], [-1.3, 1.25, 0], [-1.65, 0.75, 0], [-1.2, 0.45, 0]], 60, 0.045, au); return tilt(g, 0.2, -0.15, -0.1); };
+  B.pocket_watch = () => { const g = new THREE.Group(); add(g, new THREE.CylinderGeometry(0.95, 0.95, 0.34, 60), au).rotation.x = Math.PI / 2; add(g, new THREE.CylinderGeometry(0.78, 0.78, 0.06, 60), ivory, 0, 0, 0.17).rotation.x = Math.PI / 2; torus(g, 0.84, 0.09, au, 0, 0, 0.18);
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; box(g, 0.04, i % 3 ? 0.1 : 0.17, 0.02, dark, Math.sin(a) * 0.64, Math.cos(a) * 0.64, 0.21).rotation.z = -a; } box(g, 0.05, 0.5, 0.02, black, -0.1, 0.2, 0.23).rotation.z = 0.45; box(g, 0.04, 0.4, 0.02, black, 0.17, 0.08, 0.235).rotation.z = -1.1; torus(g, 0.2, 0.018, dark, 0, -0.4, 0.215);
+    cyl(g, 0.13, 0.22, au, 0, 1.1, 0); torus(g, 0.22, 0.05, au, 0, 1.36, 0);
+    const lid = new THREE.Group(); add(lid, new THREE.CylinderGeometry(0.93, 0.93, 0.1, 60), au).rotation.x = Math.PI / 2; torus(lid, 0.72, 0.05, auDim, 0, 0, 0.06); lid.position.set(-0.95, -1.18, 0.3); lid.rotation.set(-0.75, 0.2, 0); g.add(lid);
+    beads(g, [[0.28, 1.4, 0], [1.2, 1.25, 0], [1.35, 0.2, 0], [1.05, -0.7, 0], [1.55, -1.25, 0]], 44, 0.055, au); cyl(g, 0.045, 0.4, au, 1.57, -1.27, 0).rotation.z = 0.9; return tilt(g, 0.12, -0.28); };
+  B.pipe = () => { const g = new THREE.Group(); const meer = M(0xb98a52, 0.05, 0.45), burn = M(0x3a2210, 0.1, 0.8);
+    turned(g, [[0, -0.55], [0.4, -0.52], [0.55, -0.15], [0.52, 0.35], [0.56, 0.45], [0.4, 0.47], [0.36, 0.2], [0, 0.15]], meer, 40, -1.25, -0.4, 0); cyl(g, 0.37, 0.05, burn, -1.25, -0.06, 0, 32);
+    sph(g, 0.16, meer, -1.65, -0.45, 0.35); sph(g, 0.07, burn, -1.7, -0.4, 0.5); sph(g, 0.07, burn, -1.52, -0.4, 0.5); sph(g, 0.09, meer, -1.62, -0.57, 0.5);
+    pipeTube(g, [[-0.85, -0.65, 0], [-0.35, -0.55, 0], [0.1, -0.25, 0]], 0.17, meer, 30); pipeTube(g, [[0.05, -0.28, 0], [0.45, 0.05, 0]], 0.2, ag, 20);
+    pipeTube(g, [[0.4, 0.02, 0], [1.0, 0.5, 0], [1.55, 0.8, 0], [2.0, 0.88, 0]], 0.085, M(0x4a4640, 0.5, 0.3), 40); sph(g, 0.1, black, 2.02, 0.88, 0); [0.55, 0.72].forEach((x, i) => sph(g, 0.15 - i * 0.02, ag, x, 0.13 + i * 0.14, 0, 0.5, 1, 1)); return tilt(g, 0.3, -0.25, 0.12); };
+  B.lip_rouge = () => { const g = new THREE.Group(); const rouge = M(0x9c2c55, 0.05, 0.55);
+    cyl(g, 0.95, 0.34, auDim, -0.35, -0.2, 0.2, 60); cyl(g, 0.8, 0.05, rouge, -0.35, 0.0, 0.2, 60); add(g, new THREE.TorusGeometry(0.87, 0.08, 12, 60), au, -0.35, 0.01, 0.2).rotation.x = Math.PI / 2;
+    const lid = new THREE.Group(); cyl(lid, 0.95, 0.26, au, 0, 0, 0, 60); hoop(lid, 0.82, 0.045, auDim, 0.14); hoop(lid, 0.45, 0.035, auDim, 0.14); ringOf(4, 0.23, (x, y, z) => sph(lid, 0.13, amethyst, x, 0.15, z, 1, 0.45, 1)); ringOf(16, 0.64, (x, y, z) => sph(lid, 0.055, auDim, x, 0.13, z)); lid.position.set(0.75, 0.25, -0.5); lid.rotation.set(0.35, 0, -0.25); g.add(lid); return tilt(g, 0.72, -0.2); };
+
+  B.chalice = () => { const g = new THREE.Group(); turned(g, [[0, -1.5], [0.82, -1.5], [0.84, -1.34], [0.56, -1.18], [0.32, -0.9], [0.26, -0.62], [0.44, -0.5], [0.28, -0.38], [0.22, -0.16], [0.62, 0], [0.72, 0.2], [0.68, 0.34], [0.62, 0.4], [0.66, 0.9], [0.74, 1.15], [0.64, 1.15], [0.55, 0.5], [0, 0.45]], au);
+    hoop(g, 0.66, 0.07, au, 0.95); hoop(g, 0.74, 0.05, au, 1.15); hoop(g, 0.72, 0.09, au, 0.1); hoop(g, 0.8, 0.07, au, -1.4); ringOf(8, 0.67, (x, y, z, a, i) => sph(g, 0.09, i % 2 ? rubyM : jade, x, 0.95, z)); ringOf(10, 0.62, (x, y, z) => sph(g, 0.13, auDim, x, 0.16, z)); ringOf(12, 0.62, (x, y, z) => sph(g, 0.07, pearl, x, -1.28, z)); return tilt(g, 0.28, -0.2); };
+  B.crown = () => { const g = new THREE.Group(); band(g, 1.15, 0.55, au); hoop(g, 1.16, 0.075, au, 0.28); hoop(g, 1.16, 0.085, au, -0.28);
+    ringOf(8, 1.15, (x, y, z, a) => { const peak = new THREE.Group(); extrude2(peak, [[-0.3, 0], [-0.12, 0.2], [-0.2, 0.42], [0, 0.66], [0.2, 0.42], [0.12, 0.2], [0.3, 0]], 0.09, au, 0.02); sph(peak, 0.09, pearl, 0, 0.72, 0); jewel(peak, 0.12, rosy, 0, 0.3, 0.07, 1.2); peak.position.set(x, 0.3, z); peak.rotation.y = -a + Math.PI / 2; g.add(peak); });
+    ringOf(16, 1.19, (x, y, z, a, i) => jewel(g, i % 2 ? 0.08 : 0.14, [rubyM, jade, amethyst, enamel][i % 4], x, 0, z)); return tilt(g, 0.3, -0.15); };
+  B.headdress = () => { const g = new THREE.Group(); const silver = M(0xaeb4b8, 0.85, 0.38);
+    const moon = new THREE.Shape(); moon.moveTo(-1.35, 0.75); moon.bezierCurveTo(-1.55, -0.9, 0.35, -1.55, 1.45, -0.05); moon.bezierCurveTo(0.55, -0.62, -0.75, -0.62, -0.75, 0.72); moon.closePath(); add(g, new THREE.ExtrudeGeometry(moon, { depth: 0.14, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 2 }), silver, 0, 0, -0.07);
+    sph(g, 0.66, ag, 0.15, 0.28, 0, 0.85, 1.05, 0.28); const big = add(g, new THREE.IcosahedronGeometry(0.52, 1), jade, 0.15, 0.28, 0.12); big.scale.set(0.82, 1.05, 0.55);
+    ringOf(12, 1, (x, y, z, a) => sph(g, 0.065, jade, 0.15 + Math.cos(a) * 0.56, 0.28 + Math.sin(a) * 0.68, 0.14)); for (let i = 0; i < 7; i++) torus(g, 0.12, 0.022, ag, -0.95 + i * 0.28, -0.55 - Math.sin(i / 6 * Math.PI) * 0.22, 0.12);
+    for (const [x, y, l] of [[-1.2, 0.2, 0.9], [0.75, -0.75, 0.65], [1.35, -0.15, 0.7]]) { beads(g, [[x, y, 0.05], [x + 0.06, y - l, 0.05]], 8, 0.04, ag); sph(g, 0.13, ag, x + 0.06, y - l - 0.1, 0.05, 1, 1, 0.35); } torus(g, 0.16, 0.035, ag, -1.15, 1.0, 0); return tilt(g, 0.15, -0.25, 0.12); };
+  B.mask = () => { const g = new THREE.Group(); const face = new THREE.Shape(); face.moveTo(-1.35, 0.35); face.bezierCurveTo(-0.9, 0.75, -0.3, 0.55, 0, 0.6); face.bezierCurveTo(0.3, 0.55, 0.9, 0.75, 1.35, 0.35); face.bezierCurveTo(1.3, -0.35, 0.8, -0.72, 0.35, -0.55); face.bezierCurveTo(0.18, -0.3, -0.18, -0.3, -0.35, -0.55); face.bezierCurveTo(-0.8, -0.72, -1.3, -0.35, -1.35, 0.35);
+    for (const m of [-1, 1]) { const eye = new THREE.Path(); eye.absellipse(m * 0.58, -0.03, 0.34, 0.19, 0, Math.PI * 2, false, m * 0.18); face.holes.push(eye); }
+    const geo = new THREE.ExtrudeGeometry(face, { depth: 0.12, bevelEnabled: true, bevelSize: 0.05, bevelThickness: 0.05, bevelSegments: 3, curveSegments: 40 }); const pos = geo.attributes.position; for (let i = 0; i < pos.count; i++) pos.setZ(i, pos.getZ(i) - pos.getX(i) ** 2 * 0.28); geo.computeVertexNormals(); add(g, geo, au);
+    for (const m of [-1, 1]) { const rim = add(g, new THREE.TorusGeometry(0.34, 0.04, 8, 40), auDim, m * 0.58, -0.03, 0.04); rim.scale.set(1, 0.57, 1); rim.rotation.z = m * 0.18; }
+    for (let i = -3; i <= 3; i++) { const a = i * 0.26, len = 0.75 - Math.abs(i) * 0.09; const spike = add(g, new THREE.ConeGeometry(0.09, len, 8), au, Math.sin(a) * 1.0, 0.6 + Math.cos(a) * 0.12 + len / 2 - Math.abs(i) * 0.04, -((Math.sin(a)) ** 2) * 0.28); spike.rotation.z = -a; sph(g, 0.065, pearl, Math.sin(a) * (1 + len * 0.55), 0.6 + Math.cos(a) * 0.12 + len - Math.abs(i) * 0.04, -(Math.sin(a) ** 2) * 0.3); }
+    [-0.55, 0, 0.55].forEach((x) => { sph(g, 0.17, au, x, 0.62, 0.1, 1, 1.2, 0.4); jewel(g, 0.1, x ? amethyst : jade, x, 0.62, 0.17, 1.2); }); beads(g, [[-1.2, 0.4, -0.2], [0, 0.46, 0.18], [1.2, 0.4, -0.2]], 22, 0.045, pearl); return tilt(g, 0.12, -0.28); };
+  B.perfume = () => { const g = new THREE.Group(); const glass = new THREE.MeshStandardMaterial({ color: 0xcfd8d4, metalness: 0.4, roughness: 0.08, transparent: true, opacity: 0.55 });
+    const ribbed = new THREE.SphereGeometry(0.72, 64, 40); const pos = ribbed.attributes.position; for (let i = 0; i < pos.count; i++) { const a = Math.atan2(pos.getZ(i), pos.getX(i)), k = 1 + 0.06 * Math.sin(a * 16); pos.setXYZ(i, pos.getX(i) * k, pos.getY(i) * 0.82, pos.getZ(i) * k); } ribbed.computeVertexNormals(); add(g, ribbed, glass, 0.55, -0.45, 0);
+    cyl(g, 0.4, 0.12, au, 0.55, -1.04, 0, 40); sph(g, 0.45, M(0x9a8a58, 0.5, 0.3), 0.55, -0.62, 0, 1, 0.6, 1); cyl(g, 0.17, 0.3, au, 0.55, 0.28, 0); hoop(g, 0.01, 0.001, au); cyl(g, 0.26, 0.1, au, 0.55, 0.46, 0); sph(g, 0.14, au, 0.55, 0.68, 0, 1, 1.3, 1);
+    for (let i = 0; i < 6; i++) sph(g, 0.1, au, 0.55 + Math.cos(i) * 0.3, 0.14 + Math.sin(i * 2) * 0.06, Math.sin(i) * 0.3);
+    pipeTube(g, [[0.42, 0.45, 0], [-0.05, 0.9, 0], [-0.65, 0.75, 0], [-0.95, 0.05, 0], [-1.0, -0.5, 0]], 0.05, au); const bulb = M(0xd9a98e, 0.15, 0.45); sph(g, 0.34, bulb, -0.98, -0.82, 0, 0.85, 1.2, 0.85); add(g, new THREE.ConeGeometry(0.2, 0.42, 20), au, -0.9, -1.38, 0); return tilt(g, 0.25, -0.2); };
+
+  B.camera = () => { const g = new THREE.Group(); const wood = M(0x5a3418, 0.15, 0.5), bellows = M(0x25221f, 0.05, 0.8), brassy = M(0xb98c3e, 0.85, 0.35);
+    box(g, 0.45, 1.5, 1.35, wood, -1.0, 0.1, 0); box(g, 0.5, 1.55, 0.08, brassy, -1.0, 0.1, 0.7); for (let i = 0; i < 7; i++) { const k = 1 - i * 0.055; box(g, 0.2, 1.3 * k, 1.2 * k, i % 2 ? bellows : M(0x37322d, 0.05, 0.75), -0.7 + i * 0.2, 0.08, 0); }
+    box(g, 0.22, 1.1, 1.0, wood, 0.78, 0.05, 0); const lens = new THREE.Group(); add(lens, new THREE.CylinderGeometry(0.3, 0.3, 0.42, 36), brassy); add(lens, new THREE.CylinderGeometry(0.34, 0.34, 0.08, 36), brassy, 0, 0.18, 0); add(lens, new THREE.CylinderGeometry(0.22, 0.22, 0.46, 36), M(0x141a24, 0.9, 0.1)); lens.rotation.z = -Math.PI / 2; lens.position.set(1.05, 0.05, 0); g.add(lens);
+    box(g, 2.5, 0.14, 1.45, wood, 0.05, -0.78, 0); box(g, 2.3, 0.05, 0.1, brassy, 0.1, -0.69, 0.62); box(g, 2.3, 0.05, 0.1, brassy, 0.1, -0.69, -0.62); for (const z of [0.75, -0.75]) sph(g, 0.13, brassy, 0.65, -0.78, z); sph(g, 0.09, brassy, -1.0, 0.95, 0.45); box(g, 0.3, 0.16, 0.5, brassy, -1.0, 0.92, 0); return tilt(g, 0.28, -0.85); };
+  B.butterfly_lamp = () => { const g = new THREE.Group(); const glow = M(0xf1e6c0, 0.1, 0.35, { emissive: 0x6a5420 });
+    add(g, new THREE.CylinderGeometry(0.72, 0.72, 1.75, 6), glow); ringOf(6, 0.73, (x, y, z) => box(g, 0.09, 1.8, 0.09, au, x, 0, z));
+    for (const y of [-0.9, 0.9]) { add(g, new THREE.CylinderGeometry(0.82, 0.82, 0.12, 6), au, 0, y, 0); }
+    ringOf(6, 0.64, (x, y, z, a) => { const wing = new THREE.Group(); sph(wing, 0.12, jade, -0.1, 0.06, 0, 1, 1.3, 0.2); sph(wing, 0.12, rosy, 0.1, 0.06, 0, 1, 1.3, 0.2); box(wing, 0.04, 0.3, 0.04, auDim, 0, 0, 0.02); torus(wing, 0.22, 0.02, au, 0, -0.45, 0); torus(wing, 0.16, 0.02, au, 0, 0.5, 0); wing.position.set(x, 0, z); wing.rotation.y = -a + Math.PI / 2; g.add(wing); });
+    add(g, new THREE.ConeGeometry(0.86, 0.55, 6), au, 0, 1.22, 0); sph(g, 0.17, au, 0, 1.62, 0); add(g, new THREE.ConeGeometry(0.07, 0.3, 8), au, 0, 1.88, 0);
+    add(g, new THREE.CylinderGeometry(0.62, 0.85, 0.2, 6), au, 0, -1.05, 0); ringOf(6, 0.76, (x, y, z) => { sph(g, 0.15, au, x, -1.25, z, 0.8, 1.3, 0.8); }); return tilt(g, 0.2, 0.26); };
+  B.chessboard = () => { const g = new THREE.Group(); const light = M(0xe6dcc0, 0.2, 0.25), darkSq = M(0xa8904a, 0.45, 0.3), rimm = M(0x7a3a24, 0.2, 0.4);
+    box(g, 3.0, 0.2, 3.0, rimm, 0, -0.12, 0); box(g, 3.04, 0.07, 3.04, au, 0, -0.03, 0); for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) box(g, 0.34, 0.06, 0.34, (i + j) % 2 ? darkSq : light, -1.19 + i * 0.34, 0.03, -1.19 + j * 0.34);
+    for (const x of [-1.4, 1.4]) for (const z of [-1.4, 1.4]) sph(g, 0.14, au, x, -0.3, z);
+    const piece = (m, x, z, h) => { turned(g, [[0, 0], [0.17, 0], [0.18, 0.07], [0.08, 0.13], [0.06, h * 0.6], [0.11, h * 0.66], [0.07, h * 0.75], [0.09, h * 0.9], [0, h]], m, 24, x, 0.05, z); };
+    piece(M(0x3a3226, 0.7, 0.35), -0.5, -0.85, 0.85); piece(M(0x23262a, 0.6, 0.4), 0.52, 0.18, 0.65); return tilt(g, 0.62, -0.62); };
+  const crystals = (g, m) => { const shard = (x, y, rz, rx, len, r) => { const c = new THREE.Group(); add(c, new THREE.CylinderGeometry(r * 0.85, r, len, 6), m, 0, len / 2, 0); add(c, new THREE.ConeGeometry(r * 0.85, r * 1.9, 6), m, 0, len + r * 0.95, 0); c.position.set(x, y, 0); c.rotation.set(rx, 0, rz); g.add(c); };
+    shard(0, -0.9, 0.05, 0, 1.7, 0.32); shard(-0.2, -0.95, 0.62, 0.2, 1.15, 0.24); shard(0.25, -0.95, -0.55, 0.1, 1.25, 0.26); shard(-0.35, -1.0, 1.15, -0.1, 0.75, 0.18); shard(0.4, -1.0, -1.2, 0.25, 0.7, 0.17); shard(0.05, -1.0, 0.25, 0.75, 0.6, 0.2); shard(-0.1, -1.0, -0.25, 0.65, 0.55, 0.17); sph(g, 0.5, m, 0, -1.02, 0, 1.2, 0.5, 1); };
+  B.ore = () => { const g = new THREE.Group(); crystals(g, amethyst); return tilt(g, 0.2, -0.3); };
+  B.gem_velvet = () => { const g = new THREE.Group(); crystals(g, M(0x6b6fd8, 0.45, 0.12, { emissive: 0x151a55, flatShading: true, transparent: true, opacity: 0.92 })); return tilt(g, 0.2, 0.4); };
+  B.idol = () => { const g = new THREE.Group(); const gold = M(0xc9952f, 0.92, 0.25, { emissive: 0x1e1200 });
+    turned(g, [[0, -1.6], [0.55, -1.58], [0.5, -1.2], [0.36, -0.6], [0.44, -0.05], [0.3, 0.55], [0.17, 0.95], [0, 1.0]], gold);
+    sph(g, 0.34, gold, -0.12, 1.12, 0.02, 1, 0.92, 0.9); const beak = add(g, new THREE.ConeGeometry(0.17, 0.62, 12), gold, -0.52, 1.02, 0.05); beak.rotation.z = 1.9; sph(g, 0.06, black, -0.24, 1.2, 0.28);
+    for (let i = 0; i < 6; i++) { const y = 1.35 - i * 0.42; const x = 0.2 + Math.sin(i * 0.9) * 0.18 + 0.12; pipeTube(g, [[0.12, y - 0.12, 0], [x + 0.2, y + 0.05, 0], [x + 0.42, y + 0.28 - i * 0.01, 0]], 0.06, gold, 20); torus(g, 0.11, 0.045, gold, x + 0.46, y + 0.36, 0); }
+    pipeTube(g, [[-0.3, 0.15, 0.3], [-0.55, -0.1, 0.4], [-0.4, -0.45, 0.35]], 0.09, gold, 20); return tilt(g, 0.12, -0.2); };
+
+  const statueBase = (g, m, y = -1.55) => { turned(g, [[0, y - 0.18], [0.72, y - 0.18], [0.74, y - 0.02], [0.58, y + 0.06], [0.62, y + 0.14], [0, y + 0.16]], m); };
+  B.lynx = () => { const g = new THREE.Group(); const body = M(0x4d5a36, 0.65, 0.28), gold = au; statueBase(g, gold);
+    sph(g, 0.52, body, 0.12, -0.9, 0, 1, 1.0, 0.85); turned(g, [[0, -1.3], [0.3, -1.25], [0.36, -0.6], [0.3, 0.0], [0.18, 0.5], [0, 0.55]], body, 32, -0.12, 0, 0.05);
+    for (const z of [-0.16, 0.24]) { pipeTube(g, [[-0.22, -0.2, z], [-0.42, -0.8, z], [-0.46, -1.38, z]], 0.11, body, 20); sph(g, 0.14, body, -0.52, -1.38, z, 1.3, 0.6, 1); }
+    sph(g, 0.33, body, -0.2, 0.82, 0.05, 1, 0.92, 0.95); sph(g, 0.15, body, -0.45, 0.72, 0.1, 1.2, 0.8, 0.9); for (const [x, z] of [[-0.38, 0.25], [-0.02, -0.1]]) { add(g, new THREE.ConeGeometry(0.13, 0.5, 8), body, x, 1.22, z).rotation.z = x < -0.2 ? 0.22 : -0.22; }
+    for (const z of [0.3]) sph(g, 0.05, M(0xf3cf4a, 0.5, 0.2, { emissive: 0x5a4200 }), -0.4, 0.88, z); add(g, new THREE.TorusGeometry(0.27, 0.06, 10, 40), gold, -0.14, 0.42, 0.05).rotation.x = Math.PI / 2; ringOf(10, 0.3, (x, y, z) => sph(g, 0.06, gold, -0.14 + x, 0.3, 0.05 + z)); pipeTube(g, [[0.55, -1.25, 0], [0.7, -1.38, 0.4], [0.1, -1.4, 0.55]], 0.09, body, 24); return tilt(g, 0.15, 0.35); };
+  B.justitia = () => { const g = new THREE.Group(); const robe = M(0x2f6f8e, 0.55, 0.3), gold = au; statueBase(g, gold);
+    turned(g, [[0, -1.4], [0.55, -1.38], [0.38, -0.8], [0.22, -0.15], [0.3, 0.2], [0.24, 0.5], [0.12, 0.65], [0, 0.68]], robe, 24); sph(g, 0.27, gold, 0, 0.28, 0.02, 1, 1.2, 0.75); pipeTube(g, [[0.25, 0.4, 0.1], [0.05, -0.4, 0.32], [-0.25, -1.3, 0.35]], 0.07, gold, 20);
+    sph(g, 0.18, gold, 0, 0.88, 0); box(g, 0.36, 0.07, 0.34, ivory, 0, 0.91, 0.02); sph(g, 0.14, auDim, 0.04, 1.05, -0.05);
+    pipeTube(g, [[0.18, 0.5, 0], [0.55, 0.75, 0], [0.68, 1.2, 0.05]], 0.065, gold, 20); box(g, 0.85, 0.045, 0.045, gold, 0.68, 1.38, 0.05); cyl(g, 0.025, 0.3, gold, 0.68, 1.28, 0.05);
+    for (const x of [0.28, 1.08]) { for (const d of [-0.12, 0.12]) { const c = cyl(g, 0.008, 0.5, gold, x + d / 2, 1.14, 0.05); c.rotation.z = d * 1.9; } sph(g, 0.16, gold, x, 0.88, 0.05, 1, 0.3, 1); }
+    pipeTube(g, [[-0.18, 0.5, 0], [-0.5, 0.1, 0.1], [-0.6, -0.3, 0.15]], 0.065, gold, 20); box(g, 0.34, 0.06, 0.08, gold, -0.6, -0.38, 0.15); box(g, 0.09, 1.1, 0.035, ag, -0.62, -0.95, 0.15); return tilt(g, 0.1, -0.15); };
+  B.eye = () => { const g = new THREE.Group(); const skin = canvasTex(1024, 512, (x) => {
+      x.fillStyle = '#e9ddd8'; x.fillRect(0, 0, 1024, 512); let r = 3; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+      x.strokeStyle = 'rgba(170,50,50,.55)'; x.lineWidth = 2; for (let i = 0; i < 60; i++) { let px = rnd() * 1024, py = rnd() * 512; x.beginPath(); x.moveTo(px, py); for (let k = 0; k < 6; k++) { px += (256 - px) * 0.08 + (rnd() - 0.5) * 30; py += (256 - py) * 0.08 + (rnd() - 0.5) * 30; x.lineTo(px, py); } x.stroke(); }
+      x.fillStyle = '#9c4a52'; x.beginPath(); x.arc(256, 256, 72, 0, 7); x.fill(); x.strokeStyle = '#c98a86'; for (let i = 0; i < 90; i++) { const a = i / 90 * 7; x.beginPath(); x.moveTo(256 + Math.cos(a) * 30, 256 + Math.sin(a) * 30); x.lineTo(256 + Math.cos(a) * 68, 256 + Math.sin(a) * 68); x.stroke(); }
+      x.fillStyle = '#1a0c0e'; x.beginPath(); x.arc(256, 256, 30, 0, 7); x.fill();
+    });
+    add(g, new THREE.SphereGeometry(1, 64, 48), new THREE.MeshStandardMaterial({ map: skin, roughness: 0.15, metalness: 0.05 })); return tilt(g, 0.08, -0.18); }; // u = 0.25 of a sphere faces the viewer
+  B.mirror = () => { const g = new THREE.Group(); add(g, new THREE.CylinderGeometry(0.88, 0.88, 0.1, 60), M(0xa9bccb, 0.35, 0.08, { emissive: 0x34434f })).rotation.x = Math.PI / 2; torus(g, 0.92, 0.07, au, 0, 0, 0.06); torus(g, 1.14, 0.14, au, 0, 0, 0);
+    for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; sph(g, 0.1, pearl, Math.cos(a) * 1.09, Math.sin(a) * 1.09, 0.12); }
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; const x = Math.cos(a) * 1.24, y = Math.sin(a) * 1.24; sph(g, 0.2, au, x, y, 0.05, 1, 1, 0.5); box(g, 0.24, 0.24, 0.12, rosy, x, y, 0.17).rotation.z = a; for (const d of [-0.22, 0.22]) torus(g, 0.12, 0.035, au, Math.cos(a + d) * 1.3, Math.sin(a + d) * 1.3, 0); }
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; jewel(g, 0.15, ag, Math.cos(a) * 1.12, Math.sin(a) * 1.12, 0.2); } return tilt(g, 0.22, -0.2); };
+  B.staff = () => { const g = new THREE.Group(); cyl(g, 0.085, 3.4, au, 0, -0.5, 0, 20); sph(g, 0.15, au, 0, -2.25, 0); for (const y of [-1.4, 0.2, 1.05]) sph(g, 0.15, au, 0, y, 0, 1, 0.6, 1);
+    turned(g, [[0, 1.1], [0.14, 1.15], [0.3, 1.45], [0.22, 1.5], [0, 1.5]], au); sph(g, 0.24, rosy, 0, 1.7, 0); for (let i = 0; i < 4; i++) { const m = new THREE.Group(); pipeTube(m, [[0.2, 1.42, 0], [0.45, 1.68, 0], [0.33, 1.98, 0], [0.05, 2.04, 0]], 0.045, au, 24); m.rotation.y = i * Math.PI / 2 + 0.4; g.add(m); } sph(g, 0.1, au, 0, 2.08, 0); sph(g, 0.065, rubyM, 0, 2.2, 0); return tilt(g, 0.15, -0.2, -0.65); };
+  B.compass = () => { const g = new THREE.Group(); const wood = M(0x7a4a22, 0.2, 0.45);
+    box(g, 2.0, 0.75, 1.7, wood, 0, -0.5, 0.2); box(g, 2.06, 0.08, 1.76, auDim, 0, -0.13, 0.2); for (const x of [-0.98, 0.98]) for (const z of [-0.63, 1.03]) box(g, 0.14, 0.78, 0.14, auDim, x, -0.5, z);
+    cyl(g, 0.68, 0.06, ivory, 0, -0.07, 0.25, 60); add(g, new THREE.TorusGeometry(0.7, 0.09, 12, 60), au, 0, -0.04, 0.25).rotation.x = Math.PI / 2; box(g, 0.08, 0.04, 0.5, rubyM, 0.1, 0.0, 0.05).rotation.y = -0.5; box(g, 0.08, 0.04, 0.5, dark, -0.1, 0.0, 0.42).rotation.y = -0.5; sph(g, 0.07, au, 0, 0.02, 0.25);
+    const lid = new THREE.Group(); box(lid, 2.0, 1.6, 0.18, wood, 0, 0.8, 0); box(lid, 1.7, 1.3, 0.04, auDim, 0, 0.8, 0.1); torus(lid, 0.45, 0.035, au, 0, 0.8, 0.14); torus(lid, 0.28, 0.025, au, 0, 0.8, 0.14); lid.position.set(0, -0.12, -0.68); lid.rotation.x = -0.18; g.add(lid); box(g, 0.34, 0.26, 0.06, au, 0, -0.42, 1.07); return tilt(g, 0.48, -0.5); };
+  B.hourglass = () => { const g = new THREE.Group(); const red = M(0x8e2c1c, 0.3, 0.35), glass = new THREE.MeshStandardMaterial({ color: 0xdde8ea, metalness: 0.2, roughness: 0.05, transparent: true, opacity: 0.4, depthWrite: false }), sand = M(0xd9c690, 0, 0.85);
+    turned(g, [[0, -0.98], [0.58, -0.9], [0.52, -0.55], [0.08, 0], [0.52, 0.55], [0.58, 0.9], [0, 0.98]], glass); turned(g, [[0, -0.96], [0.5, -0.9], [0.3, -0.62], [0, -0.5]], sand); turned(g, [[0, 0.04], [0.07, 0.04], [0.28, 0.35], [0, 0.36]], sand);
+    for (const m of [-1, 1]) { cyl(g, 1.05, 0.2, red, 0, m * 1.15, 0, 48); hoop(g, 1.05, 0.07, au, m * 1.27); hoop(g, 1.05, 0.06, au, m * 1.04); }
+    ringOf(4, 0.85, (x, y, z) => { cyl(g, 0.085, 2.1, red, x, 0, z, 14); for (const yy of [-0.8, -0.25, 0.25, 0.8]) sph(g, 0.14, au, x, yy, z, 1, 0.65, 1); }); return tilt(g, 0.28, 0.35, 0.2); };
+  B.clock = () => { const g = new THREE.Group(); const turq = M(0x2f93a0, 0.45, 0.25);
+    box(g, 2.3, 0.22, 0.9, au, 0, -1.35, 0); box(g, 2.05, 0.4, 0.75, turq, 0, -1.04, 0); box(g, 2.2, 0.12, 0.85, au, 0, -0.78, 0); for (const x of [-0.95, 0.95]) for (const z of [-0.3, 0.3]) sph(g, 0.17, au, x, -1.52, z);
+    box(g, 1.05, 1.5, 0.6, turq, 0, 0.0, 0); box(g, 1.2, 0.14, 0.7, au, 0, 0.78, 0); for (const x of [-0.56, 0.56]) cyl(g, 0.1, 1.55, au, x, 0, 0.28);
+    add(g, new THREE.CylinderGeometry(0.46, 0.46, 0.14, 48), ivory, 0, 0.16, 0.32).rotation.x = Math.PI / 2; torus(g, 0.49, 0.09, au, 0, 0.16, 0.38); for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; box(g, 0.03, 0.09, 0.02, dark, Math.sin(a) * 0.35, 0.16 + Math.cos(a) * 0.35, 0.41).rotation.z = -a; } box(g, 0.035, 0.3, 0.02, black, 0, 0.28, 0.43); box(g, 0.03, 0.22, 0.02, black, 0.09, 0.19, 0.435).rotation.z = -1.2;
+    for (const m of [-1, 1]) { sph(g, 0.16, ivory, m * 0.86, -0.12, 0.1); turned(g, [[0, -0.7], [0.22, -0.68], [0.12, -0.35], [0.15, -0.25], [0, -0.22]], ivory, 20, m * 0.86, 0, 0.1); sph(g, 0.14, au, m * 0.86, -0.72, 0.1, 1.3, 0.7, 1); }
+    sph(g, 0.38, au, 0, 0.95, 0, 1.3, 0.65, 0.9); turned(g, [[0, 1.1], [0.2, 1.15], [0.26, 1.4], [0.1, 1.55], [0.16, 1.62], [0, 1.72]], turq, 24); sph(g, 0.09, au, 0, 1.8, 0); return tilt(g, 0.12, -0.22); };
+  B.flagon = () => { const g = new THREE.Group(); const blue = M(0x24486a, 0.55, 0.22);
+    turned(g, [[0, -1.7], [0.55, -1.68], [0.5, -1.52], [0.2, -1.35], [0.18, -1.15], [0.62, -0.9], [0.8, -0.45], [0.72, 0.0], [0.45, 0.28], [0.2, 0.55], [0.17, 1.05], [0.3, 1.35], [0.36, 1.48], [0, 1.45]], ag);
+    turned(g, [[0.63, -0.89], [0.815, -0.45], [0.735, 0.0]], blue); for (const [y, r] of [[-0.9, 0.64], [0.02, 0.73], [-1.55, 0.5], [0.55, 0.22], [1.05, 0.19]]) hoop(g, r, 0.055, au, y);
+    sph(g, 0.3, au, 0, -0.45, 0.72, 1, 1.25, 0.35); sph(g, 0.17, ivory, 0, -0.45, 0.81, 1, 1.25, 0.35); pipeTube(g, [[0.2, 1.25, 0], [0.85, 1.38, 0], [1.0, 0.7, 0], [0.78, 0.15, 0], [0.68, -0.15, 0]], 0.075, au, 40); torus(g, 0.16, 0.035, au, 0.95, 1.02, 0);
+    pipeTube(g, [[-0.22, 1.36, 0], [-0.5, 1.55, 0], [-0.68, 1.5, 0]], 0.1, ag, 16); sph(g, 0.13, au, 0, 1.6, 0); return tilt(g, 0.18, -0.15); };
+  const lumpy = (g, len, h, d, seed) => { let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647; const geo = new THREE.BoxGeometry(len, h, d, 40, 8, 10); const pos = geo.attributes.position; const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); const end = Math.max(0, Math.abs(v.x) / (len / 2) - 0.8) / 0.2; const k = 1 - 0.45 * end * end; const n = 1 + 0.045 * Math.sin(v.x * 11 + seed) * Math.sin(v.z * 13 + v.y * 9) + 0.022 * Math.sin(v.x * 27 - v.y * 15); pos.setXYZ(i, v.x * (1 + 0.02 * Math.sin(v.y * 8)), v.y * k * n * (v.y > 0 ? 1 - 0.25 * (v.z / (d / 2)) ** 2 : 1), v.z * k * n); }
+    geo.computeVertexNormals(); return add(g, geo, M(0xd9a43a, 0.95, 0.3, { emissive: 0x2a1a00 })); };
+  B.gold_bar = () => { const g = new THREE.Group(); lumpy(g, 2.5, 0.5, 0.95, 5); return tilt(g, 0.7, -0.3, 0.32); };
+  B.bar_l = () => { const g = new THREE.Group(); lumpy(g, 3.8, 0.38, 0.58, 9); return tilt(g, 0.65, -0.25, 0.42); };
+  B.ingot = () => { const g = new THREE.Group(); const gold = M(0xcfa550, 0.85, 0.36, { emissive: 0x241a04 });
+    const sh = new THREE.Shape(); [[-1.45, -0.28], [-1.05, -0.75], [0.95, -0.72], [1.42, -0.2], [1.3, 0.45], [0.8, 0.78], [-1.05, 0.72], [-1.45, 0.2]].forEach(([x, y], i) => (i ? sh.lineTo(x, y) : sh.moveTo(x, y))); const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.52, bevelEnabled: true, bevelSize: 0.12, bevelThickness: 0.14, bevelSegments: 2 }); add(g, geo, gold);
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 5 - (i % 2); j++) box(g, 0.1 + ((i * 3 + j) % 3) * 0.07, 0.06, 0.03, auDim, -0.8 + j * 0.38 + (i % 2) * 0.15, -0.4 + i * 0.27, 0.68).rotation.z = ((i + j) % 2) * 0.35; return tilt(g, -0.72, -0.2, 0.35); };
+
+  // ---------- red herb: a tied bunch of stems full of small pink flowers
+  B.herb_red = () => { const g = new THREE.Group(); let r = 11; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+    const pinks = [0xd9748f, 0xe89ab0, 0xc65a7c, 0xf0b6c6].map((c) => M(c, 0, 0.7, { emissive: new THREE.Color(c).multiplyScalar(0.16), side: THREE.DoubleSide })), stem = M(0x8d9a5a, 0, 0.85);
+    const petal = new THREE.Shape(); petal.moveTo(0, 0); petal.quadraticCurveTo(0.13, 0.1, 0, 0.27); petal.quadraticCurveTo(-0.13, 0.1, 0, 0); const geo = new THREE.ShapeGeometry(petal);
+    for (let k = 0; k < 7; k++) { const spread = (k - 3) * 0.27 + (rnd() - 0.5) * 0.1; const top = [Math.sin(spread) * 1.9, 0.35 + Math.cos(spread) * (1.35 + rnd() * 0.45), (rnd() - 0.5) * 0.7]; const c = path3([[0, -0.9, 0], [Math.sin(spread) * 0.55, 0.05, 0], top]); add(g, new THREE.TubeGeometry(c, 24, 0.025, 6, false), stem);
+      for (let i = 0; i < 46; i++) { const t = 0.42 + rnd() * 0.58; const at = c.getPoint(t); const p = new THREE.Mesh(geo, pinks[Math.floor(rnd() * pinks.length)]); p.position.set(at.x + (rnd() - 0.5) * 0.2, at.y + (rnd() - 0.5) * 0.12, at.z + (rnd() - 0.5) * 0.22); p.rotation.set((rnd() - 0.5) * 1.6, (rnd() - 0.5) * 1.6, (rnd() - 0.5) * 2.6); p.scale.setScalar(0.7 + rnd() * 0.5); g.add(p); } }
+    for (let k = 0; k < 6; k++) pipeTube(g, [[0, -0.9, 0], [(k - 2.5) * 0.09, -1.35, (rnd() - 0.5) * 0.2], [(k - 2.5) * 0.2 + (rnd() - 0.5) * 0.1, -1.75, 0]], 0.025, stem, 16);
+    torus(g, 0.1, 0.045, M(0xc9b48a, 0, 0.9), 0, -0.92, 0, Math.PI / 2); return tilt(g, 0.1, -0.1, -0.35); };
   return B;
 }
