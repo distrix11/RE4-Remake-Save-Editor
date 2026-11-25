@@ -16,6 +16,15 @@
 - **Save to game** and **Discard edits** are available only when there are edits. The header buttons keep their places.
 - The case fits narrow windows, the tabs wrap instead of running off the side, and there is no empty band under the case.
 - The game's service files are listed apart as "Service files of the game (advanced users only)".
+- A start screen with a card for every save slot (case look, chapter, play time, money); a click opens the slot.
+- Questions are asked in the editor's own window instead of the plain Windows box, with clear buttons (for example "Stay here", "Discard edits and open Slot 101", "Save first").
+- Key items: deleting one warns that the story may need it; key items, recipes, case skins and charms cannot be copied any more.
+- **Ctrl+S** opens "Save to game" (the summary is shown first).
+- **Upgrade all weapons** button above the case.
+- Weapon upgrades are set with steps, like the bars at the Merchant, instead of number fields.
+- The header is tidier: Discard edits, Restore from backup, Copy slot and Export are in the **More** menu.
+- New pictures for the key items, closer to how they look in the game (the Insignia Key has its own now).
+- For developers: automatic checks (`npm test`); the part that needs no saves also runs on GitHub. The unused 2D case map was removed.
 
 ## 0.9.5 (pre-release)
 - New pictures for the treasures (jewellery, statues, clocks, gold and the rest) and the red herb (a tied bunch of pink flowers), closer to how they look in the game.

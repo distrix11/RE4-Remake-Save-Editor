@@ -33,7 +33,7 @@ async function applyFolder(dir) {
     $('#settingsModal').classList.remove('on');
     data = null; cur = null; setButtons(); showWarnings([]);
     await loadFiles(); loadSummaries();
-    view.innerHTML = '<div class="empty">Choose a save slot in the list above.</div>';
+    showStart(); loadSummaries().then(() => { if (!cur) showStart(); });
     toast('Save folder set.', 'ok');
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -69,7 +69,7 @@ async function openBackups() {
       d.innerHTML = '<span><b>' + esc(slotTitle(b.file)) + '</b> <span class="dim mono" style="font-size:11px">' + esc(b.file) + '</span><br><span class="dim" style="font-size:12px">' + esc(b.label) + ' · ' + new Date(b.when).toLocaleString('en-US') + ' · ' + fmtSize(b.size) + '</span></span>';
       const acts = document.createElement('span'); acts.style.whiteSpace = 'nowrap';
       const rs = document.createElement('button'); rs.className = 'sm'; rs.innerHTML = ic('restore') + 'Restore';
-      rs.onclick = () => { if (confirm('Replace the current ' + b.file + ' with this backup?')) restoreFromManager(b); };
+      rs.onclick = async () => { if (await sure('Restore this backup?', 'Replace the current ' + slotTitle(b.file) + ' with this backup? The current file is saved to backup/auto/ first.', 'Restore')) restoreFromManager(b); };
       acts.append(rs);
       if (!b.protected) {
         const del = document.createElement('button'); del.className = 'sm icon danger'; del.title = 'Delete this backup'; del.innerHTML = ic('trash'); del.style.marginLeft = '6px';
@@ -83,7 +83,7 @@ async function openBackups() {
 async function restoreFromManager(b, force) {
   try {
     const r = await api('restore', { name: b.file, id: b.id, force });
-    if (r.running) { if (confirm('The game (re4.exe) is running. Replace the file anyway?')) return restoreFromManager(b, true); return; }
+    if (r.running) { if (await sure('The game is running', RUNNING, 'Replace anyway')) return restoreFromManager(b, true); return; }
     toast('Restored ' + b.file + '.\nThe previous version was saved to: ' + r.backup, 'ok');
     $('#bkModal').classList.remove('on');
     await loadFiles(); if (cur === b.file) await openFile(cur);
@@ -95,7 +95,7 @@ $('#bkModal').onclick = (e) => { if (e.target.id === 'bkModal') $('#bkModal').cl
 $('#bkOpen').onclick = () => api('open-folder', { which: 'backups' }).catch((e) => toast(e.message, 'err'));
 $('#bkClean').onclick = async () => {
   const keep = Number($('#bkKeep').value) || 5;
-  if (!confirm('Delete all automatic backups except the newest ' + keep + ' of each file? The first-run copy is kept.')) return;
+  if (!(await sure('Delete old backups?', 'Delete all automatic backups except the newest ' + keep + ' of each file? The first-run copy is kept.', 'Delete old backups', { danger: true }))) return;
   try { const r = await api('backup-cleanup', { keep }); toast('Removed ' + r.removed + ' old backup files.', 'ok'); openBackups(); } catch (e) { toast(e.message, 'err'); }
 };
 

@@ -176,7 +176,7 @@ function drawCase3D(holder, inv) {
     const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
     const del = document.createElement('button'); del.className = 'sm danger'; del.innerHTML = ic('trash') + 'Delete';
-    del.onclick = () => { if (confirm('Delete "' + nm + '" from the case?')) { ui.sel = null; return structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
+    del.onclick = async () => { if (await confirmDelete(sel, nm)) { ui.sel = null; return structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
     bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), rot, dup, del);
     caseKeys.cur.rotate = rot.onclick; caseKeys.cur.remove = del.onclick;
     rot.title = 'Key: R'; del.title = 'Key: Delete';

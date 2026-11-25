@@ -16,7 +16,7 @@ async function api(path, body) {
   const j = await r.json();
   if (j.error) throw new Error(j.error);
   if (DIRTY_ROUTES.has(path) && data) { data.dirty = true; updateDirty(); }
-  if ((path === 'repair-knives' || path === 'fill-stacks') && j.changed && data) data.dirty = true;
+  if ((path === 'repair-knives' || path === 'fill-stacks' || path === 'upgrade-weapons') && j.changed && data) data.dirty = true;
   if (j.undo !== undefined && data) { data.undo = j.undo; updateDirty(); }
   return j;
 }
@@ -31,7 +31,7 @@ const INV_TITLES = ['Case (weapons, ammo, healing)', 'Recipes, cases, charms', '
 const itemName = (it) => userNames[it.itemId.value] || it.name;
 const catName = (c) => (c && cfg.categories[c]) || 'Other';
 
-function setButtons() { const on = !!(data && cur); for (const id of ['bRevert', 'bRestore', 'bOut', 'bGame']) $('#' + id).disabled = !on;
+function setButtons() { const on = !!(data && cur); $('#bMore').disabled = !on; for (const id of ['bRevert', 'bRestore', 'bOut', 'bGame']) $('#' + id).disabled = !on;
   $('#bCopy').disabled = !(on && /^data\d{3}Slot\.bin$/.test(cur)); updateDirty(); }
 // ---- undo (button and Ctrl+Z); a text field keeps its own Ctrl+Z
 let undoBusy = false;
@@ -41,12 +41,38 @@ async function undo() {
   try { const r = await api('undo', { name: cur }); applyFresh(r); ui.sel = null; setButtons(); render(); toast(r.nothing ? 'Nothing to undo' : 'Last change taken back' + (r.undo ? ' (' + r.undo + ' more)' : ''), 'ok'); }
   catch (e) { toast(e.message, 'err'); } finally { undoBusy = false; }
 }
+// ---- questions in the editor's own window (instead of the plain Windows box)
+// ask() resolves to the id of the pressed button, or null (Esc, a click outside). sure() is a yes/no question.
+function ask({ title, text, buttons }) {
+  return new Promise((done) => {
+    const m = document.createElement('div'); m.className = 'modal on ask';
+    const d = document.createElement('div'); d.className = 'dlg'; d.style.width = 'min(540px,100%)';
+    d.innerHTML = '<header><h3 style="margin:0">' + esc(title || 'Please confirm') + '</h3></header><div class="body"><p style="margin:0;white-space:pre-line;line-height:1.5">' + esc(text) + '</p></div>';
+    const f = document.createElement('footer'); f.append(Object.assign(document.createElement('span'), { className: 'sp' }));
+    const key = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); end(null); } };
+    const end = (v) => { document.removeEventListener('keydown', key, true); m.remove(); done(v); };
+    for (const b of buttons) { const el = document.createElement('button'); el.textContent = b.label; if (b.kind) el.className = b.kind; el.onclick = () => end(b.id); f.append(el); }
+    d.append(f); m.append(d); m.onclick = (e) => { if (e.target === m) end(null); };
+    document.addEventListener('keydown', key, true); document.body.append(m);
+    (f.querySelector('button.pri') || f.lastChild).focus();
+  });
+}
+const sure = (title, text, ok, o = {}) => ask({ title, text, buttons: [{ id: 'no', label: o.cancel || 'Cancel' }, { id: 'yes', label: ok, kind: o.danger ? 'pri danger-pri' : 'pri' }] }).then((v) => v === 'yes');
+const RUNNING = 'The game (re4.exe) is running. If it saves this slot later, it overwrites what the editor writes now.';
+
 const typing = (e) => /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable;
 const dialogOpen = () => !!document.querySelector('.modal.on');
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === 'KeyZ' && !typing(e) && !dialogOpen()) { e.preventDefault(); undo(); }
+  // Ctrl+S: Save to game (the summary of the changes is shown first, as with the button)
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') { e.preventDefault(); if (!dialogOpen() && data && cur && data.dirty) { if (typing(e)) e.target.blur(); setTimeout(() => confirmSave('game'), 50); } }
 });
 $('#bUndo').onclick = undo;
+// the "More" menu of the header: opens on click, closes on a choice, Esc or a click elsewhere
+$('#bMore').onclick = (e) => { e.stopPropagation(); $('#moreMenu').classList.toggle('on'); };
+$('#moreMenu').addEventListener('click', () => $('#moreMenu').classList.remove('on'));
+document.addEventListener('click', (e) => { if (!e.target.closest('.menuwrap')) $('#moreMenu').classList.remove('on'); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#moreMenu').classList.remove('on'); });
 
 // ---------------------------------------------------------------- files / slots
 async function loadFiles() {
@@ -69,17 +95,37 @@ function optLabel(f) {
   const saves = si && si.saves != null ? si.saves : s.saveCount;
   return [slotTitle(f.name), diff, si && si.chapter ? 'Ch. ' + si.chapter : null, si && si.playthrough > 1 ? 'New Game+' : null, saves != null ? saves + ' saves' : null, hours(s.playTime), fmt(s.ptas) + ' PTAS'].filter(Boolean).join(' · ');
 }
+// the start screen: a card for every save slot (look of the case, chapter, play time, money); a click opens it
+const SKIN_PIC = { 124176000: 'case_silver', 124177600: 'case_black', 124179200: 'case_leather', 124192000: 'case_gold', 124193600: 'case_classic' };
+function showStart() {
+  if (cur || !cfg || cfg.noSaveDir) return;
+  const slots = cfg.files.filter((f) => /Slot\.bin$/.test(f.name));
+  if (!slots.length) { view.innerHTML = '<div class="empty">No save slots in this folder yet. Save once in the game, then reopen the editor.</div>'; return; }
+  const card = (f) => {
+    const s = summaries[f.name], si = s && s.slotInfo, sw = slotNo(f.name) >= 100;
+    const line1 = s ? [s.difficultyName || (si && si.difficultyText), si && si.chapter ? 'Chapter ' + si.chapter : null, si && si.playthrough > 1 ? 'New Game+' : null].filter(Boolean).join(' · ') : 'Reading…';
+    const line2 = s ? [hours(s.playTime), (si && si.saves != null ? si.saves : s.saveCount) + ' saves', 'saved ' + new Date(f.mtime).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })].join(' · ') : '';
+    return '<button class="slotcard" data-name="' + esc(f.name) + '"><img alt="" src="icons/items/' + (SKIN_PIC[s && s.caseSkin] || 'case_silver') + '.png"><span><span class="t">' + esc(slotTitle(f.name)) + (sw ? '<small>Separate Ways</small>' : '') + '</span>' +
+      '<div class="l">' + esc(line1) + (si && si.zone ? '<br>' + esc(si.zone) : '') + '<br>' + esc(line2) + '</div>' + (s ? '<div class="m">' + fmt(s.ptas) + ' PTAS</div>' : '') + '</span></button>';
+  };
+  view.innerHTML = '<div class="starthead"><h2>Your saves</h2><span class="dim">Choose a slot to edit. Best with the game closed.</span></div><div class="slots">' + slots.map(card).join('') + '</div>';
+  view.querySelectorAll('.slotcard').forEach((b) => (b.onclick = () => openFile(b.dataset.name)));
+}
 async function loadSummaries() {
   for (const f of cfg.files.filter((x) => /Slot\.bin$/.test(x.name))) {
     try { summaries[f.name] = await api('summary', { name: f.name }); } catch { /* ignore */ }
     const o = [...$('#slot').options].find((x) => x.value === f.name); if (o) o.textContent = optLabel(f);
+    if (!cur && document.querySelector('.slots')) showStart(); // the cards fill in one by one
   }
 }
 $('#slot').onchange = (e) => {
   const to = e.target.value; if (!to) return;
   // the edits live only in the editor until they are written: opening another file drops them
-  if (data && data.dirty && cur && to !== cur && !confirm(slotTitle(cur) + ' has edits that are not saved to the game yet.\n\nOK: switch to ' + slotTitle(to) + ' and throw these edits away.\nCancel: stay here (press "Save to game" to keep them).')) { e.target.value = cur; return; }
-  openFile(to);
+  if (!(data && data.dirty && cur && to !== cur)) { openFile(to); return; }
+  e.target.value = cur;
+  ask({ title: 'Unsaved edits', text: slotTitle(cur) + ' has edits that are not saved to the game yet. If you open ' + slotTitle(to) + ' now, they are lost.', buttons: [
+    { id: 'stay', label: 'Stay here' }, { id: 'drop', label: 'Discard edits and open ' + slotTitle(to), kind: 'danger-pri' }, { id: 'save', label: 'Save first', kind: 'pri' }] })
+    .then((v) => { if (v === 'drop') openFile(to); else if (v === 'save') confirmSave('game'); });
 };
 async function openFile(name) {
   view.innerHTML = '<div class="loading"><div class="spin"></div>Decrypting…<div class="skel"></div><div class="skel"></div></div>';
@@ -184,7 +230,6 @@ function renderInventory(root) {
   top.append(chips); root.append(top);
   if (inv.index >= 4) { const n = document.createElement('p'); n.className = 'note'; n.style.marginTop = '0'; n.textContent = 'This inventory is kept by the game for another part of the story (another character or chapter); it is not the case you play with. Change it only if you know what it is.'; root.append(n); }
   if (inv.index === 0 && inv.sizes && inv.size) renderCaseBar(root, inv);
-  const mapMode = ui.view === 'map' && inv.index === 0 && !!inv.grid;
   const view3 = ui.view === '3d' && inv.index === 0 && !!inv.grid;
 
   const bar = document.createElement('div'); bar.className = 'toolbar';
@@ -202,8 +247,8 @@ function renderInventory(root) {
   root.append(bar);
 
   const holder = document.createElement('div'); root.append(holder);
-  bar.style.display = mapMode || view3 ? 'none' : '';
-  const draw = () => (view3 ? drawCase3D(holder, inv) : mapMode ? drawMap(holder, inv) : drawItems(holder, inv));
+  bar.style.display = view3 ? 'none' : '';
+  const draw = () => (view3 ? drawCase3D(holder, inv) : drawItems(holder, inv));
   q.oninput = () => { ui.q = q.value; draw(); };
   sel.onchange = () => { ui.cat = sel.value; draw(); };
   sortSel.onchange = () => { ui.sort = sortSel.value; ui.dir = 1; draw(); };
@@ -230,6 +275,14 @@ function fieldsOf(it) {
   const weapon = it.cat === 'weapon' || (it.cls === 'WeaponItem' && it.cat !== 'throw');
   const many = !!(it.count && Number(it.count.value) > 1);
   return { count: many || !['weapon', 'throw', 'heal', 'acc', 'special'].includes(it.cat), ammo: weapon && !knife, durability: (weapon && knife) || String(it.itemId.value) === BODY_ARMOR };
+}
+// things the game has only once: copies could confuse it
+const UNIQUE = ['key', 'special', 'charm'];
+// deleting asks first; a key item gets a stronger warning, because the story may need it
+function confirmDelete(it, nm) {
+  const name = nm || 'item #' + it.itemId.value;
+  if (it.cat === 'key') return sure('Delete a key item?', '"' + name + '" is a key item. The story may need it: without it a door or a puzzle may not open and you can get stuck.\n\nDelete it only if you are sure (Undo takes it back before you save).', 'Delete key item', { danger: true });
+  return sure('Delete?', 'Delete "' + name + '" from the inventory?', 'Delete', { danger: true });
 }
 function drawItems(holder, inv) {
   holder.innerHTML = '';
@@ -259,7 +312,8 @@ function drawItems(holder, inv) {
     const dup = document.createElement('button'); dup.className = 'sm icon'; dup.innerHTML = ic('copy'); dup.title = 'Create a copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: it.idx }, 'Copy created');
     const del = document.createElement('button'); del.className = 'sm icon danger'; del.innerHTML = ic('trash'); del.title = 'Delete';
-    del.onclick = () => { if (confirm('Delete "' + (nm || 'item #' + it.itemId.value) + '" from the inventory?')) structural('remove', { inv: inv.index, idx: it.idx }, 'Removed'); };
+    del.onclick = async () => { if (await confirmDelete(it, nm)) structural('remove', { inv: inv.index, idx: it.idx }, 'Removed'); };
+    if (UNIQUE.includes(it.cat)) { dup.disabled = true; dup.title = 'There is only one of these in the game: it cannot be copied'; }
     if (it.upg) {
       const ub = document.createElement('button'); ub.className = 'sm icon'; ub.title = 'Weapon upgrades'; ub.innerHTML = ic('tools');
       ub.onclick = () => { ui.upg[inv.index + ':' + it.idx] = !ui.upg[inv.index + ':' + it.idx]; render(); };
@@ -293,7 +347,7 @@ function renderQuests(root) {
   root.append(warn);
   const bar = document.createElement('div'); bar.className = 'toolbar';
   const all = document.createElement('button'); all.className = 'pri'; all.innerHTML = ic('check') + 'Complete all (except item hand-ins)';
-  all.onclick = () => { if (confirm('Mark the goals of all requests in this slot as completed?')) questDo('all'); };
+  all.onclick = async () => { if (await sure('Complete all requests?', 'Mark the goals of all requests in this slot as completed? Requests that need an item handed in are left alone.', 'Complete all')) questDo('all'); };
   bar.append(all); root.append(bar);
   const card = document.createElement('div'); card.className = 'card'; card.style.padding = '4px 10px';
   const t = document.createElement('table');
@@ -412,7 +466,7 @@ $('#wpnClose').onclick = () => $('#wpnModal').classList.remove('on');
 $('#wpnModal').onclick = (e) => { if (e.target.id === 'wpnModal') $('#wpnModal').classList.remove('on'); };
 $('#wpnGo').onclick = async () => {
   const w = wpn.sel; if (!w) return;
-  if (w.note && !confirm(w.name + '\n\n' + w.note + '\n\nAdd it anyway?')) return;
+  if (w.note && !(await sure('Add ' + w.name + '?', w.note, 'Add anyway'))) return;
   $('#wpnModal').classList.remove('on');
   if (!w.slot) { await structural('add-weapon', { lib: w.itemId }, 'Weapon added (new, no upgrades; use Full upgrade if you want)'); return; }
   await structural('add-weapon', { from: w.slot, idx: w.idx }, 'Weapon added (a copy of the one in ' + slotTitle(w.slot) + ', with its upgrades)');
@@ -480,15 +534,15 @@ async function showNode(out, id) {
 
 // ---------------------------------------------------------------- header actions
 $('#bRevert').onclick = async () => {
-  if (!confirm('Discard all unsaved edits in this file?')) return;
+  if (!(await sure('Discard edits?', 'Throw away all edits in ' + slotTitle(cur) + ' that are not saved to the game yet?', 'Discard edits', { danger: true }))) return;
   try { const r = await api('revert', { name: cur }); applyFresh(r); render(); toast('Edits discarded', 'ok'); } catch (e) { toast(e.message, 'err'); }
 };
 async function save(target, force, forceChanged) {
   try {
     toast(target === 'game' ? 'Encrypting and writing…' : 'Encrypting…');
     const r = await api('save', { name: cur, target, force, forceChanged });
-    if (r.running) { if (confirm('The game (re4.exe) is running. Your write may be overwritten by the game. Write anyway?')) return save(target, true); return; }
-    if (r.changed) { if (confirm('This slot was changed outside the editor since you opened it (the game saved it?). Writing now overwrites that change with what you see here. Write anyway?')) return save(target, force, true); return; }
+    if (r.running) { if (await sure('The game is running', RUNNING, 'Write anyway')) return save(target, true); return; }
+    if (r.changed) { if (await sure('The slot was changed', 'This slot was changed outside the editor since you opened it (the game saved it?). Writing now overwrites that change with what you see here.', 'Write anyway', { danger: true })) return save(target, force, true); return; }
     toast(target === 'game' ? 'Written to the game.\nBackup of the original: ' + r.backup : 'File saved: ' + r.path, 'ok');
     if (data) data.dirty = false; updateDirty();
     fx.saved($(target === 'game' ? '#bGame' : '#bOut'));
@@ -510,7 +564,7 @@ $('#bRestore').onclick = async () => {
       const d = document.createElement('div'); d.className = 'pick';
       d.innerHTML = '<span>' + esc(b.label) + '<br><span class="dim" style="font-size:12px">' + new Date(b.when).toLocaleString('en-US') + ' · ' + fmtSize(b.size) + '</span></span>';
       const btn = document.createElement('button'); btn.className = 'sm'; btn.innerHTML = ic('restore') + 'Restore';
-      btn.onclick = () => { if (confirm('Replace the current ' + cur + ' with this backup?')) doRestore('restore', { id: b.id }); };
+      btn.onclick = async () => { if (await sure('Restore this backup?', 'Replace ' + slotTitle(cur) + ' with this backup? The current file is saved to backup/auto/ first.', 'Restore')) doRestore('restore', { id: b.id }); };
       d.append(btn); list.append(d);
     }
   } catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
@@ -518,7 +572,7 @@ $('#bRestore').onclick = async () => {
 $('#restorePick').onclick = () => $('#restoreFile').click();
 $('#restoreFile').onchange = async (e) => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  if (!confirm('Replace the current ' + cur + ' with the file "' + f.name + '"? It must be a save of the same Steam account.')) return;
+  if (!(await sure('Restore from this file?', 'Replace ' + slotTitle(cur) + ' with the file "' + f.name + '"? It must be a save of the same Steam account. The current file is saved to backup/auto/ first.', 'Restore'))) return;
   const buf = new Uint8Array(await f.arrayBuffer()); let bin = '';
   for (let i = 0; i < buf.length; i += 32768) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 32768));
   doRestore('restore-upload', { data: btoa(bin) });
@@ -527,7 +581,7 @@ async function doRestore(route, body, force) {
   try {
     toast('Checking and restoring…');
     const r = await api(route, { name: cur, ...body, force });
-    if (r.running) { if (confirm('The game (re4.exe) is running. Replace the file anyway?')) return doRestore(route, body, true); return; }
+    if (r.running) { if (await sure('The game is running', RUNNING, 'Replace anyway')) return doRestore(route, body, true); return; }
     $('#restoreModal').classList.remove('on');
     toast('File restored.\nThe current version was saved to: ' + r.backup, 'ok');
     await loadFiles(); await openFile(cur);
@@ -536,5 +590,5 @@ async function doRestore(route, body, force) {
 
 loadFiles().finally(() => fx.ready()).then(() => {
   if (cfg.noSaveDir) { view.innerHTML = '<div class="empty">The RE4 Remake save folder was not found.<br>Create <span class="mono">app/config.json</span> and set the path in it:<br><span class="mono">{ "saveDir": "C:/Program Files (x86)/Steam/userdata/&lt;account-id&gt;/2050650/remote/win64_save" }</span></div>'; return; }
-  view.innerHTML = '<div class="empty">Choose a save slot in the list above.</div>'; loadSummaries();
+  showStart(); loadSummaries().then(() => { if (!cur) showStart(); });
 }).catch((e) => toast(e.message, 'err'));

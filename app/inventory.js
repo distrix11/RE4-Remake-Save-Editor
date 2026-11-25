@@ -664,6 +664,16 @@ function repairKnives(S) {
   }
   return { changed, unknown };
 }
+// every weapon of the case to the maximum level of every normal upgrade (the exclusive upgrades are left as they are)
+function upgradeAllWeapons(S) {
+  const m = model(S)[0]; let changed = 0;
+  for (const it of m ? m.items : []) {
+    if (it.cls !== 'WeaponItem' || !it.upg) continue;
+    if (it.upg.filter((u) => u.key !== 'excl').every((u) => Number(u.level.value) >= MAX_UPG)) continue;
+    setAllUpgrades(S, 0, it.idx, MAX_UPG); changed++;
+  }
+  return { changed };
+}
 // every ammunition and gunpowder stack of the case up to its full size (the sizes of STACK_CAP; other kinds are left alone)
 function fillStacks(S) {
   const m = model(S)[0]; let changed = 0;
@@ -848,5 +858,5 @@ module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
   CASE_DIMS, MAX_UPG, sortCase, weaponFit, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
-  moveItem, setCaseSize, repairKnives, fillStacks, setUpgrade, describeChanges, scalar, sections,
+  moveItem, setCaseSize, repairKnives, fillStacks, upgradeAllWeapons, setUpgrade, describeChanges, scalar, sections,
 };

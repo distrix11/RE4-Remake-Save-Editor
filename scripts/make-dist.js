@@ -30,7 +30,7 @@ const walk = (d, out = []) => { for (const e of fs.readdirSync(d, { withFileType
 function stageSnapshot(dir, withBat) {
   const files = run('git', ['ls-files', '-z'], { cwd: ROOT }).toString('utf8').split('\0').filter(Boolean);
   for (const f of files) {
-    if (f.startsWith('scripts/') || f.startsWith('.github/') || f.startsWith('docs/') || f === 'build.bat') continue;
+    if (f.startsWith('scripts/') || f.startsWith('.github/') || f.startsWith('docs/') || f.startsWith('tests/') || f === 'build.bat') continue;
     if (f === 'start.bat' && !withBat) continue;
     const dest = path.join(dir, f); fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(path.join(ROOT, f), dest);
   }

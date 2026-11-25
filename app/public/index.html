@@ -33,7 +33,18 @@ h1 .brand .ic{margin:0;width:18px;height:18px}
 h1 b{color:var(--green);font-weight:600}
 .sp{flex:1}
 header>button{padding:6px 10px;font-size:13px}
-header>select{max-width:560px}
+header>select{flex:1 1 240px;min-width:180px;max-width:520px;text-overflow:ellipsis}
+.menuwrap{position:relative;display:inline-flex}.menuwrap>button{padding:6px 10px;font-size:13px}
+.menu{position:absolute;right:0;top:calc(100% + 6px);display:none;flex-direction:column;gap:2px;min-width:230px;padding:6px;background:var(--panel);border:1px solid var(--line2);border-top:2px solid var(--brass);border-radius:3px;box-shadow:0 14px 30px rgba(0,0,0,.55);z-index:15}
+.menu.on{display:flex}.menu button{justify-content:flex-start;text-align:left;border-color:transparent;background:none;padding:8px 10px;font-size:13px}.menu button:hover:not(:disabled){background:rgba(169,197,138,.1)}
+/* start screen: one card per slot */
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:6px}
+.slotcard{display:flex;gap:14px;align-items:center;text-align:left;padding:14px;border:1px solid var(--line2);border-radius:4px;background:linear-gradient(160deg,rgba(169,197,138,.07),rgba(0,0,0,.15));cursor:pointer;color:var(--text);font:inherit}
+.slotcard:hover{border-color:var(--brass);background:linear-gradient(160deg,rgba(201,162,74,.14),rgba(0,0,0,.15))}
+.slotcard img{width:74px;height:56px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+.slotcard .t{font:600 16px var(--head);letter-spacing:.06em}.slotcard .t small{font:600 11px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin-left:6px}
+.slotcard .l{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.45}.slotcard .m{font:600 13px var(--mono);color:var(--brass);margin-top:4px}
+.starthead{display:flex;align-items:baseline;gap:12px;margin:4px 0 4px}.starthead h2{margin:0;font:600 15px var(--head);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
 
 /* controls */
 button,select{background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--text);border:1px solid var(--line2);border-radius:3px;padding:6px 13px;cursor:pointer;font:inherit;transition:border-color .12s,background .12s,color .12s}
@@ -123,7 +134,11 @@ td input{padding:4px 7px}
 .seg{display:inline-flex}.seg button{border-radius:0}.seg button:first-child{border-radius:3px 0 0 3px}.seg button:last-child{border-radius:0 3px 3px 0;margin-left:-1px}
 .seg button.on{border-color:var(--brass);color:var(--brass);background:linear-gradient(180deg,rgba(201,162,74,.18),rgba(201,162,74,.06));position:relative;z-index:1}
 .upg{background:rgba(0,0,0,.18)}.upg td{padding:8px 12px 10px 104px}
-.upg .ugrid{display:flex;gap:14px;flex-wrap:wrap}.upg label{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim)}.upg input{width:64px}
+.upg .ugrid{display:flex;gap:10px 22px;flex-wrap:wrap}.upg label{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim)}.upg input{width:64px}
+.upgl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim)}.pips{display:flex;align-items:center;gap:4px}
+.pip{width:22px;height:14px;padding:0;border-radius:2px;border:1px solid var(--line2);background:#0c0f09;cursor:pointer}.pip:hover{border-color:var(--brass)}
+.pip.on{background:linear-gradient(180deg,#e0c06a,#b48c34);border-color:#e0c06a}.pips button.sm.on{border-color:var(--brass);color:var(--brass)}
+button.danger-pri{border-color:#8a3b30;background:linear-gradient(180deg,#6d2b23,#4e1e18);color:#fbe2dc}button.danger-pri:hover:not(:disabled){border-color:#d24a3a;color:#fff}
 .cmap{position:relative;margin:0 auto;border:1px solid var(--line2);background-color:#0a0d08;touch-action:none;
   background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:var(--cell) var(--cell)}
 .mi{position:absolute;box-sizing:border-box;border:1px solid var(--line2);background:rgba(169,197,138,.1);display:flex;align-items:flex-start;gap:4px;padding:3px 4px;font-size:11px;line-height:1.15;overflow:hidden;cursor:grab;user-select:none;color:var(--text)}
@@ -191,11 +206,14 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
   <span id="dirty" class="dirty" hidden title="There are edits in the editor that are not in the game file yet">Unsaved</span>
   <span class="sp"></span>
   <button id="bUndo" data-ic="undo" disabled title="Take back the last change (Ctrl+Z)">Undo</button>
-  <button id="bRevert" data-ic="close" disabled title="Discard unsaved edits">Discard edits</button>
-  <button id="bRestore" data-ic="restore" disabled title="Restore the file from a backup or from your own file">Restore from backup…</button>
-  <button id="bCopy" data-ic="copy" disabled title="Copy this slot into another slot">Copy slot…</button>
-  <button id="bOut" data-ic="export" disabled title="Save the encrypted file to the output/ folder; the game is not touched">Export to output/</button>
   <button id="bGame" data-ic="save" class="pri" disabled>Save to game</button>
+  <span class="menuwrap"><button id="bMore" title="Discard edits, restore a backup, copy the slot, export" aria-haspopup="true">More ▾</button>
+    <span class="menu" id="moreMenu" role="menu">
+      <button id="bRevert" data-ic="close" disabled title="Discard unsaved edits">Discard edits</button>
+      <button id="bRestore" data-ic="restore" disabled title="Restore the file from a backup or from your own file">Restore from backup…</button>
+      <button id="bCopy" data-ic="copy" disabled title="Copy this slot into another slot">Copy slot…</button>
+      <button id="bOut" data-ic="export" disabled title="Save the encrypted file to the output/ folder; the game is not touched">Export to output/</button>
+    </span></span>
   <button id="bAbout" class="icon" title="About, license, updates" style="font-weight:700">?</button>
   <button id="bSettings" class="icon" data-ic="tools" title="Settings: save folder, backups, diagnostics"></button>
 </header>

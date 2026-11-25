@@ -18,6 +18,9 @@ jobs:
       - name: Syntax check
         shell: bash
         run: for f in app/*.js app/public/*.js scripts/*.js; do node --check "$f"; done
+      - name: Checks that need no saves
+        shell: bash
+        run: node tests/run.js
       - name: Build archives
         shell: bash
         run: node scripts/make-dist.js --ref ref --version "${GITHUB_REF_NAME#v}" --allinone yes

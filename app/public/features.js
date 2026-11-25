@@ -63,6 +63,7 @@ function renderCaseBar(root, inv) {
     quick.append(b);
   };
   act('tools', 'Repair knives', 'Full durability for the knives in the case', 'repair-knives', (r) => (r.changed ? 'Knives repaired: ' + r.changed : 'No knife needs repair') + (r.unknown ? '\nLeft as they are (full durability not known): ' + r.unknown : ''));
+  act('tools', 'Upgrade all weapons', 'Every normal upgrade of every weapon in the case to the maximum (4); the exclusive upgrades are not touched', 'upgrade-weapons', (r) => (r.changed ? 'Weapons fully upgraded: ' + r.changed : 'Every weapon is already fully upgraded'));
   act('plus', 'Fill ammo stacks', 'Fill the ammunition and gunpowder stacks of the case to their full size', 'fill-stacks', (r) => (r.changed ? 'Stacks filled: ' + r.changed : 'Nothing to fill'));
   root.append(quick);
 }
@@ -73,15 +74,22 @@ function upgRow(inv, it) {
   const td = document.createElement('td'); td.colSpan = 6;
   const g = document.createElement('div'); g.className = 'ugrid';
   for (const u of it.upg) {
-    const l = document.createElement('label'); l.append(document.createTextNode(u.label));
-    const i = document.createElement('input'); i.type = 'number'; i.min = 0; i.max = u.max || 4; i.className = 'mono'; i.value = u.level.value;
-    i.onchange = async () => {
+    const l = document.createElement('div'); l.className = 'upgl'; l.append(Object.assign(document.createElement('span'), { textContent: u.label }));
+    const steps = document.createElement('span'); steps.className = 'pips'; const now = Number(u.level.value), max = u.max || 4;
+    const set = async (level) => {
       try {
-        const r = await api('upgrade', { name: cur, inv: inv.index, idx: it.idx, key: u.key, level: i.value }); applyFresh(r); render();
+        const r = await api('upgrade', { name: cur, inv: inv.index, idx: it.idx, key: u.key, level }); applyFresh(r); render();
         if (r.exclReset) toast('The exclusive upgrade was taken away: it needs every upgrade at the maximum.', '');
-      } catch (e) { toast(e.message, 'err'); i.value = u.level.value; }
+      } catch (e) { toast(e.message, 'err'); }
     };
-    l.append(i); g.append(l);
+    if (u.key === 'excl') {
+      const b = document.createElement('button'); b.className = 'sm' + (now ? ' on' : ''); b.textContent = now ? 'Bought' : 'Not bought'; b.title = 'Click to switch. It needs every other upgrade at the maximum.';
+      b.onclick = () => set(now ? 0 : 1); steps.append(b);
+    } else {
+      for (let v = 1; v <= max; v++) { const p = document.createElement('button'); p.className = 'pip' + (v <= now ? ' on' : ''); p.title = 'Level ' + v + ' (click again to go to ' + (v - 1) + ')'; p.onclick = () => set(v === now ? v - 1 : v); steps.append(p); }
+      steps.append(Object.assign(document.createElement('span'), { className: 'mono dim', textContent: ' ' + now + '/' + max }));
+    }
+    l.append(steps); g.append(l);
   }
   const bar = document.createElement('div'); bar.className = 'toolbar'; bar.style.margin = '8px 0 0';
   const full = document.createElement('button'); full.className = 'sm'; full.innerHTML = ic('tools') + 'Full upgrade'; full.title = 'Every normal upgrade of this weapon to the maximum (4); the exclusive upgrade is not touched';
@@ -89,84 +97,8 @@ function upgRow(inv, it) {
   const reset = document.createElement('button'); reset.className = 'sm ghost'; reset.textContent = 'Reset upgrades'; reset.title = 'Every upgrade back to zero, including the exclusive one';
   reset.onclick = () => structural('upgrade-all', { inv: inv.index, idx: it.idx, level: 0 }, 'Upgrades reset');
   bar.append(full, reset);
-  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Levels 0-4 (4 = fully upgraded, as in real saves; the game resets higher values). Exclusive: 0 = not bought, 1 = bought; it needs every other upgrade at 4, so lowering one removes it. Some weapons have fewer upgrades.';
+  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Click a step to set the level (4 = fully upgraded, as in real saves; the game resets higher values); click the highest lit step again to go one lower. The exclusive upgrade needs every other upgrade at 4, so lowering one removes it. Some weapons have fewer upgrades.';
   td.append(g, bar, n); tr.append(td); return tr;
-}
-
-// ---------------------------------------------------------------- attaché case map
-const CELL = 42;
-const ovl = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-function drawMap(holder, inv) {
-  holder.innerHTML = '';
-  const [W, H] = inv.grid;
-  const card = document.createElement('div'); card.className = 'card';
-  const box = document.createElement('div'); box.className = 'cmap';
-  box.style.cssText = `width:${W * CELL}px;height:${H * CELL}px;--cell:${CELL}px`;
-  const ghost = document.createElement('div'); ghost.className = 'ghost'; ghost.hidden = true; box.append(ghost);
-  const fits = (it, x, y, fp) => x >= 0 && y >= 0 && x + fp[0] <= W && y + fp[1] <= H &&
-    !inv.items.some((o) => o !== it && o.slot && ovl({ x, y, w: fp[0], h: fp[1] }, { x: o.slot.x, y: o.slot.y, w: o.fp[0], h: o.fp[1] }));
-
-  for (const it of inv.items) {
-    if (!it.slot) continue;
-    const el = document.createElement('div');
-    el.className = 'mi c-' + (it.cat || 'other') + (ui.sel === it.idx ? ' sel' : '');
-    el.style.cssText = `left:${it.slot.x * CELL}px;top:${it.slot.y * CELL}px;width:${it.fp[0] * CELL}px;height:${it.fp[1] * CELL}px`;
-    const nm = itemName(it) || '#' + it.itemId.value;
-    el.title = `${nm}\nID ${it.itemId.value}\ncell ${it.slot.x},${it.slot.y} · ${it.fp[0]}×${it.fp[1]} (estimate)`;
-    el.innerHTML = ic(it.cat || 'box') + (it.fp[0] * it.fp[1] > 1 ? '<span class="nm">' + esc(nm) + '</span>' : '') + (it.count && Number(it.count.value) > 1 ? '<span class="cn">' + it.count.value + '</span>' : '');
-    el.onpointerdown = (e) => {
-      e.preventDefault(); el.setPointerCapture(e.pointerId);
-      const sx = e.clientX, sy = e.clientY; let moved = false;
-      const target = (ev) => [Math.round(it.slot.x + (ev.clientX - sx) / CELL), Math.round(it.slot.y + (ev.clientY - sy) / CELL)];
-      el.onpointermove = (ev) => {
-        const dx = ev.clientX - sx, dy = ev.clientY - sy;
-        if (!moved && Math.hypot(dx, dy) < 5) return;
-        moved = true; el.classList.add('drag'); el.style.transform = `translate(${dx}px,${dy}px)`;
-        const [gx, gy] = target(ev);
-        ghost.hidden = false; ghost.className = 'ghost ' + (fits(it, gx, gy, it.fp) ? 'ok' : 'bad');
-        ghost.style.cssText = `left:${gx * CELL}px;top:${gy * CELL}px;width:${it.fp[0] * CELL}px;height:${it.fp[1] * CELL}px`;
-      };
-      el.onpointerup = async (ev) => {
-        el.onpointermove = null; el.onpointerup = null; el.classList.remove('drag'); el.style.transform = ''; ghost.hidden = true;
-        if (!moved) { ui.sel = it.idx; drawMap(holder, inv); return; }
-        const [gx, gy] = target(ev);
-        if (gx === it.slot.x && gy === it.slot.y) return;
-        if (!fits(it, gx, gy, it.fp)) { toast('The item does not fit here or overlaps another one (sizes are estimates)', 'err'); return; }
-        ui.sel = it.idx;
-        await structural('move', { inv: inv.index, idx: it.idx, x: gx, y: gy }, 'Item moved');
-      };
-    };
-    box.append(el);
-  }
-  card.append(box);
-
-  const sel = inv.items.find((i) => i.idx === ui.sel && i.slot);
-  const bar = document.createElement('div'); bar.className = 'selbar';
-  if (sel) {
-    const nm = itemName(sel) || 'Item #' + sel.itemId.value;
-    const info = document.createElement('div');
-    info.innerHTML = `<div class="iname">${esc(nm)}</div><div class="dim mono" style="font-size:11px">ID ${sel.itemId.value} · cell ${sel.slot.x},${sel.slot.y} · ${sel.fp[0]}×${sel.fp[1]} (estimate)</div>`;
-    bar.append(info);
-    if (sel.count) { const l = document.createElement('label'); l.className = 'f'; l.style.width = '110px'; l.innerHTML = '<span>Count</span>'; l.append(field(sel.count, { width: '100%' })); bar.append(l); }
-    const rot = document.createElement('button'); rot.className = 'sm'; rot.innerHTML = ic('rotate') + 'Rotate';
-    rot.onclick = () => {
-      const nd = sel.dir % 2 === 1 ? 0 : 1; const nfp = [sel.fp[1], sel.fp[0]];
-      if (!fits(sel, sel.slot.x, sel.slot.y, nfp)) { toast('The rotated item does not fit here', 'err'); return; }
-      structural('move', { inv: inv.index, idx: sel.idx, x: sel.slot.x, y: sel.slot.y, dir: nd }, 'Item rotated');
-    };
-    const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
-    dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
-    const del = document.createElement('button'); del.className = 'sm danger'; del.innerHTML = ic('trash') + 'Delete';
-    del.onclick = () => { if (confirm('Delete "' + nm + '" from the case?')) { ui.sel = null; structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
-    bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), rot, dup, del);
-  } else {
-    bar.innerHTML = '<span class="dim">Click an item to select it; drag it to move it. Green outline: can be placed; red: cannot.</span>';
-  }
-  card.append(bar);
-  holder.append(card);
-  const note = document.createElement('p'); note.className = 'note';
-  note.textContent = 'Item sizes on the map are estimates: they are inferred from item positions in saves and may differ from the real ones. If items overlap in game, move them there.';
-  holder.append(note);
 }
 
 // ---------------------------------------------------------------- copy slot
@@ -182,7 +114,7 @@ $('#bCopy').onclick = async () => {
       const s = summaries[t.name];
       d.innerHTML = '<span>' + esc(slotTitle(t.name)) + '<br><span class="dim" style="font-size:12px">' + (s ? hours(s.playTime) + ' · ' + fmt(s.ptas) + ' PTAS · ' : '') + new Date(t.mtime).toLocaleString('en-US') + '</span></span>';
       const b = document.createElement('button'); b.className = 'sm'; b.innerHTML = ic('copy') + 'Replace with this';
-      b.onclick = () => { if (confirm('Replace ' + slotTitle(t.name) + ' with a copy of ' + slotTitle(cur) + '?\nThe current version of ' + slotTitle(t.name) + ' will be saved to backup/auto/.')) doCopy(t.name); };
+      b.onclick = async () => { if (await sure('Replace ' + slotTitle(t.name) + '?', 'Replace ' + slotTitle(t.name) + ' with a copy of ' + slotTitle(cur) + '? The current version of ' + slotTitle(t.name) + ' is saved to backup/auto/ first.', 'Replace ' + slotTitle(t.name), { danger: true })) doCopy(t.name); };
       d.append(b); list.append(d);
     }
   } catch (e) { list.innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
@@ -191,7 +123,7 @@ async function doCopy(to, force) {
   try {
     toast('Copying…');
     const r = await api('copy-slot', { name: cur, to, force });
-    if (r.running) { if (confirm('The game (re4.exe) is running. Replace the file anyway?')) return doCopy(to, true); return; }
+    if (r.running) { if (await sure('The game is running', RUNNING, 'Replace anyway')) return doCopy(to, true); return; }
     $('#copyModal').classList.remove('on');
     delete summaries[to];
     toast('Slot copied.\nThe previous version was saved to: ' + r.backup, 'ok');
@@ -224,7 +156,7 @@ async function pollFile() {
     el.innerHTML = ic('restore') + '<span>This slot was changed outside the editor (the game saved it?). What you see here may be out of date' + (r.dirty ? ', and writing now would overwrite that change' : '') + '.</span><span class="sp"></span>';
     const re = document.createElement('button'); re.className = 'pri sm'; re.textContent = 'Reload from disk';
     re.onclick = async () => {
-      if (data && data.dirty && !confirm('You have unsaved edits in this slot. Reloading drops them. Reload anyway?')) return;
+      if (data && data.dirty && !(await sure('Reload from disk?', 'You have unsaved edits in this slot. Reloading drops them.', 'Reload', { danger: true }))) return;
       const keep = tab; await openFile(cur); if (data && data.isSlot) { tab = keep; render(); }
       el.hidden = true;
     };

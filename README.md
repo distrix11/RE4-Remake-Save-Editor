@@ -23,7 +23,7 @@ It runs on your own computer, opens in your browser or its own window and never 
 - <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
   **add** items from a catalog of ~220 items, **duplicate**, **delete**;
-  **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; **Undo** (button or Ctrl+Z) takes back the last changes one by one.
+  **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; **Undo** (button or Ctrl+Z) takes back the last changes one by one, **Ctrl+S** saves to the game (after the summary), **Upgrade all weapons** fully upgrades the whole case, and the start screen shows a card for every slot.
 - <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
@@ -93,7 +93,7 @@ start.bat     (opens the editor in its own window)
 
 1. Start the editor (see above).
 2. Pick a slot in the drop-down list at the top, edit, then press **Save to game**. A summary of the changes is shown first.
-3. Use **Restore from backup...** to undo a write at any time.
+3. Use **More > Restore from backup...** to undo a write at any time.
 
 The save folder (`<Steam>/userdata/<account>/2050650/remote/win64_save`) is detected automatically.
 
