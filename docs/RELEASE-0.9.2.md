@@ -36,7 +36,7 @@ b4f336bb9a3fccfcaaec8de9a212f5717dc44f82893a5c5c0f9d917eec5aebff  RE4SaveEditor-
 
 Prefer not to run an `.exe`? Everything is plain JavaScript: download the source code (or `git clone`), run `build.bat` once (it needs [Node.js](https://nodejs.org) 20+ and builds the name dictionary), then double-click `start.bat`. A script-only package (`start.js`, no executables, needs Node.js 20+) is also published on Nexus Mods.
 
-**VirusTotal:** [report for this file](https://www.virustotal.com/gui/file/b4f336bb9a3fccfcaaec8de9a212f5717dc44f82893a5c5c0f9d917eec5aebff). Earlier releases were flagged by a few engines with generic machine-learning or script heuristics, typical for a small unsigned launcher. The launcher source is `launcher/Launcher.cs`, the whole editor is open source, and you can build it yourself.
+**VirusTotal:** [4 engines](https://www.virustotal.com/gui/file/b4f336bb9a3fccfcaaec8de9a212f5717dc44f82893a5c5c0f9d917eec5aebff) flag this archive (Bkav, Elastic, SentinelOne, NANO-Antivirus). These are generic machine-learning or script heuristics, typical for a small unsigned launcher; the other engines report it clean. The number can change when the file is re-scanned: the link shows the current result. The launcher source is `launcher/Launcher.cs`, the whole editor is open source, and you can build it yourself.
 
 **Windows SmartScreen** may warn about `RE4SaveEditor.exe` because it is not code-signed. The launcher is a short C# program and its full source is in `launcher/Launcher.cs`; the editor is open source (MIT). 
 
