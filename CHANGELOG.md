@@ -1,7 +1,9 @@
 # Changelog
 
 ## Unreleased (for 0.9.5)
-- New pictures for the herbs and their mixes (bunches of feathery leaves), the first aid spray, the three grenades (one shape, green, blue and red), the mines, the bolts and the explosive arrows. The leaf stays the logo of the editor.
+- New pictures for the Black Bass, the viper and the Ornate Beetle.
+- Mixed herbs are drawn as corked vials with a layer of powder per herb, as in the game.
+- New pictures for the single herbs (bunches of feathery leaves), the first aid spray, the three grenades (one shape, green, blue and red), the mines, the bolts and the explosive arrows. The leaf stays the logo of the editor.
 - New pictures for the ammunition boxes (a colour for every kind), the gunpowder tin and the two bags of resources, closer to how they look in the game.
 - The Inventory lists show the picture of every item and weapon instead of the category sign.
 - **Undo** (button and Ctrl+Z): takes back the last changes one by one, up to 30.

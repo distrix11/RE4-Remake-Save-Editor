@@ -252,7 +252,7 @@ export function makeExtra(THREE) {
   };
   B.resources_s = bag('#2c3c63', [0x8a4a28, 0x6f3a22, 0xa0603a, 0x4a3024], 11); // blue sack, rusty scrap
   B.resources_l = bag('#7d5a3a', [0xaeb4ba, 0x787f86, 0xc9a24e, 0x55595e], 29); // brown sack, gears and brass
-  // ---------- herbs: bunches of feathery sprigs on thin stems, one bunch per herb of the mix
+  // ---------- single herbs: a bunch of feathery sprigs on a thin stem (mixes are vials, further below)
   const herbModel = (colors) => () => {
     const g = new THREE.Group(); let r = 5; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
     const stemM = M(0x6e5a34, 0, 0.8);
@@ -287,11 +287,7 @@ export function makeExtra(THREE) {
     g.userData.view = [0.12, -0.15, -0.3]; return g;
   };
   const HG = 0x5f9448, HR = 0xb0392c, HY = 0xc9ae35;
-  Object.assign(B, {
-    herb_green: herbModel([HG]), herb_red: herbModel([HR]), herb_yellow: herbModel([HY]),
-    herb_gg: herbModel([HG, HG]), herb_ggg: herbModel([HG, HG, HG]), herb_gr: herbModel([HG, HR]), herb_gy: herbModel([HG, HY]), herb_ry: herbModel([HR, HY]),
-    herb_ggy: herbModel([HG, HY, HG]), herb_gry: herbModel([HG, HR, HY]),
-  });
+  Object.assign(B, { herb_green: herbModel([HG]), herb_red: herbModel([HR]), herb_yellow: herbModel([HY]) });
 
   // ---------- first aid spray: pale olive can with a white shoulder and nozzle, our own lettering
   B.first_aid_spray = () => {
@@ -376,5 +372,128 @@ export function makeExtra(THREE) {
     [[0.14, 0.1, 0], [-0.12, -0.08, 0.12], [0.02, 0.3, -0.12]].forEach(([y, dx, z]) => { const a = arrow(shaft, red, 1.7); a.rotation.y = Math.PI; place(g, a, 1.35 + dx, y, z, 0, Math.PI, y * 0.35); });
     g.userData.view = [0.3, -0.3, 2.42]; return g;
   };
+  // ---------- black bass: lofted body with painted back, side stripe and belly; head to the right
+  B.bass = () => {
+    const g = new THREE.Group(); let r = 17; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+    // x along the fish, top and bottom outline, half width
+    const prof = [[-1.9, 0.14, -0.12, 0.05], [-1.6, 0.17, -0.15, 0.08], [-1.0, 0.45, -0.36, 0.2], [-0.3, 0.68, -0.52, 0.3], [0.4, 0.66, -0.55, 0.32], [1.0, 0.47, -0.45, 0.27], [1.45, 0.3, -0.3, 0.2], [1.8, 0.13, -0.14, 0.1], [1.98, 0.02, -0.04, 0.02]];
+    const at = (x, i) => { let k = 1; while (k < prof.length - 1 && x > prof[k][0]) k++; const a = prof[k - 1], b = prof[k]; const f = Math.min(1, Math.max(0, (x - a[0]) / (b[0] - a[0]))); const e = f * f * (3 - 2 * f); return a[i] + (b[i] - a[i]) * (0.5 * f + 0.5 * e); };
+    const skin = canvasTex(1024, 512, (x) => {
+      const gr = x.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, '#2f3a1c'); gr.addColorStop(0.3, '#6d7434'); gr.addColorStop(0.55, '#a9a55c'); gr.addColorStop(0.72, '#d9d3a4'); gr.addColorStop(1, '#efeac8'); x.fillStyle = gr; x.fillRect(0, 0, 1024, 512);
+      for (let i = 0; i < 2600; i++) { x.fillStyle = rnd() < 0.5 ? 'rgba(40,48,20,.28)' : 'rgba(235,232,180,.2)'; const px = rnd() * 1024, py = rnd() * 400; x.beginPath(); x.arc(px, py, 3 + rnd() * 3, 0, 7); x.fill(); }
+      for (let i = 0; i < 70; i++) { x.fillStyle = 'rgba(33,40,16,.72)'; x.beginPath(); x.ellipse(60 + rnd() * 880, 250 + (rnd() - 0.5) * 62, 10 + rnd() * 22, 8 + rnd() * 16, rnd(), 0, 7); x.fill(); }
+    });
+    const geo = new THREE.SphereGeometry(1, 96, 64); const pos = geo.attributes.position, uv = geo.attributes.uv; const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const x = v.x * 1.94 + 0.04; const ang = Math.atan2(v.y, v.z); const top = at(x, 1), bot = at(x, 2), w = at(x, 3);
+      const y = Math.sin(ang) >= 0 ? Math.sin(ang) * top : -Math.sin(ang) * bot;
+      pos.setXYZ(i, x, y, Math.cos(ang) * w);
+      uv.setXY(i, (x + 1.9) / 3.9, 0.5 + y / 1.28);
+    }
+    geo.computeVertexNormals();
+    add(g, geo, new THREE.MeshStandardMaterial({ map: skin, roughness: 0.42, metalness: 0.15 }), 0, 0, 0);
+    const fin = M(0x6a6c35, 0.05, 0.6, { side: THREE.DoubleSide }), finDark = M(0x3e4620, 0.05, 0.6, { side: THREE.DoubleSide });
+    const flatShape = (pts, m, z = 0) => { const sh = new THREE.Shape(); pts.forEach(([x, y], i) => (i ? sh.lineTo(x, y) : sh.moveTo(x, y))); add(g, new THREE.ShapeGeometry(sh), m, 0, 0, z); };
+    flatShape([[-1.85, 0.12], [-2.55, 0.55], [-2.42, 0.1], [-2.3, 0.0], [-2.42, -0.1], [-2.55, -0.52], [-1.85, -0.1]], fin);            // tail
+    flatShape([[-0.35, 0.64], [-0.05, 0.98], [0.05, 0.8], [0.2, 1.0], [0.3, 0.8], [0.48, 0.96], [0.55, 0.77], [0.74, 0.86], [0.8, 0.52]], finDark); // spiny back fin
+    flatShape([[-1.2, 0.33], [-1.1, 0.86], [-0.75, 0.86], [-0.35, 0.63]], fin);                                                            // soft back fin
+    flatShape([[-1.15, -0.3], [-1.12, -0.68], [-0.75, -0.62], [-0.55, -0.45]], fin);                                                         // anal fin
+    flatShape([[0.45, -0.5], [0.2, -0.82], [0.62, -0.72], [0.75, -0.46]], fin, 0.16);
+    flatShape([[0.8, -0.1], [0.28, -0.2], [0.32, -0.42], [0.78, -0.26]], finDark, 0.34);                                                   // pectoral fin
+    sph(g, 0.115, M(0xd8b23c, 0.4, 0.25), 1.38, 0.1, 0.205); sph(g, 0.062, black, 1.4, 0.1, 0.3);
+    const line = (pts, m, rad) => add(g, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((q) => new THREE.Vector3(...q))), 20, rad, 6, false), m);
+    line([[1.97, -0.02, 0.02], [1.62, -0.12, 0.19], [1.22, -0.2, 0.26]], M(0x2a2a14, 0, 0.8), 0.02);                                        // mouth
+    line([[0.92, 0.36, 0.27], [0.8, 0.02, 0.31], [0.92, -0.34, 0.27]], M(0x4a4e24, 0, 0.8), 0.018);                                          // gill cover
+    g.userData.view = [0.12, -0.22, 0.06]; return g;
+  };
+
+  // ---------- viper: a coiled body with a yellow and black pattern
+  B.viper = () => {
+    const g = new THREE.Group(); let r = 23; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+    const skin = canvasTex(2048, 256, (x) => {
+      x.fillStyle = '#4a4418'; x.fillRect(0, 0, 2048, 256);
+      for (let i = 0; i < 5200; i++) { x.fillStyle = ['#b9a82e', '#8d8524', '#252009', '#d6c448'][Math.floor(rnd() * 4)]; const px = rnd() * 2048, py = rnd() * 256; x.beginPath(); x.ellipse(px, py, 7, 4, 0, 0, 7); x.fill(); }
+      for (let i = 0; i < 26; i++) { const cx = i * 80 + 30; for (const cy of [60, 196]) { x.fillStyle = 'rgba(12,10,3,.85)'; x.beginPath(); x.moveTo(cx - 34, cy); x.lineTo(cx, cy - 46); x.lineTo(cx + 34, cy); x.lineTo(cx, cy + 46); x.fill(); } }
+    });
+    skin.wrapS = skin.wrapT = THREE.RepeatWrapping;
+    const path = new THREE.CatmullRomCurve3([[-0.95, -0.85, 0.34], [-0.72, -0.3, 0.3], [-0.2, 0.55, 0.38], [0.75, 0.85, 0.3], [1.5, 0.35, 0.15], [1.15, -0.4, 0.05], [0.1, -0.55, 0], [-1.0, -0.3, 0], [-1.55, 0.2, 0.05], [-1.05, 0.62, 0.02], [0.0, 0.2, 0], [0.9, 0.05, 0], [1.75, 0.55, 0.02], [1.7, 1.05, 0.05], [2.0, 1.35, 0.08]].map((q) => new THREE.Vector3(...q)));
+    const SEG = 320, RAD = 28; const geo = new THREE.TubeGeometry(path, SEG, 1, RAD, false); const pos = geo.attributes.position;
+    for (let i = 0; i <= SEG; i++) {
+      const t = i / SEG; const c = path.getPointAt(t);
+      const rad = t < 0.03 ? 0.19 : t < 0.1 ? 0.17 + (t - 0.03) * 1.2 : t < 0.62 ? 0.255 : 0.255 * Math.max(0.08, 1 - Math.pow((t - 0.62) / 0.38, 1.4));
+      for (let j = 0; j <= RAD; j++) { const k = i * (RAD + 1) + j; const v = new THREE.Vector3().fromBufferAttribute(pos, k).sub(c).multiplyScalar(rad).add(c); pos.setXYZ(k, v.x, v.y, v.z); }
+    }
+    geo.computeVertexNormals();
+    add(g, geo, new THREE.MeshStandardMaterial({ map: skin, roughness: 0.55, metalness: 0.12 }), 0, 0, 0);
+    const headM = M(0x7a6a1e, 0.15, 0.5), dir = path.getTangentAt(0).negate(); const head = new THREE.Group();
+    sph(head, 0.25, headM, 0.14, 0, 0, 1.45, 1.05, 0.68); sph(head, 0.16, M(0x5c501a, 0.15, 0.55), 0.38, 0, 0.0, 1.2, 0.85, 0.6);
+    for (const side of [-1, 1]) { sph(head, 0.055, M(0xd8a82a, 0.4, 0.25), 0.24, side * 0.17, 0.12); sph(head, 0.026, black, 0.27, side * 0.185, 0.155); }
+    head.position.copy(path.getPointAt(0)); head.rotation.z = Math.atan2(dir.y, dir.x); g.add(head);
+    g.userData.view = [-0.55, 0.12]; return g;
+  };
+
+  // ---------- ornate beetle: blue enamel with gold ornament
+  B.ornate_beetle = () => {
+    const g = new THREE.Group(); const bronze = M(0x9a7a32, 0.85, 0.32, { emissive: 0x1c1300 });
+    const ornament = (w, h, draw) => canvasTex(w, h, (x) => {
+      x.fillStyle = '#162452'; x.fillRect(0, 0, w, h); let r = 9; for (let i = 0; i < 1400; i++) { r = (r * 16807) % 2147483647; const a = r / 2147483647; r = (r * 16807) % 2147483647; x.fillStyle = 'rgba(120,150,220,.22)'; x.fillRect(a * w, (r / 2147483647) * h, 2, 2); }
+      x.strokeStyle = '#d6a83e'; x.fillStyle = '#e8bd52'; x.lineWidth = 11; x.lineCap = 'round';
+      const curl = (cx, cy, R, from, dir) => { x.beginPath(); for (let t = 0; t <= 1.001; t += 0.03) { const a = from + dir * t * 8, rr = R * (1 - t * 0.8); const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr; t ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke(); };
+      const flower = (cx, cy, R) => { for (let i = 0; i < 7; i++) { const a = i * Math.PI * 2 / 7; x.beginPath(); x.ellipse(cx + Math.cos(a) * R * 0.62, cy + Math.sin(a) * R * 0.62, R * 0.46, R * 0.22, a, 0, 7); x.fill(); } x.fillStyle = '#fbe49a'; x.beginPath(); x.arc(cx, cy, R * 0.3, 0, 7); x.fill(); x.fillStyle = '#e8bd52'; };
+      draw(x, curl, flower);
+    });
+    const wings = ornament(512, 700, (x, curl, flower) => {
+      x.beginPath(); x.moveTo(256, 20); x.lineTo(256, 690); x.stroke();
+      for (const m of [-1, 1]) { const X = (v) => 256 + m * v;
+        x.beginPath(); x.moveTo(X(14), 150); x.bezierCurveTo(X(90), 60, X(210), 130, X(190), 260); x.bezierCurveTo(X(175), 360, X(60), 330, X(60), 420); x.bezierCurveTo(X(60), 530, X(200), 480, X(160), 590); x.stroke();
+        curl(X(150), 190, 52, m > 0 ? 3 : 0, m); curl(X(95), 330, 46, m > 0 ? 0 : 3, -m); curl(X(170), 440, 48, 1, m); curl(X(80), 560, 52, m > 0 ? 4 : 5, -m); curl(X(70), 100, 40, 2, m);
+        flower(X(150), 290, 42); flower(X(70), 485, 36); }
+      flower(256, 130, 30);
+    });
+    const collar = ornament(512, 300, (x, curl) => { for (const m of [-1, 1]) { const X = (v) => 256 + m * v; curl(X(80), 150, 70, m > 0 ? 3 : 0, m); curl(X(170), 190, 54, m > 0 ? 0 : 3, -m); x.beginPath(); x.moveTo(X(0), 40); x.bezierCurveTo(X(60), 120, X(170), 40, X(230), 150); x.stroke(); } x.beginPath(); x.moveTo(256, 30); x.lineTo(256, 270); x.stroke(); });
+    const dome = (rx, ry, rz, y, tex) => {
+      const geo = new THREE.SphereGeometry(1, 80, 56); const pos = geo.attributes.position, uv = geo.attributes.uv;
+      for (let i = 0; i < pos.count; i++) { const px = pos.getX(i), py = pos.getY(i); uv.setXY(i, 0.5 + px * 0.5, 0.5 + py * 0.5); }
+      const o = add(g, geo, new THREE.MeshStandardMaterial({ map: tex, metalness: 0.45, roughness: 0.2 }), 0, y, 0); o.scale.set(rx, ry, rz);
+      const rim = add(g, new THREE.TorusGeometry(1, 0.035, 10, 80), bronze, 0, y, 0); rim.scale.set(rx, ry, 1);
+    };
+    dome(0.98, 1.32, 0.52, -0.35, wings); dome(0.74, 0.46, 0.42, 1.12, collar);
+    sph(g, 0.3, bronze, 0, 1.68, 0.05, 1.25, 0.8, 0.8); for (const m of [-1, 1]) sph(g, 0.09, M(0x3a2c0c, 0.8, 0.25), m * 0.24, 1.78, 0.24);
+    const leg = (pts, rad) => { add(g, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((q) => new THREE.Vector3(...q)), false, 'catmullrom', 0.1), 40, rad, 10, false), bronze); pts.slice(1).forEach((q) => sph(g, rad * 1.35, bronze, ...q)); };
+    for (const m of [-1, 1]) {
+      leg([[m * 0.45, 1.2, -0.1], [m * 1.05, 1.3, -0.1], [m * 1.12, 1.8, -0.1], [m * 1.45, 2.0, -0.1]], 0.07);
+      leg([[m * 0.75, 0.25, -0.12], [m * 1.28, 0.3, -0.12], [m * 1.35, -0.22, -0.12], [m * 1.62, -0.55, -0.12]], 0.075);
+      leg([[m * 0.7, -0.75, -0.12], [m * 1.15, -1.05, -0.12], [m * 1.12, -1.6, -0.12], [m * 1.38, -2.05, -0.12]], 0.075);
+    }
+    g.userData.view = [-0.25, 0.12]; return g;
+  };
+  // ---------- mixed herbs: a corked glass vial with one layer of powder per herb (the first herb at the bottom), as in the game
+  const vialModel = (letters) => () => {
+    const g = new THREE.Group(); const colors = { g: '#8fbf3a', r: '#d9737c', y: '#e6cf3e' };
+    const total = 2.5, h = total / letters.length;
+    letters.split('').forEach((l, i) => {
+      let r = 31 + i * 7; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+      const grain = canvasTex(512, 256, (x) => {
+        x.fillStyle = colors[l]; x.fillRect(0, 0, 512, 256);
+        for (let k = 0; k < 4200; k++) { x.fillStyle = rnd() < 0.5 ? 'rgba(0,0,0,.26)' : 'rgba(255,255,255,.34)'; x.beginPath(); x.arc(rnd() * 512, rnd() * 256, 1.5 + rnd() * 3, 0, 7); x.fill(); }
+      });
+      // two layers of the same herb next to each other stay apart by their shade
+      const shade = letters.indexOf(l) < i && letters[i - 1] === l ? ((i % 2) ? 0xc4c4c4 : 0xffffff) : 0xffffff;
+      const m = new THREE.MeshStandardMaterial({ map: grain, color: shade, roughness: 0.9, metalness: 0, emissive: new THREE.Color(colors[l]).multiplyScalar(0.18) });
+      add(g, new THREE.CylinderGeometry(0.43, 0.43, h - 0.035, 48), m, 0, -total / 2 + h * i + h / 2, 0);
+    });
+    const glass = new THREE.MeshStandardMaterial({ color: 0xd9ecee, metalness: 0.2, roughness: 0.05, transparent: true, opacity: 0.2, depthWrite: false });
+    add(g, new THREE.CylinderGeometry(0.5, 0.5, total + 0.34, 48, 1, true), glass, 0, 0.14, 0);
+    add(g, lathe([[0.5, -total / 2 - 0.03], [0.46, -total / 2 - 0.14], [0.3, -total / 2 - 0.18], [0, -total / 2 - 0.19]], 48), glass);
+    add(g, lathe([[0.5, total / 2 + 0.3], [0.36, total / 2 + 0.44], [0.34, total / 2 + 0.56], [0.4, total / 2 + 0.62]], 48), glass);
+    const rim = new THREE.MeshStandardMaterial({ color: 0xcfe4e6, metalness: 0.5, roughness: 0.12, transparent: true, opacity: 0.75 });
+    for (const [y, rad] of [[total / 2 + 0.62, 0.4], [-total / 2 - 0.02, 0.5]]) add(g, new THREE.TorusGeometry(rad, 0.028, 10, 48), rim, 0, y, 0).rotation.x = Math.PI / 2;
+    box(g, 0.055, total - 0.1, 0.02, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.5, transparent: true, opacity: 0.35 }), -0.27, 0, 0.43);
+    const cork = M(0x9a6b3c, 0, 0.9);
+    cyl(g, 0.32, 0.3, cork, 0, total / 2 + 0.68, 0, 32); cyl(g, 0.37, 0.14, M(0x7d5430, 0, 0.9), 0, total / 2 + 0.86, 0, 32);
+    g.userData.view = [0.22, -0.25, -0.12]; return g;
+  };
+  for (const k of ['gg', 'ggg', 'gr', 'gy', 'ry', 'ggy', 'gry']) B['herb_' + k] = vialModel(k);
   return B;
 }
