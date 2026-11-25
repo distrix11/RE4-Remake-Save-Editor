@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.3 (pre-release)
+- The GitHub archive has no launcher `.exe` of its own any more: double-click `start.js` (Node.js is still inside). Windows Defender flagged the unsigned launcher of 0.9.1 (`Trojan:Win32/Wacatac.B!ml`, a machine-learning verdict) and a few other scanners did too. The editor itself is unchanged.
+
 ## 0.9.2 (pre-release)
 - The exclusive upgrade switch now also sets the two other values that real saves have together with that upgrade (and clears them when it is switched off). Tested in the game.
 - Fixed: opening the editor again after closing it could show a window that cannot connect to the editor (Edge handed the window to a process that was still running, and the server was stopped too early or left over). The server now notices itself that its last window is closed and stops after a few seconds; the launchers no longer decide that.

@@ -4,7 +4,7 @@
 //
 //   nexus      start.js (double-click, Windows Script Host) and no .exe, .dll, .bat, .cmd, .ps1 at all: Nexus Mods does not accept them.
 //   github     the same plus start.bat.
-//   allinone   (--allinone yes) RE4SaveEditor.exe + the official Node.js in runtime/: nothing to install and nothing to download.
+//   allinone   (--allinone yes) start.js + the official Node.js in runtime/: nothing to install and nothing to download.
 //
 // Usage: node scripts/make-dist.js [--ref <folder with rsz/rszre4.json>] [--version 0.9.0] [--allinone yes]
 const fs = require('fs');

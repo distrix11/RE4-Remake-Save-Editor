@@ -31,7 +31,7 @@ body:
     attributes:
       label: Which package are you using?
       options:
-        - GitHub all-in-one (RE4SaveEditor.exe)
+        - GitHub all-in-one (with Node.js inside)
         - Nexus Mods script package (start.js)
         - Built from source (node app/server.js or start.bat)
     validations:
