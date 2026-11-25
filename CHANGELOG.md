@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased (for 0.9.6)
+- **Grenades** (hand, heavy, flash) can be added with **Add item**.
+- Fixed the case size of the Heavy and Flash Grenade (two cells, not one): the game deleted one that stuck out of the case.
+- Buttons **Repair knives** and **Fill ammo stacks** above the case.
+- Names for most of the items that were shown as numbers (Separate Ways items, some recipes).
+- A new knife from **Add weapon…** has the durability of an unupgraded knife (it kept the durability of the knife it was copied from).
 - Merchant requests of **Separate Ways** have names, descriptions and rewards now (before: "Request without description").
 - **What's new** window: shown once when you first start a new version, with the changes and a link to GitHub. It can be opened again from the **?** dialog.
 

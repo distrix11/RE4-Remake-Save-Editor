@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const view = $('#view');
 let cfg = null, cur = null, data = null, tab = 'money';
 const ui = { inv: 0, q: '', cat: 'all', sort: 'game', dir: 1, view: 'list', sel: null, upg: {} };
-const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete']);
+const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete']); // repair-knives and fill-stacks report "dirty" only when they change something
 const LS = 'RE4_item_names';
 const userNames = (() => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch { return {}; } })();
 const summaries = {};
@@ -16,6 +16,7 @@ async function api(path, body) {
   const j = await r.json();
   if (j.error) throw new Error(j.error);
   if (DIRTY_ROUTES.has(path) && data) { data.dirty = true; updateDirty(); }
+  if ((path === 'repair-knives' || path === 'fill-stacks') && j.changed && data) data.dirty = true;
   if (j.undo !== undefined && data) { data.undo = j.undo; updateDirty(); }
   return j;
 }
@@ -302,12 +303,12 @@ $('#addClose').onclick = () => $('#addModal').classList.remove('on');
 $('#addModal').onclick = (e) => { if (e.target.id === 'addModal') $('#addModal').classList.remove('on'); };
 $('#addQ').oninput = (e) => { add.q = e.target.value; drawAdd(); };
 function drawAdd() {
-  const cats = Object.keys(cfg.categories).filter((c) => !['weapon', 'throw', 'money'].includes(c));
+  const cats = Object.keys(cfg.categories).filter((c) => !['weapon', 'money'].includes(c));
   const box = $('#addCats'); box.innerHTML = '';
   const all = document.createElement('button'); all.className = 'chip' + (add.cat === 'all' ? ' on' : ''); all.textContent = 'All'; all.onclick = () => { add.cat = 'all'; drawAdd(); }; box.append(all);
   for (const c of cats) { const b = document.createElement('button'); b.className = 'chip' + (add.cat === c ? ' on' : ''); b.innerHTML = ic(c) + esc(cfg.categories[c]); b.onclick = () => { add.cat = c; drawAdd(); }; box.append(b); }
   const ql = add.q.trim().toLowerCase();
-  const rows = Object.entries(cfg.catalog).filter(([id, v]) => !['weapon', 'throw', 'money'].includes(v.c) && (ql || add.cat === 'all' || v.c === add.cat) &&
+  const rows = Object.entries(cfg.catalog).filter(([id, v]) => !['weapon', 'money'].includes(v.c) && !v.x && (v.c !== 'throw' || / Grenade$/.test(v.n)) && (ql || add.cat === 'all' || v.c === add.cat) &&
     (!ql || (userNames[id] || v.n).toLowerCase().includes(ql) || id.includes(ql))).sort((a, b) => a[1].n.localeCompare(b[1].n));
   const list = $('#addList'); list.innerHTML = '';
   for (const [id, v] of rows) {

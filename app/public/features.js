@@ -54,6 +54,16 @@ function renderCaseBar(root, inv) {
   };
   cb.append(lab, sel, skinLab, skinSel, Object.assign(document.createElement('span'), { className: 'sp' }), seg);
   root.append(cb);
+  // quick actions on the whole case
+  const quick = document.createElement('div'); quick.className = 'toolbar';
+  const act = (icon, text, title, op, say) => {
+    const b = document.createElement('button'); b.innerHTML = ic(icon) + text; b.title = title;
+    b.onclick = async () => { try { const r = await api(op, { name: cur }); applyFresh(r); setButtons(); render(); toast(say(r), r.changed ? 'ok' : ''); } catch (e) { toast(e.message, 'err'); } };
+    quick.append(b);
+  };
+  act('tools', 'Repair knives', 'Full durability for the knives in the case', 'repair-knives', (r) => (r.changed ? 'Knives repaired: ' + r.changed : 'No knife needs repair') + (r.unknown ? '\nLeft as they are (full durability not known): ' + r.unknown : ''));
+  act('plus', 'Fill ammo stacks', 'Fill the ammunition and gunpowder stacks of the case to their full size', 'fill-stacks', (r) => (r.changed ? 'Stacks filled: ' + r.changed : 'Nothing to fill'));
+  root.append(quick);
 }
 
 // ---------------------------------------------------------------- weapon upgrades (inline row)

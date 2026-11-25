@@ -14,8 +14,8 @@ const CATEGORIES = {
 const CATALOG = {};
 for (const line of fs.readFileSync(path.join(__dirname, 'catalog.txt'), 'utf8').split(/\r?\n/)) {
   if (!line || line.startsWith('#')) continue;
-  const [id, name, cat] = line.split('|');
-  CATALOG[id] = { n: name, c: cat };
+  const [id, name, cat, flag] = line.split('|');
+  CATALOG[id] = flag === 'noadd' ? { n: name, c: cat, x: 1 } : { n: name, c: cat };
 }
 // which inventory (index in InventorySaveDatas) holds which category in the Steam version of RE4R
 const HOME = { ammo: 0, heal: 0, acc: 0, throw: 0, weapon: 0, key: 2, treasure: 3, special: 1, charm: 1 };
@@ -242,10 +242,38 @@ function setEntry(S, entry, { itemId, count, slot, newGuid }) {
   if (slot) { const si = F(S, entry, 'SlotIndex'); if (si && si.sz === 8) { S.buf.writeInt32LE(slot.x, si.off); S.buf.writeInt32LE(slot.y, si.off + 4); } }
 }
 
+// Grenades are weapon entries without upgrades, one per entry (the heavy and the flash grenade are two cells tall). A save may not hold any, so the entry comes from grenade.json.
+const GRENADES = ['277075456', '277077056', '277078656']; // hand, heavy, flash
+let GRENADE_TPL = null;
+function addGrenades(S, itemId, count) {
+  const m = model(S)[0]; if (!m || !m.grid) throw new Error('There is no attaché case in this slot');
+  if (!GRENADE_TPL) GRENADE_TPL = JSON.parse(fs.readFileSync(path.join(__dirname, 'grenade.json'), 'utf8')).tree;
+  const src = importTemplate(GRENADE_TPL);
+  const want = Math.min(count, 30); let added = 0, last = null;
+  try {
+    for (; added < want; added++) {
+      const dm = model(S)[0]; const place = weaponSpot(dm, itemId); // upright, or lying if only that fits
+      if (!place) findSpot(dm, footprint(itemId, false)); // says that there is no room
+      const { spot, dir } = place;
+      const arrNode = itemList(S, inventories(S)[0]);
+      const newId = cloneSubtree(S, src.root, arrNode.id, src);
+      arrNode.items.push(newId); arrNode.cnt += 1;
+      rebuild(S);
+      setEntry(S, lastEntry(S, 0), { itemId, count: 1, slot: spot, newGuid: true });
+      const dn = F(S, lastEntry(S, 0), 'CurrDirection'); if (dn) writeValue(S.buf, dn, String(dir));
+      last = spot;
+    }
+  } catch (e) { if (!added) throw e; throw new Error(`Added ${added} of ${want}: ${e.message}`); }
+  markObtained(S, itemId);
+  return { stacked: false, inv: 0, slot: last, added };
+}
+
 function addItem(S, { itemId, count }) {
   const info = CATALOG[String(itemId)];
   const cat = info ? info.c : null;
-  if (cat === 'weapon' || cat === 'throw') throw new Error('Weapons and throwables cannot be added yet - only items, ammo, healing, keys, treasures and charms');
+  if (GRENADES.includes(String(itemId))) return addGrenades(S, itemId, Math.max(1, Math.floor(Number(count) || 1)));
+  if (cat === 'weapon') throw new Error('Weapons are added with "Add weapon…"');
+  if (cat === 'throw') throw new Error('Eggs cannot be added yet - of the throwables only the grenades can');
   if (cat === 'money') throw new Error('Money is changed on the "Money" tab');
   const invIdx = cat ? HOME[cat] : 0;
   const m = model(S)[invIdx]; if (!m) throw new Error('There is no suitable inventory in this slot');
@@ -446,6 +474,9 @@ function addWeaponFromLibrary(dstS, itemId, separateWays) {
   const r = placeWeapon(dstS, src, src.root, itemId, cat ? cat.n : (w.name || 'Weapon ' + itemId));
   const idx = itemList(dstS, inventories(dstS)[0]).items.length - 1;
   setAllUpgrades(dstS, 0, idx, 0);
+  // the template keeps the durability of the knife it was taken from: a new one gets the durability of an unupgraded knife
+  const fresh = model(dstS)[0].items[idx]; const max = fresh && fresh.durability ? knifeMax(fresh) : null;
+  if (max) writeValue(dstS.buf, dstS.parsed.nodes[fresh.durability.id], String(max));
   return r;
 }
 // Move / rotate an item inside the attaché case (position written in place).
@@ -606,6 +637,42 @@ function setAllUpgrades(S, invIdx, idx, level) {
   if (!n) throw new Error('This weapon has no upgrades');
   const exclReset = level === 0 && dropExclusiveIfNeeded(S, w);
   return { ok: true, changed: n, exclReset };
+}
+
+// ---- quick actions --------------------------------------------------------------
+// Full durability of a knife by its durability upgrade level (0-4). Combat 2200, Fighting 1500-1800 and Boot 500 agree with real saves, the other
+// levels with the public upgrade tables. Knives that are not listed (and levels that are not known) are left alone.
+const KNIFE_MAX = {
+  '276435456': [1000, 1200, 1500, 1800, 2200], // Combat
+  '276437056': [1400, 1500, 1600, 1700, 1800], // Fighting
+  '276445056': [1600, 1800, 2000, 2200, 2400], // Primal
+  '276440256': [500], // Boot (no upgrades)
+  '278206656': { 4: 2200 }, // Tactical (Separate Ways): only the top level has been seen
+};
+function knifeMax(it) {
+  const t = KNIFE_MAX[String(it.itemId.value)]; if (!t) return null;
+  const u = (it.upg || []).find((x) => x.key === 'dura');
+  return t[u ? Number(u.level.value) : 0] || null;
+}
+function repairKnives(S) {
+  const m = model(S)[0]; let changed = 0, unknown = 0;
+  for (const it of m ? m.items : []) {
+    if (!it.durability || !it.durability.editable) continue;
+    const max = knifeMax(it);
+    if (max === null) { if (/Knife/.test(it.name || '')) unknown++; continue; }
+    if (Number(it.durability.value) < max) { writeValue(S.buf, S.parsed.nodes[it.durability.id], String(max)); changed++; }
+  }
+  return { changed, unknown };
+}
+// every ammunition and gunpowder stack of the case up to its full size (the sizes of STACK_CAP; other kinds are left alone)
+function fillStacks(S) {
+  const m = model(S)[0]; let changed = 0;
+  for (const it of m ? m.items : []) {
+    const cap = it.cat === 'ammo' ? STACK_CAP[it.name] : undefined;
+    if (!cap || !it.count || !it.count.editable || Number(it.count.value) >= cap) continue;
+    writeValue(S.buf, S.parsed.nodes[it.count.id], String(cap)); changed++;
+  }
+  return { changed };
 }
 
 // ---- change summary (before writing) ------------------------------------------
@@ -781,5 +848,5 @@ module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
   CASE_DIMS, MAX_UPG, sortCase, weaponFit, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
-  moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
+  moveItem, setCaseSize, repairKnives, fillStacks, setUpgrade, describeChanges, scalar, sections,
 };

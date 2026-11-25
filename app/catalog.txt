@@ -229,3 +229,16 @@
 127243200|Iluminados Emblem|charm
 127244800|Striker|charm
 127246400|Cute Bear|charm
+# Shown by name only ("noadd": not offered in Add item). Names from the same list and its Separate Ways addendum (elsperaguas).
+112480000|Dynamite Arrows|ammo|noadd
+114080000|Lord of the Waterway|heal|noadd
+118904000|Rocket Launcher (Special), story item|key|noadd
+120480000|Sheepskin Jacket|treasure|noadd
+123684800|Case: Carbon Fiber|special|noadd
+123686400|Case: Classic (Separate Ways)|special|noadd
+123688000|Global Treasure Map|special|noadd
+124331200|Recipe: Bolts (2)|special|noadd
+124363200|Recipe: Mixed Herb (G+G+Y) (2)|special|noadd
+124366400|Recipe: Mixed Herb (G+R+Y) (2)|special|noadd
+124368000|Recipe: Mixed Herb (G+R+Y) (3)|special|noadd
+126880000|Ada Wong (special)|special|noadd

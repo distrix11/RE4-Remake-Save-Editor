@@ -354,6 +354,8 @@ const routes = {
   'POST /api/move': async (b) => { const S = need(b.name); guard(S); INV.moveItem(S, Number(b.inv), Number(b.idx), b.x, b.y, b.dir); S.dirty = true; return fresh(S); },
   'POST /api/sort': async (b) => { const S = need(b.name); guard(S); const r = INV.sortCase(S, Number(b.inv)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/case-skin': async (b) => { const S = need(b.name); guard(S); const r = INV.setCaseSkin(S, b.skin); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/repair-knives': async (b) => { const S = need(b.name); guard(S); const r = INV.repairKnives(S); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/fill-stacks': async (b) => { const S = need(b.name); guard(S); const r = INV.fillStacks(S); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/case-size': async (b) => { const S = need(b.name); guard(S); INV.setCaseSize(S, b.level); S.dirty = true; return fresh(S); },
   'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); const r = INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/upgrade-all': async (b) => { const S = need(b.name); guard(S); const r = INV.setAllUpgrades(S, Number(b.inv), Number(b.idx), b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
@@ -565,7 +567,7 @@ const routes = {
 };
 
 // Every request that changes the open file remembers how it was before, for "Undo". A request that fails half way is rolled back.
-const UNDOABLE = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete', 'revert'].map((n) => 'POST /api/' + n));
+const UNDOABLE = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete', 'repair-knives', 'fill-stacks', 'revert'].map((n) => 'POST /api/' + n));
 const UNDO_STEPS = 30;
 async function withUndo(key, body) {
   const S = UNDOABLE.has(key) ? sessions.get(body.name) : null;
