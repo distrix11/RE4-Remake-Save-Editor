@@ -36,7 +36,7 @@ function offline() {
   // item sizes in the case (checked against the game)
   const INV = require('../app/inventory');
   const fp = JSON.parse(fs.readFileSync(path.join(ROOT, 'app', 'footprints.json'), 'utf8'));
-  for (const [id, want, name] of [['277075456', [1, 1], 'Hand Grenade'], ['277077056', [2, 1], 'Heavy Grenade'], ['277078656', [2, 1], 'Flash Grenade'], ['116003200', [1, 3], 'High-Power Scope'], ['278037056', [1, 5], 'Skull Shaker']]) {
+  for (const [id, want, name] of [['277075456', [1, 1], 'Hand Grenade'], ['277077056', [2, 1], 'Heavy Grenade'], ['277078656', [2, 1], 'Flash Grenade'], ['116003200', [1, 3], 'High-Power Scope'], ['278037056', [1, 5], 'Skull Shaker'], ['112801600', [1, 2], 'Magnum Ammo'], ['112806400', [1, 2], 'Submachine Gun Ammo'], ['117601600', [1, 2], 'Resources (L)'], ['116006400', [2, 3], 'TMP Stock'], ['114412800', [2, 1], 'Mixed Herb (G+R+Y)']]) {
     check('size of ' + name, JSON.stringify(fp[id]) === JSON.stringify(want), JSON.stringify(fp[id]));
   }
   check('catalogue has the three grenades', ['277075456', '277077056', '277078656'].every((id) => INV.CATALOG[id] && INV.CATALOG[id].c === 'throw'));
@@ -120,7 +120,7 @@ async function online() {
     }
     // merchant requests: complete, undo; restore from a backup gives the old file back; copy a slot
     const q = slots.find((f) => true);
-    let o = await api('open', { name: q }); const open1 = (x) => x.reduce((n, r) => n + r.subs.filter((s) => s.type !== 'Item' && s.completed && Number(s.completed.value) !== 1).length, 0);
+    let o = await api('open', { name: q }); const open1 = (x) => x.reduce((n, r) => n + r.subs.filter((s) => s.type === 'Flag' && s.completed && Number(s.completed.value) !== 1).length, 0);
     const before = open1(o.quests); let r = await api('quest-complete', { name: q, idx: 'all' });
     check('requests: complete all', !r.error && open1(r.quests) === 0, r.error); r = await api('undo', { name: q }); check('requests: undo', open1(r.quests) === before);
     const h1 = hash(q); await api('quest-complete', { name: q, idx: 'all' }); await api('save', { name: q, target: 'game', force: true });

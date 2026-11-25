@@ -3,6 +3,7 @@
 
 // ---------------------------------------------------------------- format warning banner
 function showWarnings(list) {
+  if (!list || !list.length) { const cb = $('#caseBanner'); if (cb && !(data && data.isSlot)) cb.hidden = true; }
   const el = $('#fmtBanner');
   if (!list || !list.length) { el.hidden = true; return; }
   el.innerHTML = ic('close') + 'Unrecognised save format. <span>' + esc(list[0]) + (list.length > 1 ? ' (+' + (list.length - 1) + ' more)' : '') +

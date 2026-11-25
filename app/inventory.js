@@ -746,13 +746,15 @@ function quests(S) {
     return { idx, id: readValue(S.buf, F(S, o, '_ID')), retry: readValue(S.buf, F(S, o, '_RemainRetryCount')), subs };
   });
 }
-// Mark the flag/event objectives of a request as completed (item hand-ins are left alone).
+// Mark the flag objectives of a request as completed. Item hand-ins and the medallion counters (GameOccurrence: the game counts the
+// medallions really destroyed and ignores a mark, checked in the game) are left alone.
+const EDITABLE_GOAL = (sub) => sub.type === 'Flag';
 function completeQuest(S, idx) {
   const list = quests(S); const targets = idx === 'all' ? list : [list[idx]];
   let changed = 0;
   for (const q of targets) {
     if (!q) throw new Error('No such request');
-    for (const sub of q.subs) if (sub.type !== 'Item' && sub.completed && Number(sub.completed.value) !== 1) {
+    for (const sub of q.subs) if (EDITABLE_GOAL(sub) && sub.completed && Number(sub.completed.value) !== 1) {
       writeValue(S.buf, S.parsed.nodes[sub.completed.id], '1'); changed++;
     }
   }

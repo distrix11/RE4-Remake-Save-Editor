@@ -61,6 +61,7 @@ function drawCase3D(holder, inv) {
   const [GW, GH] = inv.grid; const W = GH, H = GW;
   const skin = CASE_SKINS[data && data.overview && data.overview.caseSkin] || CASE_SKINS[124176000];
   const room = Math.min(860, (holder.clientWidth || 990) / 1.2 - 48); // the near edge looks about 1.2 times wider than the case
+  const clash = new Set(caseClashes().map((i) => i.idx));
   const cell = clampN(Math.floor(room / W), 22, 58), pad = 24;
   const w = W * cell + pad * 2, h = H * cell + pad * 2;
   const tilt = 34;
@@ -94,7 +95,7 @@ function drawCase3D(holder, inv) {
     const key = it.guid || it.itemId.value + ':' + it.idx;
     const nm = itemName(it) || '#' + it.itemId.value;
     const el = document.createElement('div');
-    el.className = 'i3 c-' + (it.cat || 'other') + (ui.sel === it.idx ? ' sel' : '');
+    el.className = 'i3 c-' + (it.cat || 'other') + (ui.sel === it.idx ? ' sel' : '') + (clash.has(it.idx) ? ' clash' : '');
     const sfp = [it.fp[1], it.fp[0]]; // size on screen
     const bw = sfp[0] * cell, bh = sfp[1] * cell;
     el.style.cssText = `left:${it.slot.y * cell}px;top:${it.slot.x * cell}px;width:${bw}px;height:${bh}px`;

@@ -18,6 +18,9 @@ async function confirmSave(target) {
     const box = $('#diffList'); box.innerHTML = '';
     if (!r.changes.length) box.innerHTML = '<div class="empty">' + (r.dirty ? 'There are edits in the "Advanced" tab; a detailed list is not built for them.' : 'No changes: the written file will be the same as the original.') + '</div>';
     for (const c of r.changes) { const d = document.createElement('div'); d.className = 'dchg'; d.innerHTML = ic(c.icon) + '<span>' + esc(c.text) + '</span>'; box.append(d); }
+    // the game would delete items that overlap or stick out: say so at the top
+    const bad = target === 'game' ? caseClashes() : [];
+    if (bad.length) { const d = document.createElement('div'); d.className = 'dchg warn'; d.innerHTML = ic('close') + '<span><b>The game will delete:</b> ' + esc([...new Set(bad.map((i) => itemName(i) || 'item #' + i.itemId.value))].join(', ')) + ' (they overlap or stick out of the case). Close this and press "Sort the case" first to keep them.</span>'; box.prepend(d); }
     $('#diffNote').textContent = target === 'game' ? 'The original is copied to backup/auto/ before writing.' : 'The file will be saved to the output/ folder; the game is not affected.';
     $('#diffGo').innerHTML = ic('save') + (target === 'game' ? 'Write to game' : 'Export');
     diffTarget = target; $('#diffModal').classList.add('on');

@@ -339,6 +339,14 @@ const FIELD_LIMITS = {
   _CurrentItemCount: [1, 9999, 'Count'], _CurrentAmmoCount: [0, 999, 'Ammo'], _CurrentDurability: [0, 10000, 'Durability'],
 };
 
+// the case of a slot for the start screen: its size and every item with its place (save rows x, columns y)
+function miniCase(S) {
+  try {
+    const m = INV.model(S)[0]; if (!m || !m.grid) return null;
+    return { grid: m.grid, items: m.items.filter((i) => i.slot).map((i) => ({ id: String(i.itemId.value), cat: i.cat, name: i.name, x: i.slot.x, y: i.slot.y, fp: i.fp, n: i.count ? Number(i.count.value) : 0 })) };
+  } catch { return null; }
+}
+
 const routes = {
   'POST /api/achievements': async (b) => {
     const steam = STEAM.readAchievements(cfg.saveDir);
@@ -462,7 +470,7 @@ const routes = {
     if (!/Slot.bin$/.test(b.name || '') || !SAVE_RE.test(b.name)) throw new Error('Invalid file name');
     const S = { buf: await unpackCached(b.name) }; S.parsed = parse(S.buf);
     const ov = INV.overview(S);
-    return { ptas: ov.ptas && ov.ptas.value, playTime: ov.playTime && ov.playTime.value, saveCount: ov.saveCount && ov.saveCount.value, difficulty: ov.difficulty && ov.difficulty.value, difficultyName: ov.difficultyName, slotInfo: ov.slotInfo, caseSkin: ov.caseSkin };
+    return { ptas: ov.ptas && ov.ptas.value, playTime: ov.playTime && ov.playTime.value, saveCount: ov.saveCount && ov.saveCount.value, difficulty: ov.difficulty && ov.difficulty.value, difficultyName: ov.difficultyName, slotInfo: ov.slotInfo, caseSkin: ov.caseSkin, case: miniCase(S) };
   },
   'POST /api/open': async (b) => {
     if (!SAVE_RE.test(b.name || '')) throw new Error('Invalid file name');

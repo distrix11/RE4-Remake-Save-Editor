@@ -68,6 +68,18 @@ document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') { e.preventDefault(); if (!dialogOpen() && data && cur && data.dirty) { if (typing(e)) e.target.blur(); setTimeout(() => confirmSave('game'), 50); } }
 });
 $('#bUndo').onclick = undo;
+// read the files again: the list of slots, their summaries and the open slot (after the game saved, for example)
+async function refreshAll() {
+  if (data && data.dirty && !(await sure('Read the files again?', 'You have edits that are not saved to the game. Reading the slot again drops them.', 'Read again', { danger: true }))) return;
+  for (const k of Object.keys(summaries)) delete summaries[k];
+  try {
+    await loadFiles();
+    if (cur && cfg.files.some((f) => f.name === cur)) { const keep = tab, inv = ui.inv; await openFile(cur); if (data && data.isSlot) { tab = keep; ui.inv = inv; render(); } } else { cur = null; data = null; setButtons(); showStart(); }
+    await loadSummaries(); if (!cur) showStart();
+    toast('Files read again', 'ok');
+  } catch (e) { toast(e.message, 'err'); }
+}
+$('#bRefresh').onclick = refreshAll;
 // the "More" menu of the header: opens on click, closes on a choice, Esc or a click elsewhere
 $('#bMore').onclick = (e) => { e.stopPropagation(); $('#moreMenu').classList.toggle('on'); };
 $('#moreMenu').addEventListener('click', () => $('#moreMenu').classList.remove('on'));
@@ -97,6 +109,21 @@ function optLabel(f) {
 }
 // the start screen: a card for every save slot (look of the case, chapter, play time, money); a click opens it
 const SKIN_PIC = { 124176000: 'case_silver', 124177600: 'case_black', 124179200: 'case_leather', 124192000: 'case_gold', 124193600: 'case_classic' };
+// a small open case: the save's rows run down, its columns across (as in the Case view); every item with its own picture
+function drawMiniCase(el, s) {
+  const c = s.case, [GW, GH] = c.grid; const cell = Math.floor(Math.min(150 / GH, 96 / GW));
+  const skin = (typeof CASE_SKINS !== 'undefined' && CASE_SKINS[s.caseSkin]) || { c1: '#c3cacf', c2: '#7b858c', edge: '#4f585e' };
+  el.style.cssText = 'width:' + (GH * cell + 10) + 'px;height:' + (GW * cell + 10) + 'px;--c1:' + skin.c1 + ';--c2:' + skin.c2 + ';--ce:' + skin.edge + ';--lining:' + (skin.lining || '#0c0f09') + ';--cell:' + cell + 'px';
+  const foam = document.createElement('span'); foam.className = 'minifoam'; foam.style.cssText = 'width:' + GH * cell + 'px;height:' + GW * cell + 'px'; el.append(foam);
+  for (const it of c.items) {
+    const sw = it.fp[1] * cell, sh = it.fp[0] * cell; const nm = (cfg.catalog[it.id] && cfg.catalog[it.id].n) || it.name || '';
+    const b = document.createElement('span'); b.className = 'minii'; b.style.cssText = 'left:' + it.y * cell + 'px;top:' + it.x * cell + 'px;width:' + sw + 'px;height:' + sh + 'px';
+    const art = typeof itemArt === 'function' && nm ? itemArt(nm, it.cat, [it.fp[1], it.fp[0]], it.id) : { svg: null };
+    if (art.svg && art.turn) b.innerHTML = '<span class="turned" style="width:' + (sh - 2) + 'px;height:' + (sw - 2) + 'px">' + art.svg + '</span>';
+    else if (art.svg) { b.innerHTML = art.svg; if (it.cat !== 'weapon') turnToFit(b, sw, sh); }
+    foam.append(b);
+  }
+}
 function showStart() {
   if (cur || !cfg || cfg.noSaveDir) return;
   const slots = cfg.files.filter((f) => /Slot\.bin$/.test(f.name));
@@ -105,11 +132,12 @@ function showStart() {
     const s = summaries[f.name], si = s && s.slotInfo, sw = slotNo(f.name) >= 100;
     const line1 = s ? [s.difficultyName || (si && si.difficultyText), si && si.chapter ? 'Chapter ' + si.chapter : null, si && si.playthrough > 1 ? 'New Game+' : null].filter(Boolean).join(' · ') : 'Reading…';
     const line2 = s ? [hours(s.playTime), (si && si.saves != null ? si.saves : s.saveCount) + ' saves', 'saved ' + new Date(f.mtime).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })].join(' · ') : '';
-    return '<button class="slotcard" data-name="' + esc(f.name) + '"><img alt="" src="icons/items/' + (SKIN_PIC[s && s.caseSkin] || 'case_silver') + '.png"><span><span class="t">' + esc(slotTitle(f.name)) + (sw ? '<small>Separate Ways</small>' : '') + '</span>' +
+    return '<button class="slotcard" data-name="' + esc(f.name) + '">' + (s && s.case ? '<span class="mini" data-name="' + esc(f.name) + '"></span>' : '<img alt="" src="icons/items/' + (SKIN_PIC[s && s.caseSkin] || 'case_silver') + '.png">') + '<span><span class="t">' + esc(slotTitle(f.name)) + (sw ? '<small>Separate Ways</small>' : '') + '</span>' +
       '<div class="l">' + esc(line1) + (si && si.zone ? '<br>' + esc(si.zone) : '') + '<br>' + esc(line2) + '</div>' + (s ? '<div class="m">' + fmt(s.ptas) + ' PTAS</div>' : '') + '</span></button>';
   };
   view.innerHTML = '<div class="starthead"><h2>Your saves</h2><span class="dim">Choose a slot to edit. Best with the game closed.</span></div><div class="slots">' + slots.map(card).join('') + '</div>';
   view.querySelectorAll('.slotcard').forEach((b) => (b.onclick = () => openFile(b.dataset.name)));
+  view.querySelectorAll('.slotcard .mini').forEach((el) => drawMiniCase(el, summaries[el.dataset.name]));
 }
 async function loadSummaries() {
   for (const f of cfg.files.filter((x) => /Slot\.bin$/.test(x.name))) {
@@ -152,7 +180,32 @@ function field(sc, opts = {}) {
   return i;
 }
 
+// Items of the case that overlap another one or stick out of it: the game deletes them when it loads the slot (seen in tests).
+function caseClashes() {
+  const inv = data && data.isSlot && data.inventories && data.inventories[0];
+  if (!inv || !inv.grid) return [];
+  const [W, H] = inv.grid; const items = inv.items.filter((i) => i.slot); const bad = new Set();
+  items.forEach((a, n) => {
+    if (a.slot.x < 0 || a.slot.y < 0 || a.slot.x + a.fp[0] > W || a.slot.y + a.fp[1] > H) bad.add(a);
+    for (const b of items.slice(n + 1)) if (a.slot.x < b.slot.x + b.fp[0] && b.slot.x < a.slot.x + a.fp[0] && a.slot.y < b.slot.y + b.fp[1] && b.slot.y < a.slot.y + a.fp[1]) { bad.add(a); bad.add(b); }
+  });
+  return [...bad];
+}
+function showClashes() {
+  const el = $('#caseBanner'); const bad = caseClashes();
+  if (!bad.length) { el.hidden = true; return; }
+  const names = [...new Set(bad.map((i) => itemName(i) || 'item #' + i.itemId.value))].join(', ');
+  el.innerHTML = ic('close') + '<span>In the case, <b>' + esc(names) + '</b> ' + (bad.length > 1 ? 'overlap or stick out' : 'overlaps another item or sticks out') + '. The game deletes such items when it loads the slot.</span><span class="sp"></span>';
+  const show = document.createElement('button'); show.className = 'sm'; show.textContent = 'Show';
+  show.onclick = () => { tab = 'inv'; ui.inv = 0; ui.view = '3d'; render(); };
+  const sort = document.createElement('button'); sort.className = 'pri sm'; sort.textContent = 'Sort the case';
+  sort.title = 'Packs every item into a free place (Undo takes it back)';
+  sort.onclick = () => structural('sort', { inv: 0 }, 'Case sorted: every item has its own place now');
+  el.append(show, sort); el.hidden = false;
+}
+
 function render() {
+  showClashes();
   if (!data) return;
   view.innerHTML = '';
   const list = data.isSlot ? [['money', 'Money'], ['inv', 'Inventory'], ...(data.quests && data.quests.length ? [['quests', 'Merchant requests']] : []), ...(data.treasures ? [['treasures', 'Treasures']] : []), ...(data.isSlot ? [['achievements', 'Achievements']] : []), ['tree', 'Advanced']] : [['tree', 'File data']];
@@ -343,11 +396,11 @@ function questState(q) {
 }
 function renderQuests(root) {
   const warn = document.createElement('div'); warn.className = 'card';
-  warn.innerHTML = '<h3>' + ic('quest') + 'Merchant requests <span class="tag" style="margin-left:10px">experimental</span></h3><p class="note" style="margin:0">The "Complete" button marks the request goals (kill, find, event) as completed. You then get the reward (Spinel) from the Merchant in game as usual. Requests that need an item handed in are not completed by the editor: add the item to the case on the "Inventory" tab and hand it in yourself. How the game reacts to an early mark has not been verified, so try one request on a spare slot first. Request names are not stored in the file itself: the descriptions come from guides and are matched by number. Only requests with items are identified reliably; the others are marked "probably" or "not determined".</p>';
+  warn.innerHTML = '<h3>' + ic('quest') + 'Merchant requests </h3><p class="note" style="margin:0">The "Complete" button marks the goals of a request (defeat an enemy, rats, emblems, the hive and so on) as completed; you then get the reward (Spinel) from the Merchant as usual (checked in the game). Two kinds are left to the game: <b>blue medallions</b> (the game counts the medallions you really destroyed and ignores a mark, also checked) and requests that need an <b>item handed in</b> (add the item on the "Inventory" tab and hand it in yourself). Request names are not stored in the file itself: the descriptions come from guides and are matched by number. Only requests with items are identified reliably; the others are marked "probably" or "not determined".</p>';
   root.append(warn);
   const bar = document.createElement('div'); bar.className = 'toolbar';
-  const all = document.createElement('button'); all.className = 'pri'; all.innerHTML = ic('check') + 'Complete all (except item hand-ins)';
-  all.onclick = async () => { if (await sure('Complete all requests?', 'Mark the goals of all requests in this slot as completed? Requests that need an item handed in are left alone.', 'Complete all')) questDo('all'); };
+  const all = document.createElement('button'); all.className = 'pri'; all.innerHTML = ic('check') + 'Complete all (except medallions and item hand-ins)';
+  all.onclick = async () => { if (await sure('Complete all requests?', 'Mark the goals of all requests in this slot as completed? Blue medallions and requests that need an item handed in are left to the game.', 'Complete all')) questDo('all'); };
   bar.append(all); root.append(bar);
   const card = document.createElement('div'); card.className = 'card'; card.style.padding = '4px 10px';
   const t = document.createElement('table');
@@ -359,10 +412,10 @@ function renderQuests(root) {
     const info = cfg.questInfo && cfg.questInfo[q.id];
     const goals = q.subs.map((s) => {
       const ok = s.completed && Number(s.completed.value) === 1;
-      const nm = s.type === 'Item' ? 'Bring: ' + (s.itemName || (info && info.item) || '#' + s.item) + (s.num ? ' ×' + s.num : '') : s.type === 'Flag' ? 'Goal' : 'Event';
+      const nm = s.type === 'Item' ? 'Bring: ' + (s.itemName || (info && info.item) || '#' + s.item) + (s.num ? ' ×' + s.num : '') : s.type === 'Flag' ? 'Goal' : 'In the game only';
       return `<span class="tag ${ok ? 'st-done' : ''}" style="margin:0 4px 4px 0">${ic(ok ? 'check' : 'circle')}${esc(nm)}</span>`;
     }).join('');
-    const doable = q.subs.some((s) => s.type !== 'Item' && s.completed && Number(s.completed.value) !== 1);
+    const doable = q.subs.some((s) => s.type === 'Flag' && s.completed && Number(s.completed.value) !== 1);
     const conf = info ? ({ sure: '', likely: ' <span class="tag" title="The name is inferred from goal types and progress, not read from the file">probably</span>', unknown: ' <span class="tag" title="Several requests match">not determined</span>' }[info.c] || '') : '';
     const head = info ? `<div class="iname">${esc(info.n)}${conf}</div><div class="dim" style="font-size:12px;margin:2px 0 4px">${esc(info.d)}${info.r ? ' Reward: ' + info.r + ' Spinel.' : ''}</div>` : '<div class="iname u">Request without description</div>';
     tr.innerHTML = `<td class="mono">${q.id}</td><td>${head}${goals}</td><td><span class="tag ${st === 'done' ? 'st-done' : st === 'part' ? 'st-part' : ''}">${ic(st === 'done' ? 'check' : 'circle')}${label[st]}</span></td><td class="hide-s mono">${q.retry}</td>`;

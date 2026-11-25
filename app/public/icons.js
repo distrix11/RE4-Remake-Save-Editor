@@ -34,6 +34,7 @@ const ICONS = {
   list: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
   sort: '<path d="M4 6h16M4 12h11M4 18h6"/>',
   rotate: '<path d="M20 11a8 8 0 1 0-2.300 5.700"/><path d="M20 4v7h-7"/>',
+  refresh: '<path d="M20 12a8 8 0 0 1-13.700 5.700"/><path d="M4 12a8 8 0 0 1 13.700-5.700"/><path d="M18 3v4h-4"/><path d="M6 21v-4h4"/>',
 };
 function ic(name, extra) {
   const p = ICONS[name] || ICONS.box;

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased (for 0.9.7)
+- Case sizes checked in the game: Magnum Ammo, Submachine Gun Ammo and Resources (L) take 2 cells, the TMP Stock 3×2, the mixed herb vials 1×2. Before, a new item could be put on top of them.
+- Merchant requests: **Complete** is checked in the game for the request goals (the reward is given). Blue medallion requests are left to the game: it counts the medallions really destroyed and ignores a mark.
+- Items that overlap another one or stick out of the case are shown in red, a banner names them with a **Sort the case** button, and the summary before writing warns that the game would delete them.
+- A **refresh** button (two arrows) next to the slot list reads the save files again (after the game saved, for example).
+- Start screen: every card shows a small picture of the slot's own case, with its look and the items in their places.
+
 ## 0.9.6 (pre-release)
 - **Start screen** with a card for every save slot.
 - **Grenades** can be added (hand, heavy, flash).

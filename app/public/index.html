@@ -42,6 +42,11 @@ header>select{flex:1 1 240px;min-width:180px;max-width:520px;text-overflow:ellip
 .slotcard{display:flex;gap:14px;align-items:center;text-align:left;padding:14px;border:1px solid var(--line2);border-radius:4px;background:linear-gradient(160deg,rgba(169,197,138,.07),rgba(0,0,0,.15));cursor:pointer;color:var(--text);font:inherit}
 .slotcard:hover{border-color:var(--brass);background:linear-gradient(160deg,rgba(201,162,74,.14),rgba(0,0,0,.15))}
 .slotcard img{width:74px;height:56px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+.slotcard .mini{flex:none;position:relative;box-sizing:border-box;padding:4px;border-radius:5px;border:1px solid var(--ce);background:linear-gradient(160deg,var(--c1),var(--c2));box-shadow:0 4px 8px rgba(0,0,0,.5)}
+.minifoam{position:relative;display:block;background-color:var(--lining);border-radius:2px;background-image:linear-gradient(rgba(169,197,138,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(169,197,138,.14) 1px,transparent 1px);background-size:var(--cell) var(--cell);box-shadow:inset 0 0 8px #000}
+.minii{position:absolute;box-sizing:border-box;padding:1px;overflow:hidden}.minii img,.minii svg{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.7))}.minii .stk{position:relative;width:100%;height:100%}.minii .stk.hasimg>:not(.own){visibility:hidden}.minii .stk .own{position:absolute;inset:0}
+.minii .turned{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg)}
+.slots{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}
 .slotcard .t{font:600 16px var(--head);letter-spacing:.06em}.slotcard .t small{font:600 11px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin-left:6px}
 .slotcard .l{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.45}.slotcard .m{font:600 13px var(--mono);color:var(--brass);margin-top:4px}
 .starthead{display:flex;align-items:baseline;gap:12px;margin:4px 0 4px}.starthead h2{margin:0;font:600 15px var(--head);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
@@ -193,6 +198,8 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 .i3.flying{transform-origin:0 0;opacity:.95;cursor:grabbing}.i3.flying .in{transform:scale(1.06);box-shadow:0 0 0 2px #cfe6a8,0 16px 18px -2px rgba(0,0,0,.7);background:rgba(40,52,30,.9);transition:none}
 .ghost3{position:absolute;pointer-events:none;border-radius:3px;z-index:2;transform:none}
 .ghost3[hidden]{display:none}
+.i3.clash .in{border-color:#e0574a;background:linear-gradient(160deg,rgba(210,70,55,.35),rgba(210,70,55,.12));box-shadow:0 0 0 2px #d24a3a,0 0 12px 2px rgba(210,70,55,.55)}
+.dchg.warn{color:#f0a79b}.dchg.warn .ic{color:#e0574a}
 .ghost3.ok{background:rgba(120,200,90,.28);box-shadow:0 0 0 2px #8cd05a inset}
 .ghost3.bad{background:rgba(210,70,55,.3);box-shadow:0 0 0 2px #d24a3a inset}
 </style>
@@ -203,6 +210,7 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 <header>
   <h1><span class="brand" data-ic="leaf"></span><span>RE4 <b>Save Editor</b></span></h1>
   <select id="slot" title="Save file"></select>
+  <button id="bRefresh" class="icon" data-ic="refresh" title="Read the save files again (after the game saved or another tool changed them)"></button>
   <span id="dirty" class="dirty" hidden title="There are edits in the editor that are not in the game file yet">Unsaved</span>
   <span class="sp"></span>
   <button id="bUndo" data-ic="undo" disabled title="Take back the last change (Ctrl+Z)">Undo</button>
@@ -221,6 +229,7 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 <div id="fileBanner" class="banner info" role="status" hidden></div>
 <div id="updBanner" class="banner info" role="status" hidden></div>
 <div id="fmtBanner" class="banner" role="alert" hidden></div>
+<div id="caseBanner" class="banner" role="alert" hidden></div>
 <main id="view"><div class="empty">Loading…</div></main>
 <div class="modal" id="newsModal">
   <div class="dlg">
