@@ -65,7 +65,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [*]Extract the whole zip anywhere and double-click [b]start.js[/b]. The editor opens in its own window; closing the window stops it.
 [*]Pick a slot at the top, edit, press [b]Save to game[/b]. [b]Restore from backup...[/b] undoes a write at any time.
 [/list]
-[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts. (Nexus Mods does not accept .exe files, so the executable version is only on GitHub.)[/size]
+[size=2]Windows may ask once whether to run the script (it came from the internet): choose Open / Run. If start.js opens in a text editor, right-click it, "Open with", "Microsoft Windows Based Script Host". The save folder is found automatically; use the gear button if you have several Steam accounts. (The all-in-one version is only on GitHub because it contains node.exe, and Nexus Mods does not accept .exe files.)[/size]
 
 [line]
 
