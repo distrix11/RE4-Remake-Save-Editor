@@ -326,13 +326,24 @@ function listWeapons(S) {
     upg: i.upg.map((u) => ({ key: u.key, level: Number(u.level.value) })),
   }));
 }
+// Where a weapon would go: lying as it is, or turned if only that fits (null: no room). A weapon that sticks out of the case or covers
+// another item is deleted by the game, so there is no other choice.
+function weaponSpot(dm, itemId) {
+  for (const dir of [0, 1]) { const spot = freeRect(dm, ...footprint(itemId, dir === 1)); if (spot) return { spot, dir }; }
+  return null;
+}
+// For the "Add weapon" list: does it fit this case now ('ok', 'turn' = only turned, 'none'), and how many cells it takes (across × down).
+function weaponFit(S, itemId) {
+  const dm = model(S)[0]; const fp = footprint(itemId, false);
+  const place = dm && dm.grid ? weaponSpot(dm, itemId) : null;
+  return { fit: place ? (place.dir ? 'turn' : 'ok') : 'none', size: fp[1] + '×' + fp[0], cells: [fp[1], fp[0]] };
+}
 // Puts a copy of the weapon entry node `srcNodeId` of `srcS` into the case of `dstS`: same structure (upgrade blocks, ammo, durability), a new GUID and a free cell.
 function placeWeapon(dstS, srcS, srcNodeId, itemId, name) {
   const dm = model(dstS)[0]; if (!dm || !dm.grid) throw new Error('There is no attaché case in this slot');
-  // lying as it is, or turned if only that fits; a weapon that sticks out of the case or covers another item is deleted by the game
-  let spot, dir = 0;
-  try { spot = findSpot(dm, footprint(itemId, false)); }
-  catch (e) { const turned = freeRect(dm, ...footprint(itemId, true)); if (!turned) throw e; spot = turned; dir = 1; }
+  const place = weaponSpot(dm, itemId);
+  if (!place) { const fp = footprint(itemId, false); throw new Error(`No free ${fp[1]}×${fp[0]} space in the case (item sizes are estimates). Increase the case size or free up some room.`); }
+  const { spot, dir } = place;
   const arrNode = itemList(dstS, inventories(dstS)[0]);
   const newId = cloneSubtree(dstS, srcNodeId, arrNode.id, srcS);
   arrNode.items.push(newId); arrNode.cnt += 1;
@@ -769,6 +780,6 @@ function weaponStatus(S) {
 module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
-  CASE_DIMS, MAX_UPG, sortCase, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
+  CASE_DIMS, MAX_UPG, sortCase, weaponFit, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
   moveItem, setCaseSize, setUpgrade, describeChanges, scalar, sections,
 };

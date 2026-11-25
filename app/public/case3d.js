@@ -10,6 +10,37 @@ const CASE_SKINS = {
 };
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
 
+// ---- keys for the selected item of the Case view --------------------------------
+// Save coordinates: x = row on screen, y = column on screen.
+const caseKeys = { cur: null, busy: false };
+const KEY_STEP = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+document.addEventListener('keydown', async (e) => {
+  const c = caseKeys.cur;
+  if (!c || tab !== 'inv' || ui.view !== '3d' || !document.querySelector('.foam3d') || typing(e) || dialogOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+  const it = c.inv.items.find((i) => i.idx === ui.sel && i.slot);
+  if (!it) return;
+  const step = KEY_STEP[e.key];
+  if (!step && e.code !== 'KeyR' && e.key !== 'Delete' && e.key !== 'Escape') return;
+  e.preventDefault();
+  if (caseKeys.busy) return;
+  caseKeys.busy = true;
+  try {
+    if (e.key === 'Escape') { ui.sel = null; render(); }
+    else if (e.code === 'KeyR') await c.rotate();
+    else if (e.key === 'Delete') await c.remove();
+    else { // the next free place in that direction
+      const [dx, dy] = step; const [GW, GH] = c.inv.grid;
+      for (let k = 1; k <= Math.max(GW, GH); k++) {
+        const x = it.slot.x + dx * k, y = it.slot.y + dy * k;
+        if (x < 0 || y < 0 || x + it.fp[0] > GW || y + it.fp[1] > GH) break;
+        if (!c.fits(it, x, y, it.fp)) continue;
+        await structural('move', { inv: c.inv.index, idx: it.idx, x, y }, 'Item moved');
+        break;
+      }
+    }
+  } finally { caseKeys.busy = false; }
+});
+
 function drawCase3D(holder, inv) {
   holder.innerHTML = '';
   // the game shows the case lying down: the save's rows run across the screen, its columns run down
@@ -40,6 +71,8 @@ function drawCase3D(holder, inv) {
   const ovl3 = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   const fits3 = (it, x, y, fp) => x >= 0 && y >= 0 && x + fp[0] <= GW && y + fp[1] <= GH &&
     !inv.items.some((o) => o !== it && o.slot && ovl3({ x, y, w: fp[0], h: fp[1] }, { x: o.slot.x, y: o.slot.y, w: o.fp[0], h: o.fp[1] }));
+  // what the keys act on (see the keydown handler below)
+  caseKeys.cur = { inv, fits: fits3, rotate: null, remove: null };
   const drawn = []; // for the animations (fx.js)
   for (const it of inv.items) {
     if (!it.slot) continue;
@@ -117,7 +150,7 @@ function drawCase3D(holder, inv) {
     rot.onclick = () => {
       const nd = sel.dir % 2 === 1 ? 0 : 1; const nfp = [sel.fp[1], sel.fp[0]];
       if (!fits3(sel, sel.slot.x, sel.slot.y, nfp)) { toast('The rotated item does not fit here', 'err'); return; }
-      structural('move', { inv: inv.index, idx: sel.idx, x: sel.slot.x, y: sel.slot.y, dir: nd }, 'Item rotated');
+      return structural('move', { inv: inv.index, idx: sel.idx, x: sel.slot.x, y: sel.slot.y, dir: nd }, 'Item rotated');
     };
     if (sel.upg) {
       const fu = document.createElement('button'); fu.className = 'sm'; fu.innerHTML = ic('tools') + 'Full upgrade'; fu.title = 'Every normal upgrade of this weapon to the maximum (4)';
@@ -127,8 +160,11 @@ function drawCase3D(holder, inv) {
     const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
     const del = document.createElement('button'); del.className = 'sm danger'; del.innerHTML = ic('trash') + 'Delete';
-    del.onclick = () => { if (confirm('Delete "' + nm + '" from the case?')) { ui.sel = null; structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
+    del.onclick = () => { if (confirm('Delete "' + nm + '" from the case?')) { ui.sel = null; return structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
     bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), rot, dup, del);
+    caseKeys.cur.rotate = rot.onclick; caseKeys.cur.remove = del.onclick;
+    rot.title = 'Key: R'; del.title = 'Key: Delete';
+    bar.append(Object.assign(document.createElement('div'), { className: 'dim', textContent: 'Keys: R rotate · Delete remove · arrows move (past items in the way) · Esc deselect · Ctrl+Z undo', style: 'flex-basis:100%;font-size:12px' }));
   } else bar.innerHTML = '<span class="dim">Click an item to select it; drag it to move it.</span>';
   card.append(bar);
   holder.append(card);

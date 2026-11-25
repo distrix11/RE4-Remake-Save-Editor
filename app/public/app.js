@@ -16,6 +16,7 @@ async function api(path, body) {
   const j = await r.json();
   if (j.error) throw new Error(j.error);
   if (DIRTY_ROUTES.has(path) && data) { data.dirty = true; updateDirty(); }
+  if (j.undo !== undefined && data) { data.undo = j.undo; updateDirty(); }
   return j;
 }
 let tt;
@@ -31,6 +32,20 @@ const catName = (c) => (c && cfg.categories[c]) || 'Other';
 
 function setButtons() { const on = !!(data && cur); for (const id of ['bRevert', 'bRestore', 'bOut', 'bGame']) $('#' + id).disabled = !on;
   $('#bCopy').disabled = !(on && /^data\d{3}Slot\.bin$/.test(cur)); updateDirty(); }
+// ---- undo (button and Ctrl+Z); a text field keeps its own Ctrl+Z
+let undoBusy = false;
+async function undo() {
+  if (undoBusy || !data || !cur || !data.undo) return;
+  undoBusy = true;
+  try { const r = await api('undo', { name: cur }); applyFresh(r); ui.sel = null; setButtons(); render(); toast(r.nothing ? 'Nothing to undo' : 'Last change taken back' + (r.undo ? ' (' + r.undo + ' more)' : ''), 'ok'); }
+  catch (e) { toast(e.message, 'err'); } finally { undoBusy = false; }
+}
+const typing = (e) => /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable;
+const dialogOpen = () => !!document.querySelector('.modal.on');
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === 'KeyZ' && !typing(e) && !dialogOpen()) { e.preventDefault(); undo(); }
+});
+$('#bUndo').onclick = undo;
 
 // ---------------------------------------------------------------- files / slots
 async function loadFiles() {
@@ -330,25 +345,29 @@ async function openWeapons() {
   try { wpn.lib = (await api('weapon-library', { name: cur })).weapons; wpn.list = (await api('weapon-sources', { name: cur })).weapons; drawWeapons(); }
   catch (e) { $('#wpnList').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
 }
+const FIT_TEXT = { ok: 'fits', turn: 'fits turned', none: 'no room' };
+// one line of the "Add weapon" list: picture, name, whether it fits the case now
+function weaponRow(w, name, info) {
+  const d = document.createElement('div'); d.className = 'pick wpick' + (wpn.sel === w ? ' on' : '') + (w.fit === 'none' ? ' full' : '');
+  const art = w.cells ? itemArt(w.name, 'weapon', [Math.max(...w.cells), Math.min(...w.cells)], w.itemId).svg : null;
+  d.innerHTML = '<span class="wpic">' + (art || '') + '</span><span class="wname">' + esc(name) + (w.note ? '<span class="wnote">' + esc(w.note) + '</span>' : '') + '</span>' +
+    '<span class="wmeta"><b class="fit-' + w.fit + '">' + FIT_TEXT[w.fit] + ' · ' + esc(w.size) + '</b><span class="dim mono">' + esc(info) + '</span></span>';
+  d.onclick = () => {
+    if (w.fit === 'none') { toast('No free ' + w.size + ' space in the case for ' + name + '. Free up some room (or press Sort), or choose a bigger case size.', 'err'); return; }
+    wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + name; $('#wpnGo').disabled = false; drawWeapons();
+  };
+  return d;
+}
 function drawWeapons() {
   const box = $('#wpnList'); box.innerHTML = '';
   const head = (t) => { const h = document.createElement('div'); h.className = 'dim'; h.style.cssText = 'margin:10px 2px 4px;font-weight:600'; h.textContent = t; box.append(h); };
   if ((wpn.lib || []).length) head('New weapons (no upgrades, empty magazine)');
-  for (const w of wpn.lib || []) {
-    const d = document.createElement('div'); d.className = 'pick' + (wpn.sel === w ? ' on' : '');
-    d.innerHTML = '<span class="irow"><span class="tile c-weapon">' + ic('weapon') + '</span><span>' + esc(itemName({ itemId: { value: w.itemId }, name: w.name }) || w.name) + '</span></span><span class="dim mono" style="font-size:12px">ID ' + esc(w.itemId) + '</span>' + (w.note ? '<span style="flex-basis:100%;font-size:12px;color:#ff9d2e">' + esc(w.note) + '</span>' : '');
-    if (w.note) d.style.flexWrap = 'wrap';
-    d.onclick = () => { wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + w.name; $('#wpnGo').disabled = false; drawWeapons(); };
-    box.append(d);
-  }
+  for (const w of wpn.lib || []) box.append(weaponRow(w, itemName({ itemId: { value: w.itemId }, name: w.name }) || w.name, 'ID ' + w.itemId));
   if (wpn.list.length) head('Copies from your other slots (with their upgrades)');
+  const ABBR = { fire: 'Fire', ammo: 'Cap', reload: 'Rld', rapid: 'Rpd', dura: 'Dur' };
   for (const w of wpn.list) {
-    const d = document.createElement('div'); d.className = 'pick' + (wpn.sel === w ? ' on' : '');
-    const ABBR = { fire: 'Fire', ammo: 'Cap', reload: 'Rld', rapid: 'Rpd', dura: 'Dur' };
     const up = w.upg.filter((u) => u.key !== 'excl').map((u) => (ABBR[u.key] || u.key) + ' ' + u.level).join(' · ') + (w.upg.some((u) => u.key === 'excl' && u.level) ? ' + exclusive' : '');
-    d.innerHTML = '<span class="irow"><span class="tile c-weapon">' + ic('weapon') + '</span><span>' + esc(w.name || ('Weapon #' + w.itemId)) + '</span></span><span class="dim mono" style="font-size:12px">' + esc(slotTitle(w.slot)) + ' · ' + esc(up) + '</span>';
-    d.onclick = () => { wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + (w.name || w.itemId); $('#wpnGo').disabled = false; drawWeapons(); };
-    box.append(d);
+    box.append(weaponRow(w, w.name || ('Weapon #' + w.itemId), slotTitle(w.slot) + ' · ' + up));
   }
   if (!wpn.list.length && !(wpn.lib || []).length) box.innerHTML = '<div class="empty">No weapons are available for this campaign.</div>';
 }

@@ -214,7 +214,7 @@ function readJson(req) {
     req.on('end', () => { try { resolve(s ? JSON.parse(s) : {}); } catch (e) { reject(e); } });
   });
 }
-function fresh(S) { return { overview: INV.overview(S), inventories: INV.model(S), quests: INV.quests(S), treasures: INV.treasures(S), nodes: S.parsed.nodes.length, root: S.parsed.root, dirty: S.dirty }; }
+function fresh(S) { return { overview: INV.overview(S), inventories: INV.model(S), quests: INV.quests(S), treasures: INV.treasures(S), nodes: S.parsed.nodes.length, root: S.parsed.root, dirty: S.dirty, undo: (S.undo || []).length }; }
 function need(name) {
   if (!SAVE_RE.test(name || '')) throw new Error('Invalid file name');
   const S = sessions.get(name);
@@ -445,7 +445,7 @@ const routes = {
     if (!SAVE_RE.test(b.name || '')) throw new Error('Invalid file name');
     const buf = await unpackCached(b.name);
     const parsed = parse(buf);
-    const S = { name: b.name, buf, orig: Buffer.from(buf), parsed, dirty: false, edits: {} };
+    const S = { name: b.name, buf, orig: Buffer.from(buf), parsed, dirty: false, edits: {}, undo: [] };
     S.warnings = /Slot\.bin$/.test(b.name) ? formatWarnings(S) : [];
     S.stamp = diskStamp(b.name);
     sessions.set(b.name, S);
@@ -474,6 +474,13 @@ const routes = {
     S.dirty = true;
     return { value, dirty: true };
   },
+  // one step back: the file as it was before the last change (see withUndo)
+  'POST /api/undo': async (b) => {
+    const S = need(b.name); const step = S.undo.pop();
+    if (!step) return { nothing: true, ...fresh(S) };
+    S.buf = step.buf; S.parsed = parse(S.buf); S.edits = step.edits; S.dirty = !S.buf.equals(S.orig);
+    return { ok: true, ...fresh(S) };
+  },
   'POST /api/revert': async (b) => {
     const S = need(b.name); S.buf = Buffer.from(S.orig); S.parsed = parse(S.buf); S.dirty = false; S.edits = {};
     return { ok: true, ...fresh(S) };
@@ -494,7 +501,7 @@ const routes = {
   // weapons found in the OTHER slots of the SAME campaign (as saved in the game folder): the least upgraded copy of every weapon.
   // The game removes weapons of the other campaign (a Handcannon put into a Separate Ways slot disappeared), so those are not offered.
   'POST /api/weapon-sources': async (b) => {
-    need(b.name);
+    const dst = need(b.name);
     const best = new Map();
     for (const f of fileList().map((x) => x.name).filter((n) => /^data\d+Slot\.bin$/.test(n) && n !== b.name && isSeparateWaysSlot(n) === isSeparateWaysSlot(b.name))) {
       let src; try { const buf = await unpackCached(f); src = { name: f, buf, parsed: parse(buf) }; } catch (e) { continue; }
@@ -503,10 +510,10 @@ const routes = {
         if (!old || lv < old.lv) best.set(w.itemId, { ...w, slot: f, lv });
       }
     }
-    return { weapons: [...best.values()].sort((x, y) => String(x.name || x.itemId).localeCompare(String(y.name || y.itemId))) };
+    return { weapons: [...best.values()].sort((x, y) => String(x.name || x.itemId).localeCompare(String(y.name || y.itemId))).map((w) => ({ ...w, ...INV.weaponFit(dst, w.itemId) })) };
   },
   // ready-made weapons (app/weapons.json) of the campaign of this slot
-  'POST /api/weapon-library': async (b) => { need(b.name); return { weapons: INV.libraryList(isSeparateWaysSlot(b.name)) }; },
+  'POST /api/weapon-library': async (b) => { const S = need(b.name); return { weapons: INV.libraryList(isSeparateWaysSlot(b.name)).map((w) => ({ ...w, ...INV.weaponFit(S, w.itemId) })) }; },
   'POST /api/add-weapon': async (b) => {
     const S = need(b.name); guard(S);
     if (b.lib) { const r = INV.addWeaponFromLibrary(S, String(b.lib), isSeparateWaysSlot(b.name)); S.dirty = true; return { ...r, ...fresh(S) }; }
@@ -544,6 +551,21 @@ const routes = {
   },
 };
 
+// Every request that changes the open file remembers how it was before, for "Undo". A request that fails half way is rolled back.
+const UNDOABLE = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete', 'revert'].map((n) => 'POST /api/' + n));
+const UNDO_STEPS = 30;
+async function withUndo(key, body) {
+  const S = UNDOABLE.has(key) ? sessions.get(body.name) : null;
+  if (!S) return routes[key](body);
+  const before = { buf: Buffer.from(S.buf), edits: { ...S.edits }, dirty: S.dirty };
+  let result;
+  try { result = await routes[key](body); } catch (e) {
+    if (!S.buf.equals(before.buf)) { S.buf = before.buf; S.parsed = parse(S.buf); S.edits = before.edits; S.dirty = before.dirty; }
+    throw e;
+  }
+  if (!S.buf.equals(before.buf)) { S.undo.push(before); if (S.undo.length > UNDO_STEPS) S.undo.shift(); }
+  return { ...result, undo: S.undo.length };
+}
 const NO_SAVE_OK = new Set(['POST /api/shortcut', 'POST /api/advanced-accept', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 // Every open window of the editor holds one connection to /api/live. Started by a launcher (EXIT_WITH_WINDOW), the server stops by itself a few
@@ -572,7 +594,7 @@ const server = http.createServer(async (req, res) => {
       if (!cfg.saveDir && !NO_SAVE_OK.has(key)) throw new Error('Save folder not found. Choose it in Settings (gear button) or set saveDir in app/config.json.');
       if (req.method === 'POST' && !(req.headers['content-type'] || '').startsWith('application/json')) return send(res, 415, { error: 'json only' });
       const body = req.method === 'POST' ? await readJson(req) : {};
-      return send(res, 200, await routes[key](body));
+      return send(res, 200, await withUndo(key, body));
     }
     // pictures: icons/weapons (bundled, original 3D models), icons/items (bundled, original 3D renders) and icons/user (your own, named <item id>.png)
     const im = new RegExp('^/icons/(weapons|items|user|images)/([\\w.-]+\\.(png|webp|jpg))$', 'i').exec(url.pathname);

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased (for 0.9.5)
+- **Undo** (button and Ctrl+Z): takes back the last changes one by one, up to 30.
+- Keys in the Case view for the selected item: R rotate, Delete remove, arrows move, Esc deselect.
+- **Add weapon…** shows the picture of every weapon and whether it fits the case now (fits, fits turned, no room, with the size).
 - The leaf in the header sways under the mouse and shakes when clicked.
 
 ## 0.9.4 (pre-release)

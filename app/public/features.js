@@ -5,6 +5,7 @@
 // ---------------------------------------------------------------- unsaved changes
 function updateDirty() {
   const el = $('#dirty'); if (el) el.hidden = !(data && data.dirty);
+  const u = $('#bUndo'); if (u) u.disabled = !(data && data.undo);
   const b = $('#bGame'); if (b) b.classList.toggle('pending', !!(data && data.dirty)); // "Save to game" asks for attention
 }
 window.addEventListener('beforeunload', (e) => { if (data && data.dirty) { e.preventDefault(); e.returnValue = ''; } });
