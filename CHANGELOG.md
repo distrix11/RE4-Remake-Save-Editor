@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased (for 0.9.5)
+- Fixed the case sizes of the High-Power Scope (3 cells), Red9 Stock (4) and Matilda Stock (3): they were taken as one cell, so such an item could be added on top of another.
+- New pictures for the accessories: the three scopes, the laser sight and the Red9, Matilda and TMP stocks.
 - Case view: the picture of an item turns with the item (R or Rotate), as in the game, and fills its cells better.
 - New pictures for the Black Bass, the viper and the Ornate Beetle.
 - Mixed herbs are drawn as corked vials with a layer of powder per herb, as in the game.

@@ -495,5 +495,81 @@ export function makeExtra(THREE) {
     g.userData.view = [0.22, -0.25, -0.12]; return g;
   };
   for (const k of ['gg', 'ggg', 'gr', 'gy', 'ry', 'ggy', 'gry']) B['herb_' + k] = vialModel(k);
+  const extrude2 = (g, pts, depth, m, bevel = 0.05) => { const sh = new THREE.Shape(); pts.forEach(([x, y], i) => (i ? sh.lineTo(x, y) : sh.moveTo(x, y))); sh.closePath(); const geo = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelOffset: -bevel, bevelSegments: 3 }); geo.translate(0, 0, -depth / 2); return add(g, geo, m); };
+  // ---------- accessories: scopes, laser sight and the three stocks
+  const gun1 = M(0x4b5258, 0.72, 0.38), gun2 = M(0x2c3136, 0.65, 0.45), edge = M(0x9aa2a9, 0.9, 0.3), lens = M(0x1d3f63, 0.9, 0.08, { emissive: 0x0a1c30 });
+  const xcyl = (g, r1, r2, len, m, x, y = 0, z = 0) => { const o = add(g, new THREE.CylinderGeometry(r2, r1, len, 40), m, x, y, z); o.rotation.z = -Math.PI / 2; return o; }; // r1 left, r2 right
+  const xring = (g, r, t, m, x, y = 0) => { add(g, new THREE.TorusGeometry(r, t, 10, 48), m, x, y, 0).rotation.y = Math.PI / 2; };
+  const knob = (g, x, y, z, r, h, toViewer) => { const o = cyl(g, r, h, gun2, x, y, z, 24); if (toViewer) o.rotation.x = Math.PI / 2; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; const rib = box(g, toViewer ? 0.03 : 0.035, toViewer ? 0.035 : h * 0.9, toViewer ? h * 0.9 : 0.03, edge, x + Math.cos(a) * r, toViewer ? y + Math.sin(a) * r : y, toViewer ? z : z + Math.sin(a) * r); if (toViewer) rib.rotation.z = a; else rib.rotation.y = -a; } };
+
+  // compact combat optic: short body, wide front, mount on a rail
+  B.scope = () => {
+    const g = new THREE.Group();
+    xcyl(g, 0.3, 0.3, 0.55, gun2, -1.15); xring(g, 0.31, 0.04, edge, -1.4); xcyl(g, 0.22, 0.22, 0.3, gun1, -0.75);
+    extrude2(g, [[-0.62, -0.28], [0.45, -0.32], [0.62, -0.1], [0.62, 0.22], [-0.3, 0.34], [-0.62, 0.22]], 0.55, gun1);
+    xcyl(g, 0.34, 0.46, 0.55, gun1, 0.85); xcyl(g, 0.46, 0.46, 0.35, gun2, 1.3); xring(g, 0.46, 0.045, edge, 1.47); const l = add(g, new THREE.CircleGeometry(0.38, 40), lens, 1.485, 0, 0); l.rotation.y = Math.PI / 2;
+    knob(g, -0.05, 0.46, 0, 0.19, 0.24); knob(g, 0.2, 0.02, 0.34, 0.2, 0.14, true);
+    box(g, 1.5, 0.2, 0.5, gun2, -0.05, -0.45); box(g, 1.9, 0.12, 0.34, edge, 0.0, -0.62);
+    for (let i = 0; i < 8; i++) box(g, 0.1, 0.12, 0.36, gun2, -0.8 + i * 0.23, -0.72);
+    xcyl(g, 0.035, 0.035, 1.5, edge, 0.55, -0.34, 0.26);
+    g.userData.view = [0.3, -0.4, 0]; return g;
+  };
+  // long sniper scope with two mounting rings and a turret
+  B.scope_hp = () => {
+    const g = new THREE.Group();
+    xcyl(g, 0.3, 0.3, 0.55, gun2, -2.05); xring(g, 0.31, 0.035, edge, -2.3); xcyl(g, 0.17, 0.27, 0.35, gun1, -1.62);
+    xcyl(g, 0.17, 0.17, 2.1, gun1, -0.4); xcyl(g, 0.17, 0.4, 0.9, gun1, 1.1); xcyl(g, 0.4, 0.4, 0.55, gun2, 1.8); xring(g, 0.4, 0.035, edge, 2.07);
+    const l = add(g, new THREE.CircleGeometry(0.34, 40), lens, 2.082, 0, 0); l.rotation.y = Math.PI / 2;
+    xcyl(g, 0.23, 0.23, 0.36, gun2, -0.35); knob(g, -0.35, 0.34, 0, 0.16, 0.26); knob(g, -0.35, 0, 0.32, 0.15, 0.2, true);
+    for (const x of [-1.05, 0.45]) { xring(g, 0.2, 0.06, edge, x); box(g, 0.2, 0.3, 0.2, gun2, x, -0.3); box(g, 0.42, 0.1, 0.32, edge, x, -0.47); }
+    xring(g, 0.2, 0.03, edge, -1.4);
+    g.userData.view = [0.32, -0.35, -0.06]; return g;
+  };
+  // thick thermal sight with its front cap flipped up
+  B.scope_bio = () => {
+    const g = new THREE.Group();
+    xcyl(g, 0.52, 0.52, 0.7, gun1, -0.15); xcyl(g, 0.4, 0.4, 0.4, gun2, -0.65); xring(g, 0.41, 0.045, edge, -0.84);
+    xcyl(g, 0.6, 0.6, 0.55, gun2, 0.45); xring(g, 0.6, 0.05, edge, 0.2); xring(g, 0.6, 0.05, edge, 0.72);
+    const l = add(g, new THREE.CircleGeometry(0.5, 40), M(0x5a1512, 0.7, 0.15, { emissive: 0x2a0503 }), 0.735, 0, 0); l.rotation.y = Math.PI / 2;
+    const cap = new THREE.Group(); xcyl(cap, 0.6, 0.6, 0.12, gun2, 0); xring(cap, 0.5, 0.04, edge, 0.07); cap.position.set(1.12, 0.82, 0); cap.rotation.z = 0.9; g.add(cap); box(g, 0.28, 0.14, 0.3, gun2, 0.84, 0.62);
+    box(g, 0.5, 0.2, 0.4, gun2, -0.1, 0.56); knob(g, -0.1, 0.72, 0, 0.14, 0.16); knob(g, -0.15, 0.0, 0.55, 0.2, 0.14, true);
+    box(g, 1.1, 0.28, 0.62, gun2, 0.0, -0.66); box(g, 1.4, 0.14, 0.44, edge, 0.05, -0.86);
+    g.userData.view = [0.32, -0.48, 0]; return g;
+  };
+  // small laser module with a rail clamp and the lens in front
+  B.laser = () => {
+    const g = new THREE.Group();
+    extrude2(g, [[-1.0, -0.3], [0.65, -0.34], [0.75, 0.26], [-0.75, 0.34], [-1.0, 0.12]], 0.8, gun1);
+    box(g, 1.35, 0.16, 0.56, gun2, -0.2, 0.42); box(g, 1.35, 0.1, 0.18, edge, -0.2, 0.54, 0.22); box(g, 1.35, 0.1, 0.18, edge, -0.2, 0.54, -0.22);
+    xcyl(g, 0.27, 0.27, 0.4, gun2, 0.9, -0.04); xring(g, 0.27, 0.04, edge, 1.1, -0.04); const l = add(g, new THREE.CircleGeometry(0.14, 30), M(0xd8281c, 0.2, 0.2, { emissive: 0xb01408 }), 1.12, -0.04, 0); l.rotation.y = Math.PI / 2;
+    knob(g, -0.55, -0.02, 0.42, 0.13, 0.1, true); box(g, 0.5, 0.2, 0.04, gun2, 0.1, -0.04, 0.42); sph(g, 0.05, edge, 0.28, -0.04, 0.45);
+    g.userData.view = [0.38, -0.6, 0]; return g;
+  };
+  // wooden holster stock of the broom-handle pistol: narrow neck on the left, broad butt on the right
+  B.stock_red9 = () => {
+    const g = new THREE.Group(); const w1 = M(0x7d4a26, 0.05, 0.5), w2 = M(0x5c3419, 0.05, 0.55);
+    extrude2(g, [[-2.0, 0.18], [-1.3, 0.34], [1.2, 0.62], [1.95, 0.5], [2.05, -0.42], [1.3, -0.62], [-1.35, -0.24], [-2.0, -0.12]], 0.55, w1, 0.09);
+    extrude2(g, [[-1.15, 0.12], [1.75, 0.3], [1.75, -0.3], [-1.15, -0.06]], 0.06, w2, 0.02).position.z = 0.34;
+    box(g, 0.22, 0.46, 0.64, gun1, -2.02, 0.03); box(g, 0.14, 1.0, 0.62, gun2, 2.08, 0.04);
+    sph(g, 0.09, edge, -1.55, 0.12, 0.36); sph(g, 0.08, brass, 1.55, 0.12, 0.38);
+    g.userData.view = [0.3, -0.3, -0.12]; return g;
+  };
+  // flat polymer stock of the machine pistol: it widens towards the butt and has a hook for the grip
+  B.stock_matilda = () => {
+    const g = new THREE.Group(); const body = M(0x3b4248, 0.35, 0.5), dim = M(0x272c31, 0.3, 0.55);
+    extrude2(g, [[-1.75, 0.46], [-0.95, 0.62], [-0.55, 0.28], [0.55, 0.2], [1.15, 0.3], [1.75, 0.18], [1.78, -0.22], [1.45, -0.38], [1.12, -0.2], [0.95, -0.52], [0.5, -0.62], [0.62, -0.28], [-0.6, -0.38], [-1.55, -0.55], [-1.85, -0.3]], 0.34, body, 0.07);
+    extrude2(g, [[-1.62, 0.28], [-1.05, 0.36], [-0.72, 0.04], [-1.5, -0.3], [-1.68, -0.18]], 0.05, dim, 0.015).position.z = 0.23;
+    box(g, 0.14, 0.95, 0.44, dim, -1.86, 0.06); box(g, 1.2, 0.06, 0.06, edge, 0.0, -0.06, 0.24);
+    sph(g, 0.08, edge, -1.28, 0.2, 0.28); sph(g, 0.07, edge, 1.42, 0.0, 0.24);
+    g.userData.view = [0.32, -0.35, 0.1]; return g;
+  };
+  // skeleton stock of the TMP: butt plate on the left, two struts and the connector on the right
+  B.stock_tmp = () => {
+    const g = new THREE.Group(); const body = M(0x3a4046, 0.5, 0.45);
+    extrude2(g, [[-1.75, 0.95], [-1.3, 0.98], [-1.12, 0.6], [0.35, 0.38], [0.75, 0.05], [1.5, 0.02], [1.5, -0.38], [0.62, -0.4], [0.28, -0.05], [-0.85, 0.05], [-0.5, -0.42], [1.35, -0.72], [1.3, -1.02], [-0.75, -0.7], [-1.35, -0.12], [-1.75, -0.2]], 0.3, body, 0.06);
+    box(g, 0.2, 1.3, 0.46, gun2, -1.74, 0.36); box(g, 0.55, 0.55, 0.42, gun2, 1.55, -0.18); box(g, 0.2, 0.2, 0.46, edge, 1.62, 0.16);
+    sph(g, 0.09, edge, 1.42, -0.18, 0.24); sph(g, 0.07, edge, 1.72, -0.24, 0.24);
+    g.userData.view = [0.28, -0.35, 0.05]; return g;
+  };
   return B;
 }
