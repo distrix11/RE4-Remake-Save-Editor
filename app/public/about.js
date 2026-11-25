@@ -42,3 +42,35 @@ $('#abCheck').onclick = async () => {
   } catch (e) { $('#abStatus').textContent = e.message; }
 };
 loadUpdate();
+
+// ---------------------------------------------------------------- what's new: once after every new version
+let newsShown = null; // the version of the window that is open
+function showNews(n) {
+  $('#newsVersion').textContent = 'Version ' + n.version;
+  // the changelog uses **bold** and `code`
+  $('#newsList').innerHTML = n.items.map((t) => '<li>' + esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<span class="mono">$1</span>') + '</li>').join('');
+  newsShown = n.version; $('#newsModal').classList.add('on');
+}
+function closeNews() {
+  $('#newsModal').classList.remove('on');
+  api('whatsnew-seen', {}).catch(() => {});
+}
+$('#newsClose').onclick = closeNews;
+$('#newsOk').onclick = closeNews;
+$('#newsModal').onclick = (e) => { if (e.target.id === 'newsModal') closeNews(); };
+$('#newsMore').onclick = () => { window.open(REPO_URL + '/releases/tag/v' + newsShown, '_blank', 'noopener'); closeNews(); };
+$('#abNews').onclick = async () => {
+  try {
+    const n = await api('whatsnew');
+    if (!n.items.length) { window.open(REPO_URL + '/releases', '_blank', 'noopener'); return; }
+    $('#aboutModal').classList.remove('on'); showNews(n);
+  } catch (e) { toast(e.message, 'err'); }
+};
+// at start, unless there is no save folder yet (then Settings opens first, and the notes wait for the next start)
+(async () => {
+  try {
+    const n = await api('whatsnew');
+    if (n.seen || !n.items.length || (await api('config')).noSaveDir || document.querySelector('.modal.on')) return;
+    showNews(n);
+  } catch { /* not essential */ }
+})();

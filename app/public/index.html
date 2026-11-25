@@ -113,6 +113,7 @@ td input{padding:4px 7px}
 .wpick .wname{flex:1;min-width:0}.wpick .wnote{display:block;font-size:12px;color:#ff9d2e}.wpick .wmeta{text-align:right;font-size:12px;white-space:nowrap}.wpick .wmeta b{display:block;font-weight:600}.wpick.full{opacity:.55}.fit-ok{color:var(--ok)}.fit-turn{color:var(--brass)}.fit-none{color:#f0a79b}
 .pick:hover{background:rgba(169,197,138,.08)}.pick.on{border-color:var(--green);background:rgba(169,197,138,.14)}
 .note{font-size:12px;color:var(--dim);margin:6px 0 0}
+.news{margin:0;padding-left:20px}.news li{margin:0 0 8px;line-height:1.45}
 .st-done{color:var(--ok);border-color:var(--green2)}.st-part{color:var(--warn);border-color:#7a6026}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}::-webkit-scrollbar-track{background:var(--bg2)}
 @media (max-width:760px){.hide-s{display:none}h1{font-size:15px}}
@@ -203,6 +204,16 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
 <div id="updBanner" class="banner info" role="status" hidden></div>
 <div id="fmtBanner" class="banner" role="alert" hidden></div>
 <main id="view"><div class="empty">Loading…</div></main>
+<div class="modal" id="newsModal">
+  <div class="dlg">
+    <header><h3 style="margin:0" data-ic="file">What's new</h3><span class="sp"></span><button class="sm ghost icon" id="newsClose" data-ic="close" title="Close"></button></header>
+    <div class="body">
+      <p style="margin-top:0"><b id="newsVersion"></b></p>
+      <ul class="news" id="newsList"></ul>
+    </div>
+    <footer><button id="newsMore" data-ic="export">More on GitHub</button><span class="sp"></span><button class="pri" id="newsOk">Close</button></footer>
+  </div>
+</div>
 <div class="modal" id="aboutModal">
   <div class="dlg">
     <header><h3 style="margin:0" data-ic="file">About</h3><span class="sp"></span><button class="sm ghost icon" id="aboutClose" data-ic="close" title="Close"></button></header>
@@ -216,7 +227,7 @@ div.ghost{position:absolute;pointer-events:none;border:2px dashed;z-index:5;box-
       <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
       <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="abUpd" style="width:auto"> Check for a new version on GitHub once a day</label>
       <p class="note" style="margin:6px 0 10px">Only the latest release number is requested, nothing about you or your saves is sent. Nothing is downloaded or installed automatically.</p>
-      <div class="toolbar" style="margin:0"><button id="abCheck" data-ic="restore">Check now</button><span class="dim" id="abStatus"></span></div>
+      <div class="toolbar" style="margin:0"><button id="abNews" data-ic="file">What's new</button><button id="abCheck" data-ic="restore">Check now</button><span class="dim" id="abStatus"></span></div>
     </div>
   </div>
 </div>

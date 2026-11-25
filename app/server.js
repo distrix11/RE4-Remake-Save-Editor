@@ -322,6 +322,16 @@ async function copySlot(from, to, force) {
   return { ok: true, backup: bk };
 }
 
+// the bullet points of "## <version> ..." in CHANGELOG.md; none if that version has no section
+function releaseNotes(version) {
+  let text = ''; try { text = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8'); } catch { return []; }
+  const lines = text.split(/\r?\n/); const start = lines.findIndex((l) => l === '## ' + version || l.startsWith('## ' + version + ' '));
+  if (start < 0) return [];
+  const out = [];
+  for (const l of lines.slice(start + 1)) { if (l.startsWith('## ')) break; if (l.startsWith('- ')) out.push(l.slice(2).trim()); }
+  return out;
+}
+
 const routes = {
   'POST /api/achievements': async (b) => {
     const steam = STEAM.readAchievements(cfg.saveDir);
@@ -378,6 +388,9 @@ const routes = {
     const r = b.check ? await UPD.check(VERSION, true) : (enabled ? await UPD.check(VERSION, false) : UPD.cached(VERSION));
     return { enabled, repo: UPD.REPO, ...r };
   },
+  // "What's new": the notes of this version from CHANGELOG.md, offered once (the version seen is kept in config.json)
+  'GET /api/whatsnew': async () => ({ version: VERSION, items: releaseNotes(VERSION), seen: cfg.seenVersion === VERSION }),
+  'POST /api/whatsnew-seen': async () => { cfg.seenVersion = VERSION; const conf = readJsonSafe(CFG_PATH, {}); conf.seenVersion = VERSION; fs.writeFileSync(CFG_PATH, JSON.stringify(conf, null, 2)); return { ok: true }; },
   // the one-time "Advanced is for experienced users" confirmation is remembered in config.json
   'POST /api/advanced-accept': async () => { cfg.advancedAccepted = true; const conf = readJsonSafe(CFG_PATH, {}); conf.advancedAccepted = true; fs.writeFileSync(CFG_PATH, JSON.stringify(conf, null, 2)); return { ok: true }; },
   'POST /api/update-dismiss': async (b) => { UPD.dismiss(b.version); return { ok: true }; },
@@ -566,7 +579,7 @@ async function withUndo(key, body) {
   if (!S.buf.equals(before.buf)) { S.undo.push(before); if (S.undo.length > UNDO_STEPS) S.undo.shift(); }
   return { ...result, undo: S.undo.length };
 }
-const NO_SAVE_OK = new Set(['POST /api/shortcut', 'POST /api/advanced-accept', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
+const NO_SAVE_OK = new Set(['POST /api/shortcut', 'POST /api/advanced-accept', 'GET /api/whatsnew', 'POST /api/whatsnew-seen', 'GET /api/update', 'POST /api/update', 'POST /api/update-dismiss', 'GET /api/config', 'GET /api/status', 'GET /api/settings', 'POST /api/settings', 'POST /api/browse', 'GET /api/diagnostics']);
 const MIME = { '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 // Every open window of the editor holds one connection to /api/live. Started by a launcher (EXIT_WITH_WINDOW), the server stops by itself a few
 // seconds after the last window is gone (or when none ever appears). The launcher cannot tell reliably: Edge may hand a new window to an old

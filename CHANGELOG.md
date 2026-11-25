@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased (for 0.9.6)
+- **What's new** window: shown once when you first start a new version, with the changes and a link to GitHub. It can be opened again from the **?** dialog.
+
 ## 0.9.5 (pre-release)
 - New pictures for the treasures (jewellery, statues, clocks, gold and the rest) and the red herb (a tied bunch of pink flowers), closer to how they look in the game.
 - Fixed the case sizes of the High-Power Scope (3 cells), Red9 Stock (4) and Matilda Stock (3): they were taken as one cell, so such an item could be added on top of another.
