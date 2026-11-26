@@ -1,24 +1,39 @@
 # In-game test checklist
 
 The editor can only verify that a save decrypts, parses and round-trips. Whether the game accepts an edit has to be checked in the game.
-Use a spare slot (Copy slot… in the editor) and keep Steam Cloud off while testing. Please report results in an issue.
 
-0. **Encryption changed in this build (now built in, JavaScript).** Change something small (e.g. Pesetas), save to the game, start the game and load that slot: does it load, is the change there? Do this first, with a backup.
-1. Money: set pesetas to a new value, Save to game, start the game, load the slot. Value shown?
-2. Add an item (e.g. First Aid Spray). Does it appear, usable, in the right place?
-3. Drag an item to another place in the Case view, save, load. Is the position kept, no overlap?
-3b. Press "Sort" in the Case view, save, load: are all items there, none overlapping, the layout the same as in the editor?
-3c. Change the "Case look" (for example to Leather), save, load. Is the case skin selectable in the game and does it look the same as in the editor?
-3d. **Add weapon…** (Inventory, next to Add item): take a weapon from another slot, save, load. Is it in the case, usable, with the upgrades shown in the editor? Weapons are only offered between slots of the same campaign (a Handcannon put into Separate Ways was removed by the game).
-3e. **New weapon** (first section of Add weapon…): add one, save, load the slot, then **save again in the game** (the game drops what it rejects). Check one long weapon and one in Separate Ways. A Chicago Sweeper that is not unlocked disappears.
-3f. **Exclusive upgrade**: Full upgrade, switch Exclusive on, save, load. Is the exclusive effect there (merchant, weapon stats)?
-3g. Close the editor window and start it again, several times: the window must connect every time.
-4. Case size: set a larger case, save, load. Does the case show the new size?
-5. Weapon upgrade levels: change one, load, open the weapon at the Merchant.
-6. Remove an item and a copied item: does the game load without errors?
-7. Copy slot to another slot, load it in the game.
-8. Restore from backup, load.
+**Before you start**
+- Use a spare slot (**More > Copy slot…** in the editor) and keep Steam Cloud off while testing.
+- **Close the game before every write.** If the game has saved a slot since it was started, it refuses that slot after an outside change ("incompatible save data") until it is restarted; the slot itself is fine.
+- After loading a slot in the game, **save again in the game** and load that save: the game drops what it does not accept only then.
+- Please report results in an issue, with the game version.
+
+## A. Start and safety
+1. Start with `Start RE4 Save Editor.js`; **Settings > Create desktop shortcut**; close the editor and start it again from the shortcut (icon shown, window connects). Close and start it a few more times: it must connect every time.
+2. **Money**: change Pesetas and Spinel, **Save to game** (the summary lists both), load the slot: the values are shown.
+3. **Undo**: make three changes, press Ctrl+Z three times: everything is back. Ctrl+S opens the summary.
+4. **Copy slot** to another slot, load the copy in the game.
+5. **Restore from backup** (More > Restore from backup…) after a write, load: the old state is back.
+
+## B. Attaché case
+6. **Add item** (a First Aid Spray, ammo, a grenade, an egg): each appears in the right place and can be used.
+7. **Add here**: right-click an empty place of the Case view, **Add item here…**: the item is on that place in the game.
+8. **Drag** an item to another place, **rotate** one (R), press **Sort**: positions in the game are the same as in the editor, nothing overlaps.
+9. **Delete** an item, **Copy** an item: the slot loads, both changes are there.
+10. **Case size** larger, **Case look** (for example Leather): the game shows the size and the look.
+11. **Repair knives** and **Fill ammo stacks**: knives at full durability, stacks full.
+12. **Gems**: set a gem in a socket of a treasure (Treasures list): the treasure shows it, the Merchant pays the higher price.
+
+## C. Weapons
+13. **Add weapon…**, a new weapon: one pistol, one long weapon (lying or turned), one knife; and one in Separate Ways. All there after a save in the game.
+14. **Add weapon…**, a copy from another slot of the same campaign: it keeps its upgrades.
+15. **Upgrades**: change a level, **Full upgrade**, the **Exclusive** switch; open the weapon at the Merchant: the levels and the exclusive effect are there.
+16. **Upgrade all weapons**: every weapon of the case fully upgraded at the Merchant.
+17. **Delete an equipped weapon** (the pistol in the hands, the equipped knife): the slot loads; another weapon can be equipped.
+18. **Storage**: put a weapon with a scope into the storage, take another one out to the case; at a typewriter the storage and the case match the editor. The **Elite Knife** (Separate Ways) goes into the storage and stays there.
+
+## D. Other tabs
+19. **Merchant requests**: **Complete** one request with flag goals (for example Pest Control), load, talk to the Merchant: the reward can be taken. Blue medallions are left to the game.
+20. **Treasures** and **Achievements** open without errors (read-only).
 
 Note which game version you used and whether a game update happened since the last working test.
-
-- Start with "Start RE4 Save Editor.js", press Settings > Create desktop shortcut, close the editor and start it again from the shortcut (icon shown, window connects).
