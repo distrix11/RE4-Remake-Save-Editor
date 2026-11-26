@@ -7,6 +7,7 @@
 - The **Boot Knife** can be added in Separate Ways too (the same weapon as in the main game).
 - **Four more Separate Ways weapons** in **Add weapon…**: Punisher MC, TMP, Chicago Sweeper and Rocket Launcher, with their sizes as in the game. Two of them (Punisher MC, Chicago Sweeper) had been left out after an early test; the "incompatible save data" of that test was the game's own cache.
 - Fixed: the Kitchen Knife takes 1×2 cells (it was 1×3), as in the game.
+- **Storage**: weapons go there and back **with the attachments fitted to them**, as the game does (a stored rifle and its scope are both in the storage). Attachments (scopes, stocks, the laser sight) can be moved on their own too, if they are not fitted. Other things stay out of the storage, as in the game.
 - **Equipped weapons can be deleted** (and put into the storage): their equip slot and quick slots are emptied, as the game does for quick slots. An item another item refers to (for example fitted to a weapon) is still refused.
 - **Case view**: the selected item shows its ammo and durability too, the upgrade levels, the gem sockets, and a **To storage** button: everything the list has, without searching the list.
 - **Right-click menu** on an item of the Case view: Rotate, Full upgrade, Upgrades, To storage, Copy, Delete.

@@ -135,6 +135,18 @@ async function online() {
       o = await api('open', { name: main }); if (o.error) errs.push(o.error);
       check('all weapons deleted, equipped ones too (' + n + ')', !errs.length && n > 0, errs.join('; '));
     }
+    // the storage: a weapon goes there and back with the attachment fitted to it (a slot with a rifle and a scope, if there is one)
+    for (const f of slots) {
+      let o = await api('open', { name: f }); if (!o.storage) continue;
+      const rifle = o.inventories[0].items.find((i) => i.name === 'Rifle SR M1903'); const scopes = o.inventories[0].items.filter((i) => /Scope/.test(i.name || '')).length;
+      if (!rifle || !scopes) continue;
+      let r = await api('to-storage', { name: f, idx: rifle.idx }); const inSt = r.storage ? r.storage.filter((i) => /Scope/.test(i.name || '')).length : 0;
+      const k = r.storage ? r.storage.findIndex((i) => i.name === 'Rifle SR M1903') : -1;
+      const back = k >= 0 ? await api('from-storage', { name: f, idx: k }) : { error: 'not stored' };
+      const sc2 = back.inventories ? back.inventories[0].items.filter((i) => /Scope/.test(i.name || '')).length : -1;
+      check(f + ': a rifle goes into the storage and back with its scope', !r.error && !back.error && inSt >= 1 && sc2 === scopes, r.error || back.error || inSt + ' / ' + sc2);
+      break;
+    }
     // merchant requests: complete, undo; restore from a backup gives the old file back; copy a slot
     const q = slots.find((f) => true);
     let o = await api('open', { name: q }); const open1 = (x) => x.reduce((n, r) => n + r.subs.filter((s) => s.type === 'Flag' && s.completed && Number(s.completed.value) !== 1).length, 0);

@@ -199,8 +199,8 @@ function drawCase3D(holder, inv) {
     const key = inv.index + ':' + sel.idx;
     const ub = sel.upg ? document.createElement('button') : null;
     if (ub) { ub.className = 'sm' + (ui.upg[key] ? ' on' : ''); ub.innerHTML = ic('tools') + 'Upgrades'; ub.title = 'Set every upgrade of this weapon'; ub.onclick = () => { ui.upg[key] = !ui.upg[key]; render(); }; }
-    const sb = inv.index === 0 && sel.cls === 'WeaponItem' && sel.cat !== 'throw' && data.storage ? document.createElement('button') : null;
-    if (sb) { sb.className = 'sm'; sb.innerHTML = ic('export') + 'To storage'; sb.title = 'Put this weapon into the storage'; sb.onclick = () => { ui.sel = null; return structural('to-storage', { idx: sel.idx }, nm + ' is in the storage now'); }; }
+    const sb = inv.index === 0 && canStore(sel) && data.storage ? document.createElement('button') : null;
+    if (sb) { sb.className = 'sm'; sb.innerHTML = ic('export') + 'To storage'; sb.title = 'Put it into the storage (a weapon goes with the attachments fitted to it)'; sb.onclick = () => { ui.sel = null; return structural('to-storage', { idx: sel.idx }, nm + ' is in the storage now'); }; }
     const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
     if (UNIQUE.includes(sel.cat)) { dup.disabled = true; dup.title = 'There is only one of these in the game: it cannot be copied'; }

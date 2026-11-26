@@ -366,7 +366,7 @@ function gemRow(inv, it) {
 }
 function renderStorage(root) {
   const note = document.createElement('p'); note.className = 'note'; note.style.marginTop = '0';
-  note.textContent = 'The storage. Weapons kept here keep their upgrades; "To the case" puts one into a free place of the case, and the button with the arrow in the case list puts a weapon here.';
+  note.textContent = 'The storage. Weapons kept here keep their upgrades and go with the attachments fitted to them; "To the case" puts one into a free place of the case, and the button with the arrow in the case list puts a weapon or an attachment here.';
   root.append(note);
   const card = document.createElement('div'); card.className = 'card'; card.style.padding = '4px 10px';
   if (!data.storage.length) { card.innerHTML = '<div class="empty">The storage is empty.</div>'; root.append(card); return; }
@@ -378,7 +378,7 @@ function renderStorage(root) {
     const td = document.createElement('td'); td.className = 'acts';
     if (it.upg) { const ub = document.createElement('button'); ub.className = 'sm icon'; ub.title = 'Weapon upgrades'; ub.innerHTML = ic('tools'); ub.onclick = () => { ui.upg['storage:' + i] = !ui.upg['storage:' + i]; render(); }; td.append(ub, ' '); }
     const b = document.createElement('button'); b.className = 'sm'; b.innerHTML = ic('case') + 'To the case';
-    if (it.cls !== 'WeaponItem') { b.disabled = true; b.title = 'Only weapons are moved by the editor'; }
+    if (!canStore(it)) { b.disabled = true; b.title = 'The editor moves only weapons and attachments; the game gives this one out at a typewriter'; }
     if (STORAGE_ONLY_IDS.includes(String(it.itemId.value))) { b.disabled = true; b.title = 'The game keeps this weapon only in the storage: take it out at a typewriter in the game'; }
     b.onclick = () => structural('from-storage', { idx: i }, nm + ' is in the case now');
     td.append(b); tr.append(td); t.append(tr);
@@ -416,7 +416,7 @@ function drawItems(holder, inv) {
     const del = document.createElement('button'); del.className = 'sm icon danger'; del.innerHTML = ic('trash'); del.title = 'Delete';
     del.onclick = async () => { if (await confirmDelete(it, nm)) structural('remove', { inv: inv.index, idx: it.idx }, 'Removed'); };
     if (UNIQUE.includes(it.cat)) { dup.disabled = true; dup.title = 'There is only one of these in the game: it cannot be copied'; }
-    if (inv.index === 0 && it.cls === 'WeaponItem' && it.cat !== 'throw' && data.storage) {
+    if (inv.index === 0 && canStore(it) && data.storage) {
       const sb = document.createElement('button'); sb.className = 'sm icon'; sb.title = 'Put into the storage'; sb.innerHTML = ic('export');
       sb.onclick = () => structural('to-storage', { idx: it.idx }, (nm || 'Weapon') + ' is in the storage now'); a.append(sb, ' ');
     }
@@ -548,6 +548,8 @@ async function openWeapons(at) {
 }
 // weapons the game keeps only in the storage (see STORAGE_ONLY in app/inventory.js)
 const STORAGE_ONLY_IDS = ['278208256'];
+// what the game lets the player put into the storage: weapons (not grenades or eggs) and their attachments (see storable in app/inventory.js)
+const canStore = (it) => (it.cls === 'WeaponItem' && it.cat !== 'throw') || it.cat === 'acc';
 const FIT_TEXT = { ok: 'fits', turn: 'fits turned', none: 'no room', storage: 'into the storage' };
 // one line of the "Add weapon" list: picture, name, whether it fits the case now
 function weaponRow(w, name, info) {

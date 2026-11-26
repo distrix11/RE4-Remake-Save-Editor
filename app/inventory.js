@@ -359,19 +359,22 @@ function removeItem(S, invIdx, idx) {
   if (guid) {
     // the equip slot and the quick slots point to the item by its GUID: they are emptied first, as the game does
     if (invIdx === 0) freeQuickSlots(S, guid);
-    // anything else of this inventory that still points to it (for example an attachment fitted to a weapon) is not ours to empty.
-    // Other places are left: the minecart keeps the weapon held before a ride (RailCarSaveData.PrevPlayerWeapon), and the starting
-    // inventory of the campaign (_InitialSettings) has its own copy of some items with the same GUID.
-    const own = F(S, itemObj(S, entry), '_ID'); let refs = false;
-    const walk = (nid) => { const n = S.parsed.nodes[nid]; if (!n || refs) return;
-      if (n.k === 'v') { if (n !== own && n.sz === 16 && S.buf.subarray(n.off, n.off + 16).equals(guid)) refs = true; return; }
-      for (const x of n.f || []) walk(x[1]); for (const x of n.items || []) walk(x); };
-    walk(inv.id);
-    if (refs) throw new Error('Another item refers to this one (for example it is fitted to a weapon). Change that in the game first.');
+    if (referredTo(S, inv, entry, guid)) throw new Error('Another item refers to this one (for example it is fitted to a weapon). Change that in the game first.');
   }
   arr.items.splice(idx, 1); arr.cnt -= 1;
   rebuild(S);
   return { ok: true };
+}
+// Does anything else of this inventory point to the item of `entry` by its GUID (for example an attachment fitted to a weapon)? That is
+// not ours to empty. Other places are left: the minecart keeps the weapon held before a ride (RailCarSaveData.PrevPlayerWeapon), and the
+// starting inventory of the campaign (_InitialSettings) has its own copy of some items with the same GUID.
+function referredTo(S, inv, entry, guid) {
+  const own = F(S, itemObj(S, entry), '_ID'); let refs = false;
+  const walk = (nid) => { const n = S.parsed.nodes[nid]; if (!n || refs) return;
+    if (n.k === 'v') { if (n !== own && n.sz === 16 && S.buf.subarray(n.off, n.off + 16).equals(guid)) refs = true; return; }
+    for (const x of n.f || []) walk(x[1]); for (const x of n.items || []) walk(x); };
+  walk(inv.id);
+  return refs;
 }
 function duplicateItem(S, invIdx, idx) {
   const m = model(S)[invIdx]; const it = m.items[idx]; if (!it) throw new Error('No such item');
@@ -738,22 +741,58 @@ function freeQuickSlots(S, guid) {
   }
 }
 // a weapon of the case goes into the storage (the same item: upgrades, ammo, its GUID)
+// What the game lets the player put into the storage: weapons (not grenades or eggs) and weapon attachments. Other things are
+// refused by the game (checked in the game); a few the game itself puts there (bonus first aid sprays) are left as they are.
+const storable = (it) => (it.cls === 'WeaponItem' && it.cat !== 'throw') || it.cat === 'acc';
+// The GUIDs of the attachments fitted to the weapon item node `itemNodeId` (_CurrentWeaponPartsCustom._Datas[]._ID). A fitted attachment is
+// still an item of its own, with its own place in the case.
+function partGuids(S, itemNodeId) {
+  const pc = F(S, S.parsed.nodes[itemNodeId], '_CurrentWeaponPartsCustom'); const d = pc && F(S, pc, '_Datas');
+  return ((d && d.items) || []).map((id) => { const g = F(S, S.parsed.nodes[id], '_ID'); return g && g.sz === 16 ? S.buf.subarray(g.off, g.off + 16).toString('hex') : null; })
+    .filter((g) => g && !/^0+$/.test(g));
+}
+// A weapon of the case goes into the storage with the attachments fitted to it, as the game does (seen in a real save: a stored rifle and
+// its scope, both in the storage). An attachment alone goes only if it is not fitted to a weapon.
 function caseToStorage(S, idx) {
   const it = model(S)[0] && model(S)[0].items[idx]; if (!it) throw new Error('No such item');
-  if (it.cls !== 'WeaponItem' || it.cat === 'throw') throw new Error('Only weapons can be put into the storage');
+  const parts = it.cls === 'WeaponItem' ? partGuids(S, itemObj(S, caseEntry(S, idx)).id) : [];
+  const r = oneToStorage(S, idx);
+  for (const g of parts) { const p = model(S)[0].items.find((x) => x.guid === g); if (p) oneToStorage(S, p.idx); }
+  return r;
+}
+function oneToStorage(S, idx) {
+  const it = model(S)[0] && model(S)[0].items[idx]; if (!it) throw new Error('No such item');
+  if (!storable(it)) throw new Error('The game takes only weapons and their attachments (scopes, stocks, the laser sight) into the storage');
   const entry = caseEntry(S, idx); const guid = guidOf(S, entry);
+  if (guid && it.cat === 'acc' && referredTo(S, inventories(S)[0], entry, guid)) throw new Error('This attachment is fitted to a weapon in the case: it goes into the storage with that weapon. Take it off in the game to store it alone.');
   if (guid) freeQuickSlots(S, guid); // as the game does when it stores a weapon: its quick slots are emptied (and its equip slot, if equipped)
   const itemId = itemObj(S, entry).id;
   // out of the case first (the GUID check of removeItem would see the copy in the storage), then into the storage in the same rebuild
   const arr = itemList(S, inventories(S)[0]); arr.items.splice(idx, 1); arr.cnt -= 1;
-  putInStorage(S, S, itemId);
+  putInStorage(S, S, itemId); // the storage entry of armoury.json counts 1 of 1, as the game keeps a weapon or a scope there
   return { ok: true, name: it.name };
 }
-// a weapon of the storage goes into the case, to a free place (lying or turned)
+// one item of the storage goes into the case, to a free place (lying or turned)
 // anyPlace: only for building the weapon library (scripts/build-weapon-library.js): the weapon is put at the top left even if it overlaps
+// Back into the case with its fitted attachments, each to a free place; if one of them has no room, nothing changes.
 function storageToCase(S, sIdx, anyPlace) {
   const st = storage(S); const it = st && st[sIdx]; if (!it) throw new Error('No such item in the storage');
+  const parts = it.cls === 'WeaponItem' && !anyPlace ? partGuids(S, F(S, S.parsed.nodes[storageArr(S).items[sIdx]], 'Item').id) : [];
+  if (!parts.length) return oneToCase(S, sIdx, anyPlace);
+  const T = { buf: Buffer.from(S.buf), parsed: parse(S.buf) }; // tried on a copy first
+  const r = oneToCase(T, sIdx, false);
+  for (const g of parts) {
+    const k = (storage(T) || []).findIndex((x) => x.guid === g); if (k < 0) continue;
+    const pn = storage(T)[k].name || 'its attachment';
+    try { oneToCase(T, k, false); } catch (e) { throw new Error(`No room in the case for ${pn}, which is fitted to ${it.name}: they go together. Free up some room (or press Sort) first.`); }
+  }
+  S.buf = T.buf; S.parsed = T.parsed;
+  return r;
+}
+function oneToCase(S, sIdx, anyPlace) {
+  const st = storage(S); const it = st && st[sIdx]; if (!it) throw new Error('No such item in the storage');
   if (!anyPlace && STORAGE_ONLY.has(String(it.itemId.value))) throw new Error(STORAGE_ONLY_MSG);
+  if (!storable(it)) throw new Error('The editor moves only weapons and attachments: take this one out at a typewriter in the game');
   const dm = model(S)[0]; if (!dm || !dm.grid) throw new Error('There is no attaché case in this slot');
   const place = weaponSpot(dm, it.itemId.value) || (anyPlace ? { spot: { x: 0, y: 0 }, dir: 0 } : null);
   if (!place) { const fp = footprint(it.itemId.value, false); throw new Error(`No free ${fp[1]}×${fp[0]} space in the case. Free up some room (or press Sort) first.`); }
