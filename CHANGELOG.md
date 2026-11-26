@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased (for 1.0)
+- Item sizes checked in the game: Yellow Herb 1×2, Lunker Bass 4×2, Bolts 3×1, Attachable Mine 2×1; Rhinoceros Beetle and the eggs 1×1.
 - **Merchant requests**: all 26 names are confirmed now (the "probably" marks are gone): matched by their goals and by the order in which test slots completed them, which follows the chapters. The first one is called "Destroy the Blue Medallions" (without a number), as in the game; Blue Medallions 4 has 6 medallions.
 - The **What's new** window of a stable release (1.0) celebrates it: leaves and brass sparks, a shine on the version, a "Stable release" badge (only the badge when animations are off).
 - Checked in the saves: every fully upgraded weapon has 4 in each of its upgrades, so the 0-4 range holds for all weapons; the README says so now.
