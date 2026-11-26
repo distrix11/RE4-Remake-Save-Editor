@@ -76,7 +76,7 @@
 112804800|Rifle Ammo|ammo
 112806400|Submachine Gun Ammo|ammo
 112808000|Bolts|ammo
-112320000|Explosive Arrows|ammo
+112320000|Explosive Arrows|ammo|noadd
 117600000|Gunpowder|ammo
 117601600|Resources (L)|ammo
 117603200|Attachable Mine|ammo
@@ -235,7 +235,7 @@
 127244800|Striker|charm
 127246400|Cute Bear|charm
 # Shown by name only ("noadd": not offered in Add item). Names from the same list and its Separate Ways addendum (elsperaguas).
-112480000|Dynamite Arrows|ammo|noadd
+112480000|Blast Arrows|ammo
 114080000|Lord of the Waterway|heal|noadd
 118904000|Rocket Launcher (Special), story item|key|noadd
 120480000|Sheepskin Jacket|treasure|noadd

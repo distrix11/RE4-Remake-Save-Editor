@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased (for 1.0)
+- **Blast Arrows** (the arrows of the Blast Crossbow, Separate Ways) can be added; they were listed as "Dynamite Arrows" and hidden. "Explosive Arrows" are hidden instead: the game does not take them (checked in the game).
 - Item sizes checked in the game: Yellow Herb 1×2, Lunker Bass 4×2, Bolts 3×1, Attachable Mine 2×1; Rhinoceros Beetle and the eggs 1×1.
 - **Merchant requests**: all 26 names are confirmed now (the "probably" marks are gone): matched by their goals and by the order in which test slots completed them, which follows the chapters. The first one is called "Destroy the Blue Medallions" (without a number), as in the game; Blue Medallions 4 has 6 medallions.
 - The **What's new** window of a stable release (1.0) celebrates it: leaves and brass sparks, a shine on the version, a "Stable release" badge (only the badge when animations are off).
