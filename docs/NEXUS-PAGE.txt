@@ -11,7 +11,7 @@ TAGS (suggestions)
 save editor, utility, inventory, attache case, money, pesetas, weapon upgrades, backup, tool
 
 VERSION
-0.9.9   (pre-release)
+1.0.0
 
 SHORT SUMMARY (max ~350 characters)
 Unofficial local save editor for Resident Evil 4 (2023) on Steam: add weapons, change money, edit and sort your attaché case with drag and drop, upgrade weapons, change case size and look, with automatic backups. Runs on your PC, sends nothing anywhere.
@@ -20,7 +20,7 @@ REQUIREMENTS FIELD
 Windows 10/11, Steam version of Resident Evil 4 (2023), Node.js 20 or newer (LTS). No .NET needed.
 
 FILE
-RE4SaveEditor-0.9.9-nexus.zip  (main file)
+RE4SaveEditor-1.0.0-nexus.zip  (main file)
 File description: Script-only package. Install Node.js LTS once, extract the zip, double-click Start RE4 Save Editor.js.
 
 ==========================================================================================
@@ -34,7 +34,7 @@ FULL DESCRIPTION (Nexus BBCode)
 [url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
 
-[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.9). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving: if the game has saved a slot since it was started, it shows "incompatible save data" for that slot after an edit until you restart it (the slot itself is fine). Consider turning off Steam Cloud for RE4.
+[color=#ff9d2e][b]Please keep a backup.[/b][/color] Version 1.0: every feature was checked in the game. The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving: if the game has saved a slot since it was started, it shows "incompatible save data" for that slot after an edit until you restart it (the slot itself is fine). Consider turning off Steam Cloud for RE4.
 
 [line]
 
@@ -77,7 +77,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [list]
 [*]Item sizes in the case are estimates; a few items may look slightly different in the game.
 [*]Weapon upgrade levels are limited to 0-4. A few weapons are not in the list of new weapons (Minecart Red9, Krauser's Bow, the Kitchen Knife of Separate Ways). The game deletes bonus or DLC weapons you have not unlocked.
-[*]Tested on a limited set of saves and one game version. After a game patch the editor can disable structural edits and tells you why.
+[*]Checked in the game on one game version. After a game patch the editor can disable structural edits and tells you why.
 [*]Windows and the Steam version only.
 [*]The package is plain JavaScript you can read, with no executables. One antivirus engine out of ~60 on VirusTotal shows a generic script heuristic for the start script (a false positive); the [url=https://github.com/distrix11/RE4-Remake-Save-Editor]full source is on GitHub[/url].
 [/list]
@@ -96,11 +96,9 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [size=2][i]Unofficial fan tool, not affiliated with Capcom or Valve. Resident Evil is a trademark of Capcom. The package contains no game assets.[/i][/size]
 
 ==========================================================================================
-CHANGELOG ENTRY FOR THE FILE (version 0.9.9)
+CHANGELOG ENTRY FOR THE FILE (version 1.0.0)
 ==========================================================================================
-- Twelve more weapons in Add weapon: Broken Butterfly, Skull Shaker, both special rocket launchers, Primal, Kitchen and Boot Knife; for Separate Ways Punisher MC, TMP, Chicago Sweeper, Rocket Launcher and the Elite Knife (it goes into the storage).
-- Case view: a click on an item shows everything about it (ammo, durability, upgrades, gems, To storage); a right click opens a menu; a right click on an empty place adds an item or a weapon right there.
-- Equipped weapons can be deleted or put into the storage.
-- Storage: weapons go there and back with the attachments fitted to them; attachments can be moved on their own.
-- The page keeps its place after a change; a revolver picture for the Broken Butterfly.
-- Fixed: the Kitchen Knife takes 1x2 cells, as in the game.
+- Stable release: every feature of the pre-releases was checked in the game, from start to end (the checklist is in docs/TESTING.md).
+- Merchant requests: all 26 names are confirmed.
+- Item sizes checked in the game; Blast Arrows can be added in Separate Ways.
+- New pictures for the rocket launchers, the Killer7 and the Chicago Sweeper, closer to the game.

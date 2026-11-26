@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased (for 1.0)
+## 1.0.0
+- **Stable release**: every feature of the pre-releases was checked in the game, from start to end (the checklist is in docs/TESTING.md).
+- **Merchant requests**: all 26 names are confirmed.
+- **Item sizes** checked in the game; **Blast Arrows** can be added in Separate Ways.
+- **New pictures** for the rocket launchers, the Killer7 and the Chicago Sweeper, closer to the game.
+
+### Details
+- New pictures: the three rocket launchers (flared back, wooden heat guard, two grips, a green or red cone warhead; the Infinite one has brass bands), the Killer7 (a large semi-automatic pistol) and the Chicago Sweeper (dark wood).
 - **Blast Arrows** (the arrows of the Blast Crossbow, Separate Ways) can be added; they were listed as "Dynamite Arrows" and hidden. "Explosive Arrows" are hidden instead: the game does not take them (checked in the game).
 - Item sizes checked in the game: Yellow Herb 1×2, Lunker Bass 4×2, Bolts 3×1, Attachable Mine 2×1; Rhinoceros Beetle and the eggs 1×1.
 - **Merchant requests**: all 26 names are confirmed now (the "probably" marks are gone): matched by their goals and by the order in which test slots completed them, which follows the chapters. The first one is called "Destroy the Blue Medallions" (without a number), as in the game; Blue Medallions 4 has 6 medallions.

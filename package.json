@@ -1,6 +1,6 @@
 {
   "name": "re4-remake-save-editor",
-  "version": "0.9.9",
+  "version": "1.0.0",
   "description": "Unofficial local save editor for Resident Evil 4 (2023, Steam)",
   "private": true,
   "license": "MIT",

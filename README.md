@@ -13,9 +13,9 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.9). It has been tested on a limited set of saves; please report what you find.
+> Version 1.0: every feature was checked in the game (see `docs/TESTING.md`). Please report what you find.
 
-**New in 0.9.9:** twelve more weapons in Add weapon (Broken Butterfly, Skull Shaker, the special rocket launchers, more knives, and for Separate Ways Punisher MC, TMP, Chicago Sweeper, Rocket Launcher, Elite Knife), editing and adding right in the Case view (click, right click), deleting equipped weapons, and weapons that go into the storage with their attachments. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.9)
+**New in 1.0:** the first stable release: everything checked in the game, all merchant requests named, item sizes checked, new pictures for the rocket launchers, the Killer7 and the Chicago Sweeper. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v1.0.0)
 
 ## Features
 
@@ -118,7 +118,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 - **Add weapon…** offers new weapons (no upgrades, empty magazine) only for the weapons in its built-in list (28 for the main game, 13 for Separate Ways): not for the Minecart Red9, Krauser's Bow and the Kitchen Knife of Separate Ways. The Elite Knife of Separate Ways goes into the storage: the game keeps it only there. A weapon from another of your slots of the same campaign can be copied too. The game deletes weapons of the other campaign, bonus or DLC weapons you have not unlocked (for example the Chicago Sweeper), weapons that do not fit the case, and may delete a second copy of one you already carry. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save: the editor knows them by their IDs. All 26 (19 of the main game, 7 of Separate Ways) are matched by their goals and by the order in which test slots completed them, which follows the chapters.
 - The item catalog is community-compiled and may contain mistakes.
-- Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.
+- Checked in the game with the checklist in `docs/TESTING.md`, on one game version. Game patches may change the save format (the editor then disables structural edits and says so).
 - Windows and the Steam version only.
 
 ## Contributing

@@ -33,6 +33,10 @@ export function makeGuns(THREE) {
     };
     // a pin or screw head facing the viewer
     k.pin = (x, y, r, m, z) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r * S, r * S, 4 * S, 20), m); o.rotation.x = Math.PI / 2; o.position.set(X(x), Y(y), z * S); g.add(o); return o; };
+    k.lathe = (prof, y, m, z = 0) => {
+      const geo = new THREE.LatheGeometry(prof.map(([x, r]) => new THREE.Vector2(Math.max(r, 0.01) * S, x * S)), 32);
+      const o = new THREE.Mesh(geo, m); o.rotation.z = -Math.PI / 2; o.position.set(X(0), Y(y), z * S); g.add(o); return o;
+    };
     k.ring = (x, y, R, r, m, z = 0) => { const o = new THREE.Mesh(new THREE.TorusGeometry(R * S, r * S, 12, 32), m); o.position.set(X(x), Y(y), z * S); g.add(o); return o; };
     // a few parallel slots or ribs
     k.ribs = (x, y, n, step, w, h, m, z) => { for (let i = 0; i < n; i++) k.rect(x + i * step, y, x + i * step + w, y + h, 3, m, z, 1); };
@@ -182,7 +186,12 @@ export function makeGuns(THREE) {
     k.part([[o.x0 + 86, 102], [o.x0 + 95, 102], [o.x0 + 88, 122], [o.x0 + 83, 120]], 8, metalDark);
   };
   G.handcannon = gun(4, 2, (k) => revolver(k, { W: 4, x0: 14, barrel: 370, metal: silver, grip: wood, brake: true }));
-  G.killer7 = gun(3, 2, (k) => { revolver(k, { W: 3, x0: 14, barrel: 264, metal: metalDark, grip: black, brake: false }); k.rect(150, 66, 260, 82, 20, metal); k.ribs(162, 70, 6, 16, 8, 8, black, 12); });
+  // a large .45 semi-automatic pistol: long silver slide with ports and a heavy black frame
+  G.killer7 = gun(3, 2, (k) => {
+    pistolBody(k, { len: 284, slide: silver, frame: black });
+    k.ribs(196, 46, 5, 14, 7, 10, black, 18); k.rect(180, 94, 270, 106, 26, black); k.rod(284, 58, 292, 58, 9, metalDark);
+    k.part([[34, 180], [90, 182], [86, 196], [30, 194]], 30, metalDark);
+  });
   // top-break single-action revolver: round fluted cylinder, thin round barrel with a rib, hammer spur, curved wooden grip
   G.butterfly = gun(3, 2, (k) => {
     // frame with the top strap and the latch over the cylinder
@@ -228,14 +237,14 @@ export function makeGuns(THREE) {
     k.rect(230, 62, 300, 76, 4, black, 18); k.pin(200, 82, 5, red, 19); k.pin(380, 82, 5, bright, 19);
   });
   G.chicago = gun(7, 3, (k) => {
-    k.part([[14, 128], [170, 108], [190, 122], [188, 164], [150, 168], [40, 234], [14, 230]], 32, wood, 0, [], 8);
+    k.part([[14, 128], [170, 108], [190, 122], [188, 164], [150, 168], [40, 234], [14, 230]], 32, woodDark, 0, [], 8);
     k.part([[180, 96], [420, 96], [428, 106], [428, 156], [180, 160]], 40, metal, 0, [], 5); k.rect(220, 82, 250, 98, 16, metalDark); k.rect(300, 112, 380, 126, 4, black, 21);
-    k.part([[196, 156], [246, 156], [232, 252], [194, 248]], 28, wood, 0, [], 8);
+    k.part([[196, 156], [246, 156], [232, 252], [194, 248]], 28, woodDark, 0, [], 8);
     k.part([[244, 160], [290, 160], [284, 188], [246, 186]], 12, metalDark, 0, [[[254, 166], [278, 166], [274, 180], [256, 180]]]);
     const drum = (r, d, m, z) => { const o = k.pin(348, 214, r, m, z); o.scale.y = d / 4; };
     drum(66, 44, metalDark, 0); drum(46, 8, metal, 24); drum(14, 8, bright, 29); for (let i = 0; i < 8; i++) k.pin(348 + 30 * Math.cos(i * Math.PI / 4), 214 + 30 * Math.sin(i * Math.PI / 4), 5, black, 30);
     k.rod(426, 116, 660, 116, 13, metalDark); k.ribs(440, 100, 11, 12, 5, 32, metal, 0); k.rod(650, 116, 690, 116, 16, metal); k.rect(662, 90, 674, 104, 8, metalDark);
-    k.part([[444, 134], [560, 136], [556, 168], [516, 164], [506, 190, 486, 188], [472, 162], [446, 160]], 34, wood, 0, [], 9);
+    k.part([[444, 134], [560, 136], [556, 168], [516, 164], [506, 190, 486, 188], [472, 162], [446, 160]], 34, woodDark, 0, [], 9);
     k.pin(206, 130, 6, bright, 22); k.pin(404, 140, 5, bright, 22);
   });
 
@@ -320,18 +329,26 @@ export function makeGuns(THREE) {
   });
 
   // ---------------------------------------------------------------- launchers
-  const launcher = (k, tube, band, mark) => {
-    k.rod(40, 80, 660, 80, 38, tube); k.rod(14, 80, 70, 80, 50, metalDark); k.rod(640, 80, 720, 80, 46, metalDark);
-    k.part([[716, 40], [760, 52], [788, 80], [760, 108], [716, 120]], 56, band, 0, [], 12);
-    k.rect(300, 28, 380, 44, 30, metalDark); k.rect(330, 10, 360, 30, 18, black); k.rect(176, 112, 460, 126, 30, metalDark);
-    k.part([[240, 122], [284, 122], [268, 184], [232, 180]], 28, black, 0, [], 7); k.part([[410, 122], [452, 122], [446, 176], [412, 176]], 28, black, 0, [], 7);
-    k.part([[284, 124], [326, 124], [322, 148], [282, 146]], 12, black, 0, [[[292, 130], [314, 130], [310, 140], [290, 140]]]);
-    [150, 540].forEach((x) => k.rod(x, 80, x + 24, 80, 41, mark)); k.ribs(480, 66, 3, 14, 7, 28, mark, 40);
+  // RPG-style launcher: flared venturi at the back, a wooden heat guard with metal bands, two wooden grips under the middle,
+  // a sight on top, and a big cone warhead on a thin neck in front
+  const launcher = (k, head, bands) => {
+    const y = 96;
+    k.lathe([[4, 30], [30, 22], [62, 15], [70, 15]], y, metalDark);            // the flared back
+    k.rod(64, y, 560, y, 14, metalDark);                                      // the tube
+    k.rod(96, y, 340, y, 21, woodDark);                                       // the heat guard
+    [104, 176, 252, 332].forEach((x) => k.rod(x, y, x + 9, y, 22.5, bands));
+    k.rect(340, 78, 440, 112, 30, metal, 0, 4);                               // trigger housing
+    k.rect(372, 58, 404, 78, 16, metalDark); k.rect(380, 48, 398, 60, 10, black); k.rect(470, 70, 478, 82, 8, metalDark); // sights
+    k.part([[338, 110], [366, 110], [360, 172], [334, 170]], 26, woodDark, 0, [], 8);   // front grip
+    k.part([[420, 110], [448, 110], [444, 176], [416, 174]], 26, woodDark, 0, [], 8);   // trigger grip
+    k.part([[366, 110], [416, 110], [414, 134], [368, 134]], 10, metalDark, 0, [[[376, 116], [404, 116], [402, 128], [378, 128]]]);
+    k.lathe([[556, 9], [610, 9], [612, 16], [636, 30], [690, 34], [760, 22], [796, 4], [798, 0.5]], y, head); // warhead
+    k.rod(606, y, 616, y, 17, metalDark);
   };
-  const olive = M(0x66703a, 0.2, 0.55), orange = M(0xc4702c, 0.2, 0.45), gold = M(0xd9ab45, 0.85, 0.3);
-  G.rocket = gun(8, 2, (k) => launcher(k, olive, olive, camoDark));
-  G.rocket_special = gun(8, 2, (k) => launcher(k, olive, red, orange));
-  G.rocket_infinite = gun(8, 2, (k) => { launcher(k, metalDark, gold, gold); k.ring(560, 80, 12, 4, gold, 43); k.ring(580, 80, 12, 4, gold, 43); });
+  const olive = M(0x66703a, 0.2, 0.55), green = M(0x5e6b33, 0.25, 0.5), redHead = M(0xb3352a, 0.25, 0.45), gold = M(0xd9ab45, 0.85, 0.3), orange = M(0xc4702c, 0.2, 0.45);
+  G.rocket = gun(8, 2, (k) => launcher(k, green, metal));
+  G.rocket_special = gun(8, 2, (k) => launcher(k, redHead, metal));
+  G.rocket_infinite = gun(8, 2, (k) => launcher(k, green, gold));  // looks like the normal one in the game: brass bands tell it apart here
 
   // ---------------------------------------------------------------- knives (point to the left: upright in the case with the point up)
   const knife = (w, draw) => gun(w, 1, draw);
