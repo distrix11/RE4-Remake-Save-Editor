@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased (for 0.9.9)
+## 0.9.9 (pre-release)
+- **Twelve more weapons** in Add weapon: Broken Butterfly, Skull Shaker, both special rocket launchers, Primal, Kitchen and Boot Knife; for Separate Ways Punisher MC, TMP, Chicago Sweeper, Rocket Launcher and the Elite Knife (it goes into the storage).
+- **Case view**: a click on an item shows everything about it (ammo, durability, upgrades, gems, To storage); a right click opens a menu; a right click on an empty place adds an item or a weapon right there.
+- **Equipped weapons** can be deleted or put into the storage.
+- **Storage**: weapons go there and back with the attachments fitted to them; attachments can be moved on their own.
+- The page keeps its place after a change; a revolver picture for the Broken Butterfly.
+
+### Details
 - **Seven more weapons** in **Add weapon…**: Broken Butterfly, Skull Shaker, Rocket Launcher (Special), Rocket Launcher (Infinite), Primal Knife, Kitchen Knife and Boot Knife, taken from saves where the game itself added them. The weapon library is also built from weapons in the storage now.
 - **Elite Knife** (Separate Ways) in **Add weapon…**: the knife that never breaks, a reward of the Merchant's requests of Separate Ways. It goes into the **storage**: checked in the game, the game removes it from the case when the editor puts it there, but keeps it in the storage (take it out at a typewriter).
 - A name for one more recipe of the Bolt Thrower (Recipe: Bolts (3)).

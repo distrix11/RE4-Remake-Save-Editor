@@ -11,7 +11,7 @@ TAGS (suggestions)
 save editor, utility, inventory, attache case, money, pesetas, weapon upgrades, backup, tool
 
 VERSION
-0.9.8   (pre-release)
+0.9.9   (pre-release)
 
 SHORT SUMMARY (max ~350 characters)
 Unofficial local save editor for Resident Evil 4 (2023) on Steam: add weapons, change money, edit and sort your attaché case with drag and drop, upgrade weapons, change case size and look, with automatic backups. Runs on your PC, sends nothing anywhere.
@@ -20,7 +20,7 @@ REQUIREMENTS FIELD
 Windows 10/11, Steam version of Resident Evil 4 (2023), Node.js 20 or newer (LTS). No .NET needed.
 
 FILE
-RE4SaveEditor-0.9.8-nexus.zip  (main file)
+RE4SaveEditor-0.9.9-nexus.zip  (main file)
 File description: Script-only package. Install Node.js LTS once, extract the zip, double-click Start RE4 Save Editor.js.
 
 ==========================================================================================
@@ -34,7 +34,7 @@ FULL DESCRIPTION (Nexus BBCode)
 [url=https://github.com/distrix11/RE4-Remake-Save-Editor]Source code[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/releases]GitHub releases[/url]  |  [url=https://github.com/distrix11/RE4-Remake-Save-Editor/issues]Report a problem[/url]
 [/center]
 
-[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.8). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving: if the game has saved a slot since it was started, it shows "incompatible save data" for that slot after an edit until you restart it (the slot itself is fine). Consider turning off Steam Cloud for RE4.
+[color=#ff9d2e][b]Please keep a backup.[/b][/color] This is an early pre-release (0.9.9). The editor makes a backup before every write and keeps a protected first-run copy of every slot, but it is still a good idea to copy your saves yourself. Close the game before saving: if the game has saved a slot since it was started, it shows "incompatible save data" for that slot after an edit until you restart it (the slot itself is fine). Consider turning off Steam Cloud for RE4.
 
 [line]
 
@@ -42,11 +42,11 @@ FULL DESCRIPTION (Nexus BBCode)
 Edit your save in a clean local window: it runs on your PC and never sends your saves anywhere.
 [list]
 [*][b]Money[/b]: Pesetas and Spinel.
-[*][b]Attaché case[/b]: add, copy and delete items (about 220 in the catalogue, grenades and eggs included), set gems in the sockets of treasures, change counts, ammo and durability, the [b]case size[/b] and the [b]case look[/b] (Silver, Black, Leather, Gold, Classic).
-[*][b]Case view[/b]: your case lying down like in the game, with an original 3D-rendered icon for every item and weapon. Drag items to move them, rotate them (R), or press [b]Sort[/b] to tidy the case.
-[*][b]Add weapons[/b]: [b]Add weapon...[/b] puts a new weapon into your case (21 for the main campaign, 7 for Separate Ways), or copies one from another of your slots of the same campaign, and shows whether it fits. Not all new weapons are tested yet, and the game deletes bonus or DLC weapons you have not unlocked.
+[*][b]Attaché case[/b]: add, copy and delete items (about 220 in the catalogue, grenades and eggs included), set gems in the sockets of treasures, change counts, ammo and durability, delete equipped weapons, the [b]case size[/b] and the [b]case look[/b] (Silver, Black, Leather, Gold, Classic).
+[*][b]Case view[/b]: your case lying down like in the game, with an original 3D-rendered icon for every item and weapon. Drag items to move them, rotate them (R), or press [b]Sort[/b] to tidy the case. Click an item to edit everything about it, right-click it for a menu, right-click an empty place to add an item or a weapon right there.
+[*][b]Add weapons[/b]: [b]Add weapon...[/b] puts a new weapon into your case (28 for the main campaign, 13 for Separate Ways), or copies one from another of your slots of the same campaign, and shows whether it fits. Not all new weapons are tested yet, and the game deletes bonus or DLC weapons you have not unlocked.
 [*][b]Weapon upgrades[/b]: levels 0-4 set with steps like at the Merchant, [b]Full upgrade[/b] and [b]Upgrade all weapons[/b], and a switch for the exclusive upgrade.
-[*][b]Storage[/b]: move weapons between it and the case, upgrade them there, put a new weapon straight into it when the case is full.
+[*][b]Storage[/b]: move weapons (with the attachments fitted to them) and attachments between it and the case, upgrade weapons there, put a new weapon straight into it when the case is full.
 [*][b]Quick buttons[/b]: [b]Repair knives[/b] and [b]Fill ammo stacks[/b].
 [*][b]Also[/b]: merchant requests (main game and Separate Ways; blue medallions are left to the game), treasures, achievement hints (read-only) and an [i]Advanced[/i] raw view for experienced users.
 [*][b]Undo[/b] (button or Ctrl+Z) takes back your last changes one by one; [b]Ctrl+S[/b] saves to the game after the summary.
@@ -76,7 +76,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [size=5][b]Good to know[/b][/size]
 [list]
 [*]Item sizes in the case are estimates; a few items may look slightly different in the game.
-[*]Weapon upgrade levels are limited to 0-4. Not every weapon is in the list of new weapons yet (Broken Butterfly, the special rocket launchers, some knives). The game deletes bonus or DLC weapons you have not unlocked.
+[*]Weapon upgrade levels are limited to 0-4. A few weapons are not in the list of new weapons (Minecart Red9, Krauser's Bow, the Kitchen Knife of Separate Ways). The game deletes bonus or DLC weapons you have not unlocked.
 [*]Tested on a limited set of saves and one game version. After a game patch the editor can disable structural edits and tells you why.
 [*]Windows and the Steam version only.
 [*]The package is plain JavaScript you can read, with no executables. One antivirus engine out of ~60 on VirusTotal shows a generic script heuristic for the start script (a false positive); the [url=https://github.com/distrix11/RE4-Remake-Save-Editor]full source is on GitHub[/url].
@@ -96,11 +96,11 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 [size=2][i]Unofficial fan tool, not affiliated with Capcom or Valve. Resident Evil is a trademark of Capcom. The package contains no game assets.[/i][/size]
 
 ==========================================================================================
-CHANGELOG ENTRY FOR THE FILE (version 0.9.8)
+CHANGELOG ENTRY FOR THE FILE (version 0.9.9)
 ==========================================================================================
-- Storage: the storage is shown; weapons move between it and the case, with their upgrades, and can be upgraded there.
-- Gems: set gems in the sockets of the crown, the lynx, the mask and the other treasures.
-- Six more weapons in Add weapon: W-870, Striker, TMP, CQBR, Bolt Thrower, Rocket Launcher.
-- Eggs can be added; treasures with sockets get their own sockets.
-- "Incompatible save data" explained: the game shows it for a slot it saved in the same run after an edit; restart the game.
-- Fixed: a treasure with sockets added from the catalogue took the sockets of another treasure; added items are marked as obtained, as the game does.
+- Twelve more weapons in Add weapon: Broken Butterfly, Skull Shaker, both special rocket launchers, Primal, Kitchen and Boot Knife; for Separate Ways Punisher MC, TMP, Chicago Sweeper, Rocket Launcher and the Elite Knife (it goes into the storage).
+- Case view: a click on an item shows everything about it (ammo, durability, upgrades, gems, To storage); a right click opens a menu; a right click on an empty place adds an item or a weapon right there.
+- Equipped weapons can be deleted or put into the storage.
+- Storage: weapons go there and back with the attachments fitted to them; attachments can be moved on their own.
+- The page keeps its place after a change; a revolver picture for the Broken Butterfly.
+- Fixed: the Kitchen Knife takes 1x2 cells, as in the game.

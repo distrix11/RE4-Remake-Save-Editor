@@ -164,7 +164,7 @@ function drawCase3D(holder, inv) {
   latches.innerHTML = '<i style="left:18%"></i><i style="left:50%"></i><i style="left:82%"></i>';
   box.append(lid, shell, latches); scene.append(box);
   const tools = document.createElement('div'); tools.className = 'toolbar'; tools.style.cssText = 'margin:0 0 6px';
-  tools.innerHTML = `<span class="dim" style="font-size:12px">Your case: <b>${esc(skin.name)}</b> (taken from the save). Click an item to select it and drag it to move it. Green outline: it fits, red: it does not.</span>`;
+  tools.innerHTML = `<span class="dim" style="font-size:12px">Your case: <b>${esc(skin.name)}</b> (taken from the save). Click an item to edit it, drag it to move it, right-click it for a menu; right-click an empty place to add something there. Green outline: it fits, red: it does not.</span>`;
   const sortBtn = document.createElement('button'); sortBtn.className = 'sm'; sortBtn.style.marginLeft = 'auto'; sortBtn.innerHTML = ic('sort') + 'Sort';
   sortBtn.title = 'Pack the items to the left, grouped: weapons, throwables, healing, ammo, accessories, the rest. Undo with Ctrl+Z or "Undo".';
   sortBtn.onclick = () => structural('sort', { inv: inv.index }, 'Case sorted');
@@ -211,7 +211,7 @@ function drawCase3D(holder, inv) {
     caseKeys.cur.menu = [rot, fu, ub, sb, dup, del].filter(Boolean); // the right-click menu offers the same buttons
     rot.title = 'Key: R'; del.title = 'Key: Delete';
     bar.append(Object.assign(document.createElement('div'), { className: 'dim', textContent: 'Keys: R rotate · Delete remove · arrows move (past items in the way) · Esc deselect · Ctrl+Z undo', style: 'flex-basis:100%;font-size:12px' }));
-  } else bar.innerHTML = '<span class="dim">Click an item to select it; drag it to move it.</span>';
+  } else bar.innerHTML = '<span class="dim">Click an item to edit it; drag it to move it; right-click for a menu or, on an empty place, to add an item or a weapon there.</span>';
   card.append(bar);
   // upgrade levels and gem sockets of the selected item, as in the list
   if (sel && ((sel.upg && ui.upg[inv.index + ':' + sel.idx]) || (sel.sockets && sel.sockets.length))) {

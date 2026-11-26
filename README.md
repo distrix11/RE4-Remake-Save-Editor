@@ -13,17 +13,17 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.8). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.9). It has been tested on a limited set of saves; please report what you find.
 
-**New in 0.9.8:** the storage (move weapons between it and the case, upgrade them there), gems in treasures, six more weapons in Add weapon (W-870, Striker, TMP, CQBR, Bolt Thrower, Rocket Launcher), eggs. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.8)
+**New in 0.9.9:** twelve more weapons in Add weapon (Broken Butterfly, Skull Shaker, the special rocket launchers, more knives, and for Separate Ways Punisher MC, TMP, Chicago Sweeper, Rocket Launcher, Elite Knife), editing and adding right in the Case view (click, right click), deleting equipped weapons, and weapons that go into the storage with their attachments. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.9)
 
 ## Features
 
 - <img src="icons/items/gold_bar.png" height="26" align="top"> **Money**: Pesetas and Spinel.
 - <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
-  **add** items from a catalog of ~220 items (grenades and eggs included, gems in the sockets of treasures), **duplicate**, **delete**;
-  **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; a **Storage** tab (move weapons between it and the case, upgrade them there); **Undo** (button or Ctrl+Z) takes back the last changes one by one, **Ctrl+S** saves to the game (after the summary), **Upgrade all weapons** fully upgrades the whole case, and the start screen shows a card for every slot.
+  **add** items from a catalog of ~220 items (grenades and eggs included, gems in the sockets of treasures), **duplicate**, **delete** (equipped weapons too);
+  **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; a **Storage** tab (move weapons, with the attachments fitted to them, and attachments between it and the case; upgrade weapons there); **Undo** (button or Ctrl+Z) takes back the last changes one by one, **Ctrl+S** saves to the game (after the summary), **Upgrade all weapons** fully upgrades the whole case, and the start screen shows a card for every slot.
 - <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
@@ -35,7 +35,7 @@ It runs on your own computer, opens in your browser or its own window and never 
   The first time the editor runs it keeps a protected copy of every slot. If a game update changes the save layout,
   adding, moving and removing items is disabled and a banner explains why.
 - <img src="icons/items/herb_green.png" height="26" align="top"> **Case view**: a pale-green theme in the spirit of the original game and a static perspective view of your attaché case with 3D-rendered item icons.
-  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models, weapons included, rendered by `scripts/icon-render`); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view; for the selected item R rotates (its picture turns too), Delete removes, the arrows move and Esc deselects.
+  The case takes the look (Silver, Black, Leather, Gold, Classic) of the skin selected in your save. Every catalogue item has its own icon (original 3D models, weapons included, rendered by `scripts/icon-render`); you can add your own pictures for any item in `icons/user/<item id>.png`. Items are moved by dragging them in the Case view. A click on an item shows everything about it (count, ammo, durability, upgrades, gem sockets, To storage), a right click opens a menu of its actions, and a right click on an empty place offers **Add item here…** and **Add weapon here…**. For the selected item R rotates (its picture turns too), Delete removes, the arrows move and Esc deselects.
 - <img src="icons/items/crown.png" height="26" align="top"> **Motion**: a start screen, the attaché case opens, items slide and settle into their cells, soft transitions between tabs and windows. If animation effects are turned off in Windows, choose Settings > Animations > On to see them.
 - <img src="icons/items/compass.png" height="26" align="top"> **Updates and About**: the first start of a new version shows what changed (**What's new**, also in the **?** dialog); once a day (can be turned off in the **?** dialog) the editor asks GitHub for the latest release number and offers to open the download page. Nothing is downloaded or installed automatically, and no personal data is sent.
 - <img src="icons/items/cog.png" height="26" align="top"> **Advanced**: a raw tree view of every field in the save file with search.
@@ -54,6 +54,7 @@ Every item of the catalogue has its own icon. They are rendered from original 3D
 | ![Dragging an item](docs/screenshots/03-case-drag.png) | ![Merchant requests](docs/screenshots/04-merchant-requests.png) |
 | ![Treasures](docs/screenshots/05-treasures.png) | ![Change summary](docs/screenshots/07-change-summary.png) |
 | ![Case view](docs/screenshots/08-case-view.png) | ![Settings](docs/screenshots/09-settings.png) |
+| ![Case view: the menu of an item and its panel](docs/screenshots/06-case-menu.png) | |
 
 ## Requirements
 
@@ -114,7 +115,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
 - Weapon upgrade levels are limited to 0-4 (the highest seen in real saves). Some weapons have fewer upgrades; the editor does not know which.
-- **Add weapon…** offers new weapons (no upgrades, empty magazine) only for the weapons in its built-in list (21 for the main game, 7 for Separate Ways): not yet for the Broken Butterfly, the special rocket launchers and some knives. A weapon from another of your slots of the same campaign can be copied too. The game deletes weapons of the other campaign, bonus or DLC weapons you have not unlocked (for example the Chicago Sweeper), weapons that do not fit the case, and may delete a second copy of one you already carry. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
+- **Add weapon…** offers new weapons (no upgrades, empty magazine) only for the weapons in its built-in list (28 for the main game, 13 for Separate Ways): not for the Minecart Red9, Krauser's Bow and the Kitchen Knife of Separate Ways. The Elite Knife of Separate Ways goes into the storage: the game keeps it only there. A weapon from another of your slots of the same campaign can be copied too. The game deletes weapons of the other campaign, bonus or DLC weapons you have not unlocked (for example the Chicago Sweeper), weapons that do not fit the case, and may delete a second copy of one you already carry. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
 - The item catalog is community-compiled and may contain mistakes.
 - Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.
