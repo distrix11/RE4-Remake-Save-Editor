@@ -214,7 +214,7 @@ function readJson(req) {
     req.on('end', () => { try { resolve(s ? JSON.parse(s) : {}); } catch (e) { reject(e); } });
   });
 }
-function fresh(S) { return { overview: INV.overview(S), inventories: INV.model(S), quests: INV.quests(S), treasures: INV.treasures(S), nodes: S.parsed.nodes.length, root: S.parsed.root, dirty: S.dirty, undo: (S.undo || []).length }; }
+function fresh(S) { return { overview: INV.overview(S), inventories: INV.model(S), storage: INV.storage(S), quests: INV.quests(S), treasures: INV.treasures(S), nodes: S.parsed.nodes.length, root: S.parsed.root, dirty: S.dirty, undo: (S.undo || []).length }; }
 function need(name) {
   if (!SAVE_RE.test(name || '')) throw new Error('Invalid file name');
   const S = sessions.get(name);
@@ -373,8 +373,9 @@ const routes = {
   'POST /api/upgrade-weapons': async (b) => { const S = need(b.name); guard(S); const r = INV.upgradeAllWeapons(S); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/fill-stacks': async (b) => { const S = need(b.name); guard(S); const r = INV.fillStacks(S); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/case-size': async (b) => { const S = need(b.name); guard(S); INV.setCaseSize(S, b.level); S.dirty = true; return fresh(S); },
-  'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); const r = INV.setUpgrade(S, Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
-  'POST /api/upgrade-all': async (b) => { const S = need(b.name); guard(S); const r = INV.setAllUpgrades(S, Number(b.inv), Number(b.idx), b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/gem': async (b) => { const S = need(b.name); guard(S); const r = INV.setGem(S, Number(b.inv), Number(b.idx), b.pos, b.gem); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/upgrade': async (b) => { const S = need(b.name); guard(S); const r = INV.setUpgrade(S, b.inv === 'storage' ? 'storage' : Number(b.inv), Number(b.idx), b.key, b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/upgrade-all': async (b) => { const S = need(b.name); guard(S); const r = INV.setAllUpgrades(S, b.inv === 'storage' ? 'storage' : Number(b.inv), Number(b.idx), b.level); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/backups': async (b) => {
     if (!SAVE_RE.test(b.name || '')) throw new Error('Invalid file name');
     return { backups: listBackups(b.name).map(({ path: _p, ...rest }) => rest) };
@@ -482,7 +483,7 @@ const routes = {
     sessions.set(b.name, S);
     const isSlot = /Slot\.bin$/.test(b.name);
     return { name: b.name, isSlot, warnings: S.warnings, size: buf.length, nodes: parsed.nodes.length, root: parsed.root,
-      overview: isSlot ? INV.overview(S) : {}, inventories: isSlot ? INV.model(S) : [], quests: isSlot ? INV.quests(S) : [], treasures: isSlot ? INV.treasures(S) : null };
+      overview: isSlot ? INV.overview(S) : {}, inventories: isSlot ? INV.model(S) : [], storage: isSlot ? INV.storage(S) : null, quests: isSlot ? INV.quests(S) : [], treasures: isSlot ? INV.treasures(S) : null };
   },
   'POST /api/node': async (b) => { const S = need(b.name); return describe(S, b.id); },
   // fields of the normal tabs: values the game itself uses (the Advanced tab only keeps to the type of the field)
@@ -556,6 +557,9 @@ const routes = {
     const buf = await unpackCached(b.from); const src = { name: b.from, buf, parsed: parse(buf) };
     const r = INV.addWeaponFrom(S, src, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) };
   },
+  'POST /api/to-storage': async (b) => { const S = need(b.name); guard(S); const r = INV.caseToStorage(S, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/from-storage': async (b) => { const S = need(b.name); guard(S); const r = INV.storageToCase(S, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
+  'POST /api/lib-to-storage': async (b) => { const S = need(b.name); guard(S); const r = INV.libraryToStorage(S, String(b.lib), isSeparateWaysSlot(b.name)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/dup': async (b) => { const S = need(b.name); guard(S); const r = INV.duplicateItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/quest-complete': async (b) => { const S = need(b.name); const r = INV.completeQuest(S, b.idx === 'all' ? 'all' : Number(b.idx)); if (r.changed) S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/refresh': async (b) => fresh(need(b.name)),
@@ -586,7 +590,7 @@ const routes = {
 };
 
 // Every request that changes the open file remembers how it was before, for "Undo". A request that fails half way is rolled back.
-const UNDOABLE = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete', 'repair-knives', 'fill-stacks', 'upgrade-weapons', 'revert'].map((n) => 'POST /api/' + n));
+const UNDOABLE = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete', 'repair-knives', 'fill-stacks', 'upgrade-weapons', 'gem', 'to-storage', 'from-storage', 'lib-to-storage', 'revert'].map((n) => 'POST /api/' + n));
 const UNDO_STEPS = 30;
 async function withUndo(key, body) {
   const S = UNDOABLE.has(key) ? sessions.get(body.name) : null;

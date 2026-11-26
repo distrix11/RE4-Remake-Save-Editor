@@ -143,7 +143,7 @@ async function pollGame() {
     const r = await api('status');
     const el = $('#gameBanner');
     if (r.gameRunning) {
-      el.innerHTML = ic('close') + 'The game is running (re4.exe). <span>It is best to close it before writing to the game, restoring or copying a slot, because the game or Steam may overwrite your changes later. Writing from the main menu and loading the slot right afterwards usually works too.</span>';
+      el.innerHTML = ic('close') + 'The game is running (re4.exe). <span>Close it before writing to the game, restoring or copying a slot. If the game saved a slot since it was started, it shows "incompatible save data" for that slot after the editor changes it, until the game is restarted (the slot itself is fine). The game or Steam may also overwrite your changes later.</span>';
       el.hidden = false;
     } else el.hidden = true;
     gameWasRunning = r.gameRunning;

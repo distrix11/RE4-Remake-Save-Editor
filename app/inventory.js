@@ -41,6 +41,22 @@ const UPG = [
 const STACK_CAP = { 'Handgun Ammo': 50, 'Rifle Ammo': 15, 'Shotgun Ammo': 12, 'Magnum Ammo': 4, 'Submachine Gun Ammo': 30, 'Gunpowder': 10, 'Resources (L)': 1, 'Resources (S)': 1 };
 const MAX_UPG = 4; // the highest level seen on fully upgraded weapons in real saves; the game resets higher values
 
+// ---- gems ------------------------------------------------------------------------
+// A treasure with sockets keeps _TreasureCombineInfo._Datas: one entry per socket with its shape (0 round, 1 square) and the gem in it
+// (-1 = empty). Shapes of the gems as the guides list them; in real saves a Sapphire sits in a shape-0 socket.
+const GEM_SHAPE = { 120830400: 0, 120833600: 0, 120835200: 0, 120832000: 1, 120838400: 1, 120857600: 1 }; // Ruby, Sapphire, Yellow Diamond; Emerald, Alexandrite, Red Beryl
+// Sockets of every treasure, in the order of the save (crown, necklace and clock seen in real saves; the others from the guides, order not known)
+const SOCKETS = {
+  122404800: [1, 0, 1, 0, 1], 122412800: [1, 0, 0, 1], 122408000: [0, 1], // Elegant Crown, Ornate Necklace, Extravagant Clock (from saves)
+  122406400: [0, 1, 0], 122403200: [0, 0, 0], 122400000: [0, 0, 0], // Golden Lynx, Butterfly Lamp, Elegant Mask (from a save)
+  122411200: [1, 1, 1], 122409600: [1, 1], 122416000: [0, 0], 122401600: [0, 0], // Chalice, Splendid Bangle, Elegant Bangle, Flagon (from the guides; order not known)
+};
+function socketsOf(S, it) {
+  const info = F(S, it, '_TreasureCombineInfo'); const datas = info && F(S, info, '_Datas'); if (!datas || !datas.items) return null;
+  return datas.items.map((id) => { const d = S.parsed.nodes[id]; const g = F(S, d, '_CombinedItemId');
+    return { pos: Number(readValue(S.buf, F(S, d, '_Position'))), shape: Number(readValue(S.buf, F(S, d, '_Shape'))), gem: Number(readValue(S.buf, g)), id: g.id }; });
+}
+
 // ---- tree helpers -----------------------------------------------------------
 const F = (S, o, name) => { const f = o && o.f && o.f.find((x) => x[0] === name); return f ? S.parsed.nodes[f[1]] : null; };
 function sections(S) {
@@ -104,7 +120,7 @@ function entryModel(S, entry, idx) {
     idx, nodeId: entry.id, cls: it.c.split('.').pop(), name, cat: kind,
     itemId: id, count: scalar(S, F(S, it, '_CurrentItemCount')), ammo: scalar(S, F(S, it, '_CurrentAmmoCount')),
     durability: scalar(S, F(S, it, '_CurrentDurability')), slot: slotOf(S, entry), dir,
-    fp: footprint(id.value, dir % 2 === 1), upg,
+    fp: footprint(id.value, dir % 2 === 1), upg, sockets: it.c.endsWith('CombinableTreasureItem') ? socketsOf(S, it) : null,
     guid: g ? g.toString('hex') : null,
   };
 }
@@ -243,7 +259,9 @@ function setEntry(S, entry, { itemId, count, slot, newGuid }) {
 }
 
 // Grenades are weapon entries without upgrades, one per entry (the heavy and the flash grenade are two cells tall). A save may not hold any, so the entry comes from grenade.json.
-const GRENADES = ['277075456', '277077056', '277078656']; // hand, heavy, flash
+// Grenades and eggs are weapon entries of the same kind (a real save: the game writes eggs like grenades, but with _CurrentAmmoCount 1)
+const GRENADES = ['277075456', '277077056', '277078656', '277080256', '277081856', '277083456']; // hand, heavy, flash grenade; white, brown, golden egg
+const EGGS = ['277080256', '277081856', '277083456'];
 let GRENADE_TPL = null;
 function addGrenades(S, itemId, count) {
   const m = model(S)[0]; if (!m || !m.grid) throw new Error('There is no attaché case in this slot');
@@ -260,6 +278,7 @@ function addGrenades(S, itemId, count) {
       arrNode.items.push(newId); arrNode.cnt += 1;
       rebuild(S);
       setEntry(S, lastEntry(S, 0), { itemId, count: 1, slot: spot, newGuid: true });
+      if (EGGS.includes(String(itemId))) { const a = F(S, itemObj(S, lastEntry(S, 0)), '_CurrentAmmoCount'); if (a) writeValue(S.buf, a, '1'); }
       const dn = F(S, lastEntry(S, 0), 'CurrDirection'); if (dn) writeValue(S.buf, dn, String(dir));
       last = spot;
     }
@@ -269,11 +288,13 @@ function addGrenades(S, itemId, count) {
 }
 
 function addItem(S, { itemId, count }) {
+  const r = addItemRaw(S, { itemId, count }); markObtained(S, itemId); return r;
+}
+function addItemRaw(S, { itemId, count }) {
   const info = CATALOG[String(itemId)];
   const cat = info ? info.c : null;
   if (GRENADES.includes(String(itemId))) return addGrenades(S, itemId, Math.max(1, Math.floor(Number(count) || 1)));
   if (cat === 'weapon') throw new Error('Weapons are added with "Add weapon…"');
-  if (cat === 'throw') throw new Error('Eggs cannot be added yet - of the throwables only the grenades can');
   if (cat === 'money') throw new Error('Money is changed on the "Money" tab');
   const invIdx = cat ? HOME[cat] : 0;
   const m = model(S)[invIdx]; if (!m) throw new Error('There is no suitable inventory in this slot');
@@ -318,7 +339,17 @@ function addEntry(S, invIdx, itemId, count) {
   setEntry(S, lastEntry(S, invIdx), { itemId, count, slot: spot, newGuid: true });
   // the clone may carry a rotation from its template
   const dn = F(S, lastEntry(S, invIdx), 'CurrDirection'); if (dn) writeValue(S.buf, dn, '0');
+  if (SOCKETS[String(itemId)]) setSockets(S, lastEntry(S, invIdx), SOCKETS[String(itemId)]);
   return { inv: invIdx, slot: spot };
+}
+function setSockets(S, entry, shapes) {
+  const it = itemObj(S, entry); const info = F(S, it, '_TreasureCombineInfo'); const datas = info && F(S, info, '_Datas'); if (!datas || !datas.items || !datas.items.length) return;
+  const first = datas.items[0];
+  while (datas.items.length < shapes.length) { datas.items.push(cloneSubtree(S, first, datas.id)); datas.cnt += 1; }
+  if (datas.items.length > shapes.length) { datas.items.length = shapes.length; datas.cnt = shapes.length; }
+  const entryId = entry.id; rebuild(S);
+  const d2 = F(S, F(S, itemObj(S, S.parsed.nodes[entryId]), '_TreasureCombineInfo'), '_Datas');
+  d2.items.forEach((id, i) => { const d = S.parsed.nodes[id]; writeValue(S.buf, F(S, d, '_Position'), String(i)); writeValue(S.buf, F(S, d, '_Shape'), String(shapes[i])); writeValue(S.buf, F(S, d, '_CombinedItemId'), '-1'); });
 }
 function removeItem(S, invIdx, idx) {
   const inv = inventories(S)[invIdx]; if (!inv) throw new Error('No such inventory');
@@ -473,7 +504,7 @@ function addWeaponFromLibrary(dstS, itemId, separateWays) {
   const cat = CATALOG[String(itemId)];
   const r = placeWeapon(dstS, src, src.root, itemId, cat ? cat.n : (w.name || 'Weapon ' + itemId));
   const idx = itemList(dstS, inventories(dstS)[0]).items.length - 1;
-  setAllUpgrades(dstS, 0, idx, 0);
+  try { setAllUpgrades(dstS, 0, idx, 0); } catch { /* a weapon without upgrades (rocket launcher) */ }
   // the template keeps the durability of the knife it was taken from: a new one gets the durability of an unupgraded knife
   const fresh = model(dstS)[0].items[idx]; const max = fresh && fresh.durability ? knifeMax(fresh) : null;
   if (max) writeValue(dstS.buf, dstS.parsed.nodes[fresh.durability.id], String(max));
@@ -583,7 +614,8 @@ function effectFields(S, c) {
   return c.f.filter(([name, id]) => /Level$/.test(name) && name !== '_NowLevel' && S.parsed.nodes[id] && S.parsed.nodes[id].k === 'v' && Number(readValue(S.buf, S.parsed.nodes[id])) !== 0).map(([name]) => name);
 }
 function weaponUpgradeNodes(S, invIdx, idx) {
-  const arrN = itemList(S, inventories(S)[invIdx]); const entry = S.parsed.nodes[arrN.items[idx]];
+  // invIdx 'storage': a weapon in the storage of the Merchant (the same weapon object as in the case)
+  const arrN = invIdx === 'storage' ? storageArr(S) : itemList(S, inventories(S)[invIdx]); const entry = arrN && S.parsed.nodes[arrN.items[idx]];
   if (!entry) throw new Error('No such item');
   const it = itemObj(S, entry); const cl = F(S, it, '_CustomLevelInWeapon');
   if (!cl) throw new Error('This item has no upgrades');
@@ -619,6 +651,14 @@ function dropExclusiveIfNeeded(S, w) {
   if (n && Number(readValue(S.buf, n)) > 0) { writeValue(S.buf, n, '0'); matchExclusiveState(S, w); return true; }
   return false;
 }
+function setGem(S, invIdx, idx, pos, gemId) {
+  const it = model(S)[invIdx] && model(S)[invIdx].items[idx]; if (!it || !it.sockets) throw new Error('This treasure has no sockets');
+  const sock = it.sockets.find((x) => x.pos === Number(pos)); if (!sock) throw new Error('No such socket');
+  gemId = Number(gemId);
+  if (gemId !== -1) { if (!(gemId in GEM_SHAPE)) throw new Error('That is not a gem'); if (GEM_SHAPE[gemId] !== sock.shape) throw new Error(sock.shape ? 'This socket takes a square gem (Emerald, Alexandrite, Red Beryl)' : 'This socket takes a round gem (Ruby, Sapphire, Yellow Diamond)'); }
+  writeValue(S.buf, S.parsed.nodes[sock.id], String(gemId));
+  return { ok: true };
+}
 function setUpgrade(S, invIdx, idx, key, level) {
   level = Number(level);
   const max = key === 'excl' ? 1 : MAX_UPG;
@@ -637,6 +677,78 @@ function setAllUpgrades(S, invIdx, idx, level) {
   if (!n) throw new Error('This weapon has no upgrades');
   const exclReset = level === 0 && dropExclusiveIfNeeded(S, w);
   return { ok: true, changed: n, exclReset };
+}
+
+// ---- storage -----------------------------------------------------------------------
+// The storage the game opens at the Merchant keeps ArmouryManager.ArmouryItems: one ArmouryItemSaveData per item, with the item itself
+// (the same object as in the case) and two counters (1 and 1 for weapons in real saves). The editor moves weapons only.
+function storageArr(S) { const h = sections(S).find((o) => o.c.endsWith('ArmouryManager.GameSaveData')); return h ? F(S, h, 'ArmouryItems') : null; }
+function storage(S) { const a = storageArr(S); return a ? a.items.map((id, i) => entryModel(S, S.parsed.nodes[id], i)).filter(Boolean) : null; }
+let ARMOURY_TPL = null;
+// a new storage entry that holds a copy of the item node itemNodeId of srcS
+function putInStorage(S, srcS, itemNodeId) {
+  const arr = storageArr(S); if (!arr) throw new Error('This slot has no storage');
+  if (!ARMOURY_TPL) ARMOURY_TPL = JSON.parse(fs.readFileSync(path.join(__dirname, 'armoury.json'), 'utf8')).tree;
+  const src = importTemplate(ARMOURY_TPL);
+  const wrapId = cloneSubtree(S, src.root, arr.id, src); const wrap = S.parsed.nodes[wrapId];
+  const fi = wrap.f.findIndex((x) => x[0] === 'Item'); wrap.f[fi] = [wrap.f[fi][0], cloneSubtree(S, itemNodeId, wrapId, srcS), wrap.f[fi][2]];
+  arr.items.push(wrapId); arr.cnt += 1;
+  rebuild(S);
+}
+// The case keeps the equipped weapon (EquipInfos) and the quick slots (ShortcutInfos) by the GUID of the item. When the game stores a
+// weapon it empties its quick slots (ID 0, ItemId -1, ItemCount 0xFFFFFFFF, seen in a real save); an equipped weapon must be changed in the game.
+function freeQuickSlots(S, guid) {
+  const inv = inventories(S)[0]; const same = (n) => n && n.sz === 16 && S.buf.subarray(n.off, n.off + 16).equals(guid);
+  const eq = F(S, inv, 'EquipInfos'); if (eq && eq.items && eq.items.some((id) => same(F(S, S.parsed.nodes[id], 'ID')))) throw new Error('This weapon is equipped - equip another weapon in the game first');
+  const sc = F(S, inv, 'ShortcutInfos'); if (!sc || !sc.items) return;
+  for (const id of sc.items) {
+    const o = S.parsed.nodes[id]; const g = F(S, o, 'ID'); if (!same(g)) continue;
+    S.buf.fill(0, g.off, g.off + 16); writeValue(S.buf, F(S, o, 'ItemId'), '-1'); writeValue(S.buf, F(S, o, 'ItemCount'), '4294967295');
+  }
+}
+// a weapon of the case goes into the storage (the same item: upgrades, ammo, its GUID)
+function caseToStorage(S, idx) {
+  const it = model(S)[0] && model(S)[0].items[idx]; if (!it) throw new Error('No such item');
+  if (it.cls !== 'WeaponItem' || it.cat === 'throw') throw new Error('Only weapons can be put into the storage');
+  const entry = caseEntry(S, idx); const guid = guidOf(S, entry);
+  if (guid) freeQuickSlots(S, guid); // as the game does when it stores a weapon: its quick slots are emptied; an equipped weapon is refused
+  const itemId = itemObj(S, entry).id;
+  // out of the case first (the GUID check of removeItem would see the copy in the storage), then into the storage in the same rebuild
+  const arr = itemList(S, inventories(S)[0]); arr.items.splice(idx, 1); arr.cnt -= 1;
+  putInStorage(S, S, itemId);
+  return { ok: true, name: it.name };
+}
+// a weapon of the storage goes into the case, to a free place (lying or turned)
+function storageToCase(S, sIdx) {
+  const st = storage(S); const it = st && st[sIdx]; if (!it) throw new Error('No such item in the storage');
+  const dm = model(S)[0]; if (!dm || !dm.grid) throw new Error('There is no attaché case in this slot');
+  const place = weaponSpot(dm, it.itemId.value);
+  if (!place) { const fp = footprint(it.itemId.value, false); throw new Error(`No free ${fp[1]}×${fp[0]} space in the case. Free up some room (or press Sort) first.`); }
+  const tpl = pickTemplate(S, 0, it.itemId.value); // an entry of the case with a weapon: its frame (cell, direction) is used
+  const arr = itemList(S, inventories(S)[0]);
+  const newId = cloneSubtree(S, tpl.entryId, arr.id); const entry = S.parsed.nodes[newId];
+  const fi = entry.f.findIndex((x) => x[0] === 'Item'); const wrapItem = F(S, S.parsed.nodes[storageArr(S).items[sIdx]], 'Item');
+  entry.f[fi] = [entry.f[fi][0], cloneSubtree(S, wrapItem.id, newId), entry.f[fi][2]];
+  arr.items.push(newId); arr.cnt += 1;
+  const sa = storageArr(S); sa.items.splice(sIdx, 1); sa.cnt -= 1;
+  rebuild(S);
+  setEntry(S, lastEntry(S, 0), { slot: place.spot });
+  const dn = F(S, lastEntry(S, 0), 'CurrDirection'); if (dn) writeValue(S.buf, dn, String(place.dir));
+  return { ok: true, name: it.name, slot: place.spot };
+}
+// a new weapon of the library straight into the storage (when the case is full)
+function libraryToStorage(S, itemId, separateWays) {
+  const w = weaponLibrary()[String(itemId)];
+  if (!w || !!w.sw !== !!separateWays) throw new Error('This weapon is not available for this campaign');
+  const src = importTemplate(w.tree); const item = F(src, src.parsed.nodes[src.root], 'Item');
+  putInStorage(S, src, item.id);
+  const sa = storageArr(S); const wrap = S.parsed.nodes[sa.items[sa.items.length - 1]]; const it = F(S, wrap, 'Item');
+  const g = F(S, it, '_ID'); if (g && g.sz === 16) crypto.randomBytes(16).copy(S.buf, g.off);
+  // no upgrades, as a new weapon of the case
+  const cl = F(S, it, '_CustomLevelInWeapon');
+  if (cl) for (const u of UPG) { const a = F(S, cl, u.arr); if (a && a.items) for (const cid of a.items) { const c = S.parsed.nodes[cid]; const cat = F(S, c, u.catField); if (cat && readValue(S.buf, cat) === u.cat) for (const fld of [...u.fields, '_NowLevel']) { const n = F(S, c, fld); if (n) writeValue(S.buf, n, '0'); } } }
+  markObtained(S, itemId);
+  const cat = CATALOG[String(itemId)]; return { ok: true, name: cat ? cat.n : (w.name || 'Weapon ' + itemId) };
 }
 
 // ---- quick actions --------------------------------------------------------------
@@ -860,5 +972,5 @@ module.exports = {
   gameStats, rangeStats, weaponStatus,
   treasures,
   CASE_DIMS, MAX_UPG, sortCase, weaponFit, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,
-  moveItem, setCaseSize, repairKnives, fillStacks, upgradeAllWeapons, setUpgrade, describeChanges, scalar, sections,
+  moveItem, setCaseSize, storage, caseToStorage, storageToCase, libraryToStorage, setGem, GEM_SHAPE, repairKnives, fillStacks, upgradeAllWeapons, setUpgrade, describeChanges, scalar, sections,
 };

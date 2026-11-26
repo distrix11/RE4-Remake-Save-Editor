@@ -89,7 +89,7 @@ start.bat     (opens the editor in its own window)
 > [!IMPORTANT]
 > It is best to **close the game** before saving, and consider turning off Steam Cloud for RE4 (otherwise Steam may restore the old file).
 >
-> Writing while the game is running (for example from its main menu, then loading the slot) has worked in tests, because the game reads the file when you load it; but if the game saves over the file afterwards (autosave), your edit is lost. Closing the game is the safe way.
+> If the game is running and has already saved a slot since it was started, it refuses that slot after the editor changes it ("incompatible save data") until you restart the game; the slot itself is fine and loads after a restart. If the game saves over the file afterwards (autosave), your edit is lost too. Closing the game is the safe way.
 
 1. Start the editor (see above).
 2. Pick a slot in the drop-down list at the top, edit, then press **Save to game**. A summary of the changes is shown first.

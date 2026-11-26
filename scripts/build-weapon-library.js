@@ -27,7 +27,8 @@ for (const a of args) {
     const sw = Number(/\d+/.exec(f)[0]) >= 100;
     const m = INV.model(S)[0]; if (!m) continue;
     for (const it of m.items) {
-      if (it.cls !== 'WeaponItem' || !it.upg) continue;
+      // weapons only (grenades and eggs are weapon entries too: they have no upgrade blocks); the rocket launchers have no upgrades either
+      if (it.cls !== 'WeaponItem' || (!it.upg && !/^2762/.test(String(it.itemId.value)))) continue;
       const id = String(it.itemId.value); const key = id;
       if (EXCLUDE.has(id)) continue;
       const e = found.get(key) || { sw, samples: [] };
@@ -56,7 +57,7 @@ for (const [id, e] of [...found].sort((x, y) => Number(x[0]) - Number(y[0]))) {
     const pc0 = INV.itemObj(S, INV.caseEntry(S, idx)).f.find((x) => x[0] === '_CurrentWeaponPartsCustom');
     const d0 = S.parsed.nodes[S.parsed.nodes[pc0[1]].f.find((x) => x[0] === '_Datas')[1]]; d0.items = []; d0.cnt = 0;
   }
-  INV.setAllUpgrades(S, 0, idx, 0); // no upgrades, no exclusive upgrade
+  try { INV.setAllUpgrades(S, 0, idx, 0); } catch { /* a weapon without upgrades (rocket launcher) */ } // no upgrades, no exclusive upgrade
   const entryId = INV.caseEntry(S, idx);
   const it = INV.itemObj(S, entryId);
   const set = (name, v) => { const n = it.f.find((x) => x[0] === name); if (n) writeValue(S.buf, S.parsed.nodes[n[1]], String(v)); };
@@ -64,7 +65,7 @@ for (const [id, e] of [...found].sort((x, y) => Number(x[0]) - Number(y[0]))) {
   const g = it.f.find((x) => x[0] === '_ID'); if (g) S.buf.fill(0, S.parsed.nodes[g[1]].off, S.parsed.nodes[g[1]].off + 16);
   const model = INV.model(S)[0].items[idx];
   const prev = old[id] || {};
-  weapons[id] = { ...(prev.name ? { name: prev.name } : {}), sw: e.sw, upg: model.upg.map((u) => u.key), tree: INV.exportTemplate(S, entryId.id) };
+  weapons[id] = { ...(prev.name ? { name: prev.name } : {}), sw: e.sw, upg: (model.upg || []).map((u) => u.key), tree: INV.exportTemplate(S, entryId.id) };
   console.log(id, (INV.CATALOG[id] || {}).n || '(not in the catalogue)', e.sw ? 'SW' : 'main', 'upgrades:', weapons[id].upg.join(','));
 }
 fs.writeFileSync(out, JSON.stringify({ about: 'Clean weapon entries taken from real saves (see scripts/build-weapon-library.js). No personal data.', weapons }));

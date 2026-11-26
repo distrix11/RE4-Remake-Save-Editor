@@ -3,7 +3,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const view = $('#view');
 let cfg = null, cur = null, data = null, tab = 'money';
 const ui = { inv: 0, q: '', cat: 'all', sort: 'game', dir: 1, view: 'list', sel: null, upg: {} };
-const DIRTY_ROUTES = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete']); // repair-knives and fill-stacks report "dirty" only when they change something
+const DIRTY_ROUTES = new Set(['to-storage', 'from-storage', 'lib-to-storage', 'gem', 'set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete']); // repair-knives and fill-stacks report "dirty" only when they change something
 const LS = 'RE4_item_names';
 const userNames = (() => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch { return {}; } })();
 const summaries = {};
@@ -58,7 +58,7 @@ function ask({ title, text, buttons }) {
   });
 }
 const sure = (title, text, ok, o = {}) => ask({ title, text, buttons: [{ id: 'no', label: o.cancel || 'Cancel' }, { id: 'yes', label: ok, kind: o.danger ? 'pri danger-pri' : 'pri' }] }).then((v) => v === 'yes');
-const RUNNING = 'The game (re4.exe) is running. If it saves this slot later, it overwrites what the editor writes now.';
+const RUNNING = 'The game (re4.exe) is running.\n\nIf the game has saved this slot since it was started, it refuses the changed file ("incompatible save data") until you restart the game; nothing is broken, the slot loads after a restart. If the game saves this slot later, it also overwrites what the editor writes now.\n\nSafest: close the game, write, then start it.';
 
 const typing = (e) => /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable;
 const dialogOpen = () => !!document.querySelector('.modal.on');
@@ -265,8 +265,9 @@ function renderInventory(root) {
   const others = invs.filter((v) => v.items.length && v.index >= 4);
   if (ui.inv >= 4) ui.more = true;
   const visible = invs.filter((v) => v.index < 4 || (ui.more && v.items.length));
-  if (!visible.find((v) => v.index === ui.inv)) ui.inv = visible[0] ? visible[0].index : 0;
-  const inv = invs[ui.inv];
+  if (ui.inv === 'storage' && !data.storage) ui.inv = 0;
+  if (ui.inv !== 'storage' && !visible.find((v) => v.index === ui.inv)) ui.inv = visible[0] ? visible[0].index : 0;
+  const inv = ui.inv === 'storage' ? { index: 'storage', items: data.storage } : invs[ui.inv];
 
   const top = document.createElement('div'); top.className = 'toolbar';
   const chips = document.createElement('div'); chips.className = 'chips';
@@ -275,12 +276,17 @@ function renderInventory(root) {
     if (v.index >= 4) b.title = 'Kept by the game for another part of the story (another character or chapter). Change it only if you know what it is.';
     b.onclick = () => { ui.inv = v.index; ui.cat = 'all'; render(); }; chips.append(b);
   }
+  if (data.storage) {
+    const b = document.createElement('button'); b.className = 'chip' + (ui.inv === 'storage' ? ' on' : ''); b.innerHTML = ic('case') + 'Storage<span class="dim" style="margin-left:5px">(' + data.storage.length + ')</span>';
+    b.title = 'The storage of the Merchant: weapons kept out of the case'; b.onclick = () => { ui.inv = 'storage'; render(); }; chips.insertBefore(b, chips.children[4] || null);
+  }
   if (others.length) {
     const m = document.createElement('button'); m.className = 'chip ghost'; m.textContent = ui.more ? 'Hide other inventories' : 'Other inventories (' + others.length + ')…';
     m.title = 'The save also keeps inventories for other parts of the story. They are not the ones you play with.';
     m.onclick = () => { ui.more = !ui.more; if (!ui.more && ui.inv >= 4) ui.inv = 0; render(); }; chips.append(m);
   }
   top.append(chips); root.append(top);
+  if (inv.index === 'storage') { renderStorage(root); return; }
   if (inv.index >= 4) { const n = document.createElement('p'); n.className = 'note'; n.style.marginTop = '0'; n.textContent = 'This inventory is kept by the game for another part of the story (another character or chapter); it is not the case you play with. Change it only if you know what it is.'; root.append(n); }
   if (inv.index === 0 && inv.sizes && inv.size) renderCaseBar(root, inv);
   const view3 = ui.view === '3d' && inv.index === 0 && !!inv.grid;
@@ -337,6 +343,43 @@ function confirmDelete(it, nm) {
   if (it.cat === 'key') return sure('Delete a key item?', '"' + name + '" is a key item. The story may need it: without it a door or a puzzle may not open and you can get stuck.\n\nDelete it only if you are sure (Undo takes it back before you save).', 'Delete key item', { danger: true });
   return sure('Delete?', 'Delete "' + name + '" from the inventory?', 'Delete', { danger: true });
 }
+// the sockets of a treasure: a choice of gems of the right shape for each
+const GEMS = [[120830400, 'Ruby', 0], [120833600, 'Sapphire', 0], [120835200, 'Yellow Diamond', 0], [120832000, 'Emerald', 1], [120838400, 'Alexandrite', 1], [120857600, 'Red Beryl', 1]];
+function gemRow(inv, it) {
+  const tr = document.createElement('tr'); tr.className = 'upg';
+  const td = document.createElement('td'); td.colSpan = 6; const g = document.createElement('div'); g.className = 'ugrid';
+  for (const s of it.sockets) {
+    const l = document.createElement('label'); l.append(document.createTextNode((s.shape ? 'Square' : 'Round') + ' socket ' + (s.pos + 1)));
+    const sel = document.createElement('select'); sel.style.width = 'auto';
+    sel.innerHTML = '<option value="-1">— empty —</option>' + GEMS.filter((x) => x[2] === s.shape).map(([id, n]) => '<option value="' + id + '">' + n + '</option>').join('');
+    sel.value = String(s.gem); if (sel.value !== String(s.gem)) sel.insertAdjacentHTML('beforeend', '<option value="' + s.gem + '" selected>#' + s.gem + '</option>');
+    sel.onchange = () => structural('gem', { inv: inv.index, idx: it.idx, pos: s.pos, gem: sel.value }, sel.value === '-1' ? 'Socket emptied' : 'Gem set');
+    l.append(sel); g.append(l);
+  }
+  const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Gems set here are not taken from your treasures. Gems of the same colour or of many colours raise the price at the Merchant.';
+  td.append(g, n); tr.append(td); return tr;
+}
+function renderStorage(root) {
+  const note = document.createElement('p'); note.className = 'note'; note.style.marginTop = '0';
+  note.textContent = 'The storage of the Merchant. Weapons kept here keep their upgrades; "To the case" puts one into a free place of the case, and the button with the arrow in the case list puts a weapon here.';
+  root.append(note);
+  const card = document.createElement('div'); card.className = 'card'; card.style.padding = '4px 10px';
+  if (!data.storage.length) { card.innerHTML = '<div class="empty">The storage is empty.</div>'; root.append(card); return; }
+  const t = document.createElement('table'); t.innerHTML = '<tr><th>Item</th><th style="width:220px">Upgrades</th><th style="width:150px"></th></tr>';
+  data.storage.forEach((it, i) => {
+    const tr = document.createElement('tr'); const nm = itemName(it) || 'Item #' + it.itemId.value;
+    const up = (it.upg || []).filter((u) => u.key !== 'excl').map((u) => u.level.value).join(' / ') + ((it.upg || []).some((u) => u.key === 'excl' && Number(u.level.value)) ? ' + exclusive' : '');
+    tr.innerHTML = '<td><div class="irow">' + listIcon(it, nm) + '<div><div class="iname">' + esc(nm) + '</div><div class="dim mono" style="font-size:11px">ID ' + it.itemId.value + '</div></div></div></td><td class="dim mono">' + esc(up || '—') + '</td>';
+    const td = document.createElement('td'); td.className = 'acts';
+    if (it.upg) { const ub = document.createElement('button'); ub.className = 'sm icon'; ub.title = 'Weapon upgrades'; ub.innerHTML = ic('tools'); ub.onclick = () => { ui.upg['storage:' + i] = !ui.upg['storage:' + i]; render(); }; td.append(ub, ' '); }
+    const b = document.createElement('button'); b.className = 'sm'; b.innerHTML = ic('case') + 'To the case';
+    if (it.cls !== 'WeaponItem') { b.disabled = true; b.title = 'Only weapons are moved by the editor'; }
+    b.onclick = () => structural('from-storage', { idx: i }, nm + ' is in the case now');
+    td.append(b); tr.append(td); t.append(tr);
+    if (it.upg && ui.upg['storage:' + i]) t.append(upgRow({ index: 'storage' }, { ...it, idx: i }));
+  });
+  card.append(t); root.append(card);
+}
 function drawItems(holder, inv) {
   holder.innerHTML = '';
   const list = sortedItems(inv.items);
@@ -367,6 +410,10 @@ function drawItems(holder, inv) {
     const del = document.createElement('button'); del.className = 'sm icon danger'; del.innerHTML = ic('trash'); del.title = 'Delete';
     del.onclick = async () => { if (await confirmDelete(it, nm)) structural('remove', { inv: inv.index, idx: it.idx }, 'Removed'); };
     if (UNIQUE.includes(it.cat)) { dup.disabled = true; dup.title = 'There is only one of these in the game: it cannot be copied'; }
+    if (inv.index === 0 && it.cls === 'WeaponItem' && it.cat !== 'throw' && data.storage) {
+      const sb = document.createElement('button'); sb.className = 'sm icon'; sb.title = 'Put into the storage'; sb.innerHTML = ic('export');
+      sb.onclick = () => structural('to-storage', { idx: it.idx }, (nm || 'Weapon') + ' is in the storage now'); a.append(sb, ' ');
+    }
     if (it.upg) {
       const ub = document.createElement('button'); ub.className = 'sm icon'; ub.title = 'Weapon upgrades'; ub.innerHTML = ic('tools');
       ub.onclick = () => { ui.upg[inv.index + ':' + it.idx] = !ui.upg[inv.index + ':' + it.idx]; render(); };
@@ -374,6 +421,7 @@ function drawItems(holder, inv) {
     }
     a.append(dup, ' ', del); tr.append(a); t.append(tr);
     if (it.upg && ui.upg[inv.index + ':' + it.idx]) t.append(upgRow(inv, it));
+    if (it.sockets && it.sockets.length) t.append(gemRow(inv, it));
   }
   card.append(t); holder.append(card);
   if (!list.length) holder.innerHTML = '<div class="empty">Nothing found</div>';
@@ -445,7 +493,7 @@ function drawAdd() {
   const all = document.createElement('button'); all.className = 'chip' + (add.cat === 'all' ? ' on' : ''); all.textContent = 'All'; all.onclick = () => { add.cat = 'all'; drawAdd(); }; box.append(all);
   for (const c of cats) { const b = document.createElement('button'); b.className = 'chip' + (add.cat === c ? ' on' : ''); b.innerHTML = ic(c) + esc(cfg.categories[c]); b.onclick = () => { add.cat = c; drawAdd(); }; box.append(b); }
   const ql = add.q.trim().toLowerCase();
-  const rows = Object.entries(cfg.catalog).filter(([id, v]) => !['weapon', 'money'].includes(v.c) && !v.x && (v.c !== 'throw' || / Grenade$/.test(v.n)) && (ql || add.cat === 'all' || v.c === add.cat) &&
+  const rows = Object.entries(cfg.catalog).filter(([id, v]) => !['weapon', 'money'].includes(v.c) && !v.x && (v.c !== 'throw' || / (Grenade|Egg)$/.test(v.n)) && (ql || add.cat === 'all' || v.c === add.cat) &&
     (!ql || (userNames[id] || v.n).toLowerCase().includes(ql) || id.includes(ql))).sort((a, b) => a[1].n.localeCompare(b[1].n));
   const list = $('#addList'); list.innerHTML = '';
   for (const [id, v] of rows) {
@@ -497,7 +545,10 @@ function weaponRow(w, name, info) {
   d.innerHTML = '<span class="wpic">' + (art || '') + '</span><span class="wname">' + esc(name) + (w.note ? '<span class="wnote">' + esc(w.note) + '</span>' : '') + '</span>' +
     '<span class="wmeta"><b class="fit-' + w.fit + '">' + FIT_TEXT[w.fit] + ' · ' + esc(w.size) + '</b><span class="dim mono">' + esc(info) + '</span></span>';
   d.onclick = () => {
-    if (w.fit === 'none') { toast('No free ' + w.size + ' space in the case for ' + name + '. Free up some room (or press Sort), or choose a bigger case size.', 'err'); return; }
+    if (w.fit === 'none') {
+      if (!w.slot && data.storage) { ask({ title: 'No room in the case', text: 'There is no free ' + w.size + ' space in the case for ' + name + '. Put it into the storage instead? You can take it out at the Merchant (or here) when there is room.', buttons: [{ id: 'no', label: 'Cancel' }, { id: 'st', label: 'Put into the storage', kind: 'pri' }] }).then((v) => { if (v === 'st') { $('#wpnModal').classList.remove('on'); structural('lib-to-storage', { lib: w.itemId }, name + ' is in the storage now (new, no upgrades)'); } }); return; }
+      toast('No free ' + w.size + ' space in the case for ' + name + '. Free up some room (or press Sort), or choose a bigger case size.', 'err'); return;
+    }
     wpn.sel = w; $('#wpnSel').textContent = 'Selected: ' + name; $('#wpnGo').disabled = false; drawWeapons();
   };
   return d;

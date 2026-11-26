@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased (for 0.9.8)
+- **Storage**: the Inventory tab shows the storage of the Merchant, with the upgrades of every weapon (they can be changed there too); weapons move between the case and the storage (with their upgrades), and **Add weapon…** offers to put a new weapon into the storage when the case is full.
+- Found in the game: if the game has saved a slot since it was started, it shows **"incompatible save data"** for that slot after the editor changes it, until the game is restarted; the slot itself is fine. The "game is running" warnings say so now.
+- **Gems in treasures**: the Treasures list shows the sockets of every treasure that has them (round or square), and a gem of the right shape can be set in each.
+- **Eggs** can be added; **treasures with gem sockets** added from the catalogue get their own sockets; every added item is marked as obtained, as the game does (from a save where the game itself added them).
+- **Add weapon…** offers six more weapons: W-870, Striker, TMP, CQBR Assault Rifle, Bolt Thrower and the Rocket Launcher (from a save where the game added them; their sizes checked in the game). The Striker takes 5×2 cells.
+
 ## 0.9.7 (pre-release)
 - **Fixed item sizes** (checked in the game): Magnum and SMG ammo, large resources, mixed herb vials and the TMP stock. Before, a new item could be put on top of them and the game deleted it.
 - Items that overlap or stick out of the case are shown in **red**, with a **Sort the case** button and a warning before writing.
