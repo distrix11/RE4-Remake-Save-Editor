@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased (for 1.0)
+- **Merchant requests**: all 26 names are confirmed now (the "probably" marks are gone): matched by their goals and by the order in which test slots completed them, which follows the chapters. The first one is called "Destroy the Blue Medallions" (without a number), as in the game; Blue Medallions 4 has 6 medallions.
+- The **What's new** window of a stable release (1.0) celebrates it: leaves and brass sparks, a shine on the version, a "Stable release" badge (only the badge when animations are off).
+- Checked in the saves: every fully upgraded weapon has 4 in each of its upgrades, so the 0-4 range holds for all weapons; the README says so now.
+
 ## 0.9.9 (pre-release)
 - **Twelve more weapons** in Add weapon: Broken Butterfly, Skull Shaker, both special rocket launchers, Primal, Kitchen and Boot Knife; for Separate Ways Punisher MC, TMP, Chicago Sweeper, Rocket Launcher and the Elite Knife (it goes into the storage).
 - **Case view**: a click on an item shows everything about it (ammo, durability, upgrades, gems, To storage); a right click opens a menu; a right click on an empty place adds an item or a weapon right there.

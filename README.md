@@ -114,9 +114,9 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 ## Known limitations
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
-- Weapon upgrade levels are limited to 0-4 (the highest seen in real saves). Some weapons have fewer upgrades; the editor does not know which.
+- Weapon upgrade levels go from 0 to 4: every fully upgraded weapon of the tested saves has 4 in each of its upgrades. Each weapon shows only the upgrades it has (a knife: firepower and durability).
 - **Add weapon…** offers new weapons (no upgrades, empty magazine) only for the weapons in its built-in list (28 for the main game, 13 for Separate Ways): not for the Minecart Red9, Krauser's Bow and the Kitchen Knife of Separate Ways. The Elite Knife of Separate Ways goes into the storage: the game keeps it only there. A weapon from another of your slots of the same campaign can be copied too. The game deletes weapons of the other campaign, bonus or DLC weapons you have not unlocked (for example the Chicago Sweeper), weapons that do not fit the case, and may delete a second copy of one you already carry. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
-- Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
+- Names of merchant requests are not stored in the save: the editor knows them by their IDs. All 26 (19 of the main game, 7 of Separate Ways) are matched by their goals and by the order in which test slots completed them, which follows the chapters.
 - The item catalog is community-compiled and may contain mistakes.
 - Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.
 - Windows and the Steam version only.

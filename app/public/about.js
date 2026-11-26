@@ -45,11 +45,17 @@ loadUpdate();
 
 // ---------------------------------------------------------------- what's new: once after every new version
 let newsShown = null; // the version of the window that is open
+// a stable release: 1.0, 2.0 ... (not 0.x and not x.y.z with a patch number)
+const stableRelease = (v) => /^([1-9]\d*)\.0(\.0)?$/.test(String(v));
 function showNews(n) {
   $('#newsVersion').textContent = 'Version ' + n.version;
+  const big = stableRelease(n.version), dlg = $('#newsModal .dlg');
+  dlg.classList.toggle('milestone', big);
+  $('#newsBadge').hidden = !big;
   // the changelog uses **bold** and `code`
   $('#newsList').innerHTML = n.items.map((t) => '<li>' + esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<span class="mono">$1</span>') + '</li>').join('');
   newsShown = n.version; $('#newsModal').classList.add('on');
+  if (big) setTimeout(() => fx.celebrate(dlg), 250); // after the window has appeared
 }
 function closeNews() {
   $('#newsModal').classList.remove('on');

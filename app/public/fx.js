@@ -102,6 +102,47 @@ const fx = (() => {
     brand.addEventListener('animationend', (e) => { if (e.animationName === 'fx-shake') brand.classList.remove('shake'); });
   }
 
+  // ---- a stable release: leaves and brass sparks fall over the What's new window ----------
+  // Drawn on a canvas over the page for about four seconds; the colours are the editor's own (herb green, brass).
+  function celebrate(box) {
+    if (!on() || !box) return;
+    const r = box.getBoundingClientRect();
+    const cv = document.createElement('canvas'); cv.className = 'fx-party';
+    const W = innerWidth, H = innerHeight, dpr = devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr; document.body.append(cv);
+    const g = cv.getContext('2d'); g.scale(dpr, dpr);
+    const GREENS = ['#a9c58a', '#7f9d63', '#5f7f45', '#c4dba6'], BRASS = ['#c9ad6a', '#e3c98a', '#a8883a'];
+    const bits = [];
+    // two bursts from the bottom corners of the window up over it, then a gentle fall
+    for (let i = 0; i < 150; i++) {
+      const left = i % 2 === 0, leaf = i % 3 !== 0;
+      bits.push({ x: left ? r.left + 10 : r.right - 10, y: r.bottom - 10, vx: (left ? 1 : -1) * (1.5 + Math.random() * 5), vy: -9 - Math.random() * 7,
+        a: Math.random() * 6.3, va: (Math.random() - 0.5) * 0.3, s: leaf ? 7 + Math.random() * 7 : 2 + Math.random() * 3, leaf,
+        c: leaf ? GREENS[i % GREENS.length] : BRASS[i % BRASS.length], sway: Math.random() * 6.3, delay: Math.floor(Math.random() * 25) });
+    }
+    for (let i = 0; i < 60; i++) {
+      bits.push({ x: r.left + Math.random() * r.width, y: -20 - Math.random() * 200, vx: 0, vy: 1 + Math.random() * 1.5, a: Math.random() * 6.3, va: (Math.random() - 0.5) * 0.12,
+        s: 6 + Math.random() * 6, leaf: true, c: GREENS[i % GREENS.length], sway: Math.random() * 6.3, delay: 20 + Math.floor(Math.random() * 90) });
+    }
+    const leafPath = (s) => { g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(0, -s * 0.55, s, 0); g.quadraticCurveTo(0, s * 0.55, -s, 0); };
+    let frame = 0; const END = 240;
+    const step = () => {
+      frame++; g.clearRect(0, 0, W, H);
+      const fade = frame > END - 50 ? (END - frame) / 50 : 1;
+      for (const b of bits) {
+        if (frame < b.delay) continue;
+        b.vy = Math.min(b.vy + 0.16, b.leaf ? 2.2 : 4); b.vx *= 0.985; b.sway += 0.05;
+        b.x += b.vx + (b.leaf ? Math.sin(b.sway) * 0.8 : 0); b.y += b.vy; b.a += b.va;
+        g.save(); g.globalAlpha = fade; g.translate(b.x, b.y); g.rotate(b.a); g.fillStyle = b.c;
+        if (b.leaf) { leafPath(b.s); g.fill(); g.strokeStyle = 'rgba(30,40,20,.35)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-b.s * 0.8, 0); g.lineTo(b.s * 0.8, 0); g.stroke(); }
+        else { g.shadowColor = b.c; g.shadowBlur = 6; g.fillRect(-b.s / 2, -b.s / 2, b.s, b.s); }
+        g.restore();
+      }
+      if (frame < END) requestAnimationFrame(step); else cv.remove();
+    };
+    requestAnimationFrame(step);
+  }
+
   // ---- start-up screen ---------------------------------------------------------
   const splash = document.getElementById('splash');
   const hide = () => { if (!splash) return; splash.classList.add('out'); setTimeout(() => splash.remove(), 400); };
@@ -109,5 +150,5 @@ const fx = (() => {
   // the editor is ready: let the picture play to its end (about 1.2 s after the page opened), then open
   const ready = () => setTimeout(hide, on() ? Math.max(0, 1200 - performance.now()) : 0);
 
-  return { view, caseDrawn, caseDropped, countTo, saved, ready, setMode, mode: () => mode, systemOff: () => system.matches };
+  return { view, caseDrawn, caseDropped, countTo, saved, ready, celebrate, setMode, mode: () => mode, systemOff: () => system.matches };
 })();
