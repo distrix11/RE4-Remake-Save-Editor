@@ -278,7 +278,7 @@ function renderInventory(root) {
   }
   if (data.storage) {
     const b = document.createElement('button'); b.className = 'chip' + (ui.inv === 'storage' ? ' on' : ''); b.innerHTML = ic('case') + 'Storage<span class="dim" style="margin-left:5px">(' + data.storage.length + ')</span>';
-    b.title = 'The storage of the Merchant: weapons kept out of the case'; b.onclick = () => { ui.inv = 'storage'; render(); }; chips.insertBefore(b, chips.children[4] || null);
+    b.title = 'The storage: weapons kept out of the case'; b.onclick = () => { ui.inv = 'storage'; render(); }; chips.insertBefore(b, chips.children[4] || null);
   }
   if (others.length) {
     const m = document.createElement('button'); m.className = 'chip ghost'; m.textContent = ui.more ? 'Hide other inventories' : 'Other inventories (' + others.length + ')…';
@@ -361,7 +361,7 @@ function gemRow(inv, it) {
 }
 function renderStorage(root) {
   const note = document.createElement('p'); note.className = 'note'; note.style.marginTop = '0';
-  note.textContent = 'The storage of the Merchant. Weapons kept here keep their upgrades; "To the case" puts one into a free place of the case, and the button with the arrow in the case list puts a weapon here.';
+  note.textContent = 'The storage. Weapons kept here keep their upgrades; "To the case" puts one into a free place of the case, and the button with the arrow in the case list puts a weapon here.';
   root.append(note);
   const card = document.createElement('div'); card.className = 'card'; card.style.padding = '4px 10px';
   if (!data.storage.length) { card.innerHTML = '<div class="empty">The storage is empty.</div>'; root.append(card); return; }

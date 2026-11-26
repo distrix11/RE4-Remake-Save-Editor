@@ -614,7 +614,7 @@ function effectFields(S, c) {
   return c.f.filter(([name, id]) => /Level$/.test(name) && name !== '_NowLevel' && S.parsed.nodes[id] && S.parsed.nodes[id].k === 'v' && Number(readValue(S.buf, S.parsed.nodes[id])) !== 0).map(([name]) => name);
 }
 function weaponUpgradeNodes(S, invIdx, idx) {
-  // invIdx 'storage': a weapon in the storage of the Merchant (the same weapon object as in the case)
+  // invIdx 'storage': a weapon in the storage (the same weapon object as in the case)
   const arrN = invIdx === 'storage' ? storageArr(S) : itemList(S, inventories(S)[invIdx]); const entry = arrN && S.parsed.nodes[arrN.items[idx]];
   if (!entry) throw new Error('No such item');
   const it = itemObj(S, entry); const cl = F(S, it, '_CustomLevelInWeapon');

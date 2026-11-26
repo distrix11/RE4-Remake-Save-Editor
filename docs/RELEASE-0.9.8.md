@@ -7,7 +7,7 @@ An unofficial, local save editor for **Resident Evil 4 (2023 remake), Steam, Win
 
 ## What is new in 0.9.8
 
-- **Storage.** The storage of the Merchant is shown in the Inventory tab. Weapons move between it and the case with their upgrades (their quick slots are emptied, as the game does; an equipped weapon must be changed in the game first), they can be upgraded there, and **Add weapon…** offers to put a new weapon straight into the storage when the case is full.
+- **Storage.** The storage is shown in the Inventory tab. Weapons move between it and the case with their upgrades (their quick slots are emptied, as the game does; an equipped weapon must be changed in the game first), they can be upgraded there, and **Add weapon…** offers to put a new weapon straight into the storage when the case is full.
 - **Gems in treasures.** The sockets of the Elegant Crown, Golden Lynx, Elegant Mask, Butterfly Lamp and the other treasures are shown (round or square), and a gem of the right shape can be set in each.
 - **Six more weapons** in **Add weapon…**: W-870, Striker, TMP, CQBR Assault Rifle, Bolt Thrower and the Rocket Launcher, taken from a save where the game itself added them; their sizes were checked in the game.
 - **Eggs** (white, brown, golden) can be added with **Add item**.

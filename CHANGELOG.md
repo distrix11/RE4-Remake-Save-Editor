@@ -1,14 +1,14 @@
 # Changelog
 
 ## 0.9.8 (pre-release)
-- **Storage**: the storage of the Merchant is shown; weapons move between it and the case, with their upgrades, and can be upgraded there.
+- **Storage**: the storage is shown; weapons move between it and the case, with their upgrades, and can be upgraded there.
 - **Gems**: set gems in the sockets of the crown, the lynx, the mask and the other treasures.
 - **Six more weapons** in Add weapon: W-870, Striker, TMP, CQBR, Bolt Thrower, Rocket Launcher.
 - **Eggs** can be added; treasures with sockets get their own sockets.
 - "Incompatible save data" explained: the game shows it for a slot it saved in the same run after an edit; restart the game.
 
 ### Details
-- **Storage**: the Inventory tab shows the storage of the Merchant, with the upgrades of every weapon (they can be changed there too); weapons move between the case and the storage (with their upgrades), and **Add weapon…** offers to put a new weapon into the storage when the case is full.
+- **Storage**: the Inventory tab shows the storage, with the upgrades of every weapon (they can be changed there too); weapons move between the case and the storage (with their upgrades), and **Add weapon…** offers to put a new weapon into the storage when the case is full.
 - Found in the game: if the game has saved a slot since it was started, it shows **"incompatible save data"** for that slot after the editor changes it, until the game is restarted; the slot itself is fine. The "game is running" warnings say so now.
 - **Gems in treasures**: the Treasures list shows the sockets of every treasure that has them (round or square), and a gem of the right shape can be set in each.
 - **Eggs** can be added; **treasures with gem sockets** added from the catalogue get their own sockets; every added item is marked as obtained, as the game does (from a save where the game itself added them).

@@ -46,7 +46,7 @@ Edit your save in a clean local window: it runs on your PC and never sends your 
 [*][b]Case view[/b]: your case lying down like in the game, with an original 3D-rendered icon for every item and weapon. Drag items to move them, rotate them (R), or press [b]Sort[/b] to tidy the case.
 [*][b]Add weapons[/b]: [b]Add weapon...[/b] puts a new weapon into your case (21 for the main campaign, 7 for Separate Ways), or copies one from another of your slots of the same campaign, and shows whether it fits. Not all new weapons are tested yet, and the game deletes bonus or DLC weapons you have not unlocked.
 [*][b]Weapon upgrades[/b]: levels 0-4 set with steps like at the Merchant, [b]Full upgrade[/b] and [b]Upgrade all weapons[/b], and a switch for the exclusive upgrade.
-[*][b]Storage[/b]: the storage of the Merchant: move weapons between it and the case, upgrade them there, put a new weapon straight into it when the case is full.
+[*][b]Storage[/b]: move weapons between it and the case, upgrade them there, put a new weapon straight into it when the case is full.
 [*][b]Quick buttons[/b]: [b]Repair knives[/b] and [b]Fill ammo stacks[/b].
 [*][b]Also[/b]: merchant requests (main game and Separate Ways; blue medallions are left to the game), treasures, achievement hints (read-only) and an [i]Advanced[/i] raw view for experienced users.
 [*][b]Undo[/b] (button or Ctrl+Z) takes back your last changes one by one; [b]Ctrl+S[/b] saves to the game after the summary.
@@ -98,7 +98,7 @@ This package needs [url=https://nodejs.org]Node.js[/url] 20 or newer, installed 
 ==========================================================================================
 CHANGELOG ENTRY FOR THE FILE (version 0.9.8)
 ==========================================================================================
-- Storage: the storage of the Merchant is shown; weapons move between it and the case, with their upgrades, and can be upgraded there.
+- Storage: the storage is shown; weapons move between it and the case, with their upgrades, and can be upgraded there.
 - Gems: set gems in the sockets of the crown, the lynx, the mask and the other treasures.
 - Six more weapons in Add weapon: W-870, Striker, TMP, CQBR, Bolt Thrower, Rocket Launcher.
 - Eggs can be added; treasures with sockets get their own sockets.
