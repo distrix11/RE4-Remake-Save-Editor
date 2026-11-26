@@ -14,13 +14,12 @@ if (!args.length) { console.error('usage: node scripts/build-weapon-library.js <
 const out = path.join(__dirname, '..', 'app', 'weapons.json');
 const old = (() => { try { return JSON.parse(fs.readFileSync(out, 'utf8')).weapons || {}; } catch { return {}; } })();
 // not offered: tested in the game as new weapons and not accepted
-const EXCLUDE = new Set([
-  '278197056', // the Separate Ways weapon with the same upgrades: removed too
-  '278214656', // the game refuses to load the slot ("incompatible save data")
-]);
+// (278197056 Chicago Sweeper and 278214656 Punisher MC of Separate Ways were here once: the "incompatible save data" of that test was
+// the game's own cache, see the README, so they are offered again)
+const EXCLUDE = new Set([]);
 // weapons only (grenades and eggs are weapon entries too: they have no upgrade blocks); the rocket launchers (2762…) and the boot,
-// kitchen and primal knives (2764…) have no upgrades either
-const keep = (it) => it.cls === 'WeaponItem' && (it.upg || /^276(2|4)/.test(String(it.itemId.value)));
+// kitchen and primal knives (2764…) have no upgrades either, nor the rocket launcher of Separate Ways (a weapon of the catalogue)
+const keep = (it) => it.cls === 'WeaponItem' && (it.upg || /^276(2|4)/.test(String(it.itemId.value)) || (INV.CATALOG[String(it.itemId.value)] || {}).c === 'weapon');
 const found = new Map(); // itemId -> { sw, samples: [{S, idx, parts, dura}] }
 
 for (const a of args) {
@@ -37,7 +36,7 @@ for (const a of args) {
       try { INV.storageToCase(S2, k, true); } catch (e) { console.log('skip storage', id, e.message.slice(0, 60)); continue; }
       const it = INV.model(S2)[0].items.slice(-1)[0];
       if (!keep(it)) continue;
-      const e = found.get(id) || { sw, samples: [] }; if (e.sw !== sw) continue;
+      const e = found.get(id) || { sw, samples: [] }; if (e.sw !== sw) { e.both = true; found.set(id, e); continue; }
       e.samples.push({ S: S2, idx: it.idx, dura: it.durability ? Number(it.durability.value) : null }); found.set(id, e);
     }
     for (const it of m.items) {
@@ -45,7 +44,7 @@ for (const a of args) {
       const id = String(it.itemId.value); const key = id;
       if (EXCLUDE.has(id)) continue;
       const e = found.get(key) || { sw, samples: [] };
-      if (e.sw !== sw) { console.log('ID', id, 'is in both campaigns: kept as', e.sw ? 'Separate Ways' : 'main game'); continue; }
+      if (e.sw !== sw) { e.both = true; continue; } // the same weapon in both campaigns (Boot Knife): the sample of the first one, offered in both
       e.samples.push({ S, idx: it.idx, dura: it.durability ? Number(it.durability.value) : null });
       found.set(key, e);
     }
@@ -78,7 +77,7 @@ for (const [id, e] of [...found].sort((x, y) => Number(x[0]) - Number(y[0]))) {
   const g = it.f.find((x) => x[0] === '_ID'); if (g) S.buf.fill(0, S.parsed.nodes[g[1]].off, S.parsed.nodes[g[1]].off + 16);
   const model = INV.model(S)[0].items[idx];
   const prev = old[id] || {};
-  weapons[id] = { ...(prev.name ? { name: prev.name } : {}), sw: e.sw, upg: (model.upg || []).map((u) => u.key), tree: INV.exportTemplate(S, entryId.id) };
+  weapons[id] = { ...(prev.name ? { name: prev.name } : {}), sw: e.sw, ...(e.both || prev.both ? { both: true } : {}), upg: (model.upg || []).map((u) => u.key), tree: INV.exportTemplate(S, entryId.id) };
   console.log(id, (INV.CATALOG[id] || {}).n || '(not in the catalogue)', e.sw ? 'SW' : 'main', 'upgrades:', weapons[id].upg.join(','));
 }
 fs.writeFileSync(out, JSON.stringify({ about: 'Clean weapon entries taken from real saves (see scripts/build-weapon-library.js). No personal data.', weapons }));

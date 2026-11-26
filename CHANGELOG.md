@@ -4,6 +4,8 @@
 - **Seven more weapons** in **Add weapon…**: Broken Butterfly, Skull Shaker, Rocket Launcher (Special), Rocket Launcher (Infinite), Primal Knife, Kitchen Knife and Boot Knife, taken from saves where the game itself added them. The weapon library is also built from weapons in the storage now.
 - **Elite Knife** (Separate Ways) in **Add weapon…**: the knife that never breaks, a reward of the Merchant's requests of Separate Ways. It goes into the **storage**: checked in the game, the game removes it from the case when the editor puts it there, but keeps it in the storage (take it out at a typewriter).
 - A name for one more recipe of the Bolt Thrower (Recipe: Bolts (3)).
+- The **Boot Knife** can be added in Separate Ways too (the same weapon as in the main game).
+- **Four more Separate Ways weapons** in **Add weapon…**: Punisher MC, TMP, Chicago Sweeper and Rocket Launcher, with their sizes as in the game. Two of them (Punisher MC, Chicago Sweeper) had been left out after an early test; the "incompatible save data" of that test was the game's own cache.
 - Fixed: the Kitchen Knife takes 1×2 cells (it was 1×3), as in the game.
 - **Equipped weapons can be deleted** (and put into the storage): their equip slot and quick slots are emptied, as the game does for quick slots. An item another item refers to (for example fitted to a weapon) is still refused.
 - **Case view**: the selected item shows its ammo and durability too, the upgrade levels, the gem sockets, and a **To storage** button: everything the list has, without searching the list.

@@ -498,13 +498,14 @@ const LOCKED_NOTE = {
   '275157056': 'Bonus weapon: the game deletes it unless you have unlocked it.',
   '275638656': 'Bonus weapon: the game may delete it unless you have unlocked it.',
   '278035456': 'Extra content (DLC): the game may delete it if you do not own it.',
+  '278197056': 'Bonus weapon: the game may delete it unless you have unlocked it.',
 };
 // Weapons the game keeps only in the storage: put into the case by the editor they are gone when the slot loads, put into the storage
 // they stay (checked in the game with the Elite Knife of Separate Ways, a reward of the Extra Content Shop).
 const STORAGE_ONLY = new Set(['278208256']);
 const STORAGE_ONLY_MSG = 'The game keeps this weapon only in the storage (put into the case by the editor, it is gone when the slot loads). Take it out at a typewriter in the game.';
 function libraryList(separateWays) {
-  return Object.entries(weaponLibrary()).filter(([, w]) => !!w.sw === !!separateWays).map(([id, w]) => {
+  return Object.entries(weaponLibrary()).filter(([, w]) => w.both || !!w.sw === !!separateWays).map(([id, w]) => {
     const cat = CATALOG[id];
     return { itemId: id, name: cat ? cat.n : (w.name || 'Weapon (ID ' + id + ')'), upg: w.upg || [], note: LOCKED_NOTE[id] || null, storageOnly: STORAGE_ONLY.has(id) };
   }).sort((x, y) => x.name.localeCompare(y.name));
@@ -513,7 +514,7 @@ function libraryList(separateWays) {
 function addWeaponFromLibrary(dstS, itemId, separateWays) {
   if (STORAGE_ONLY.has(String(itemId))) throw new Error(STORAGE_ONLY_MSG);
   const w = weaponLibrary()[String(itemId)];
-  if (!w || !!w.sw !== !!separateWays) throw new Error('This weapon is not available for this campaign');
+  if (!w || (!w.both && !!w.sw !== !!separateWays)) throw new Error('This weapon is not available for this campaign');
   const src = importTemplate(w.tree);
   const cat = CATALOG[String(itemId)];
   const r = placeWeapon(dstS, src, src.root, itemId, cat ? cat.n : (w.name || 'Weapon ' + itemId));
@@ -771,7 +772,7 @@ function storageToCase(S, sIdx, anyPlace) {
 // a new weapon of the library straight into the storage (when the case is full)
 function libraryToStorage(S, itemId, separateWays) {
   const w = weaponLibrary()[String(itemId)];
-  if (!w || !!w.sw !== !!separateWays) throw new Error('This weapon is not available for this campaign');
+  if (!w || (!w.both && !!w.sw !== !!separateWays)) throw new Error('This weapon is not available for this campaign');
   const src = importTemplate(w.tree); const item = F(src, src.parsed.nodes[src.root], 'Item');
   putInStorage(S, src, item.id);
   const sa = storageArr(S); const wrap = S.parsed.nodes[sa.items[sa.items.length - 1]]; const it = F(S, wrap, 'Item');

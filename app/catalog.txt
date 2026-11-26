@@ -28,7 +28,11 @@
 276445056|Primal Knife|weapon
 278035456|Sentinel Nine|weapon
 278037056|Skull Shaker|weapon
+278197056|Chicago Sweeper (Separate Ways)|weapon
 278198656|Blast Crossbow|weapon
+278201856|TMP (Separate Ways)|weapon
+278205056|Rocket Launcher (Separate Ways)|weapon
+278214656|Punisher MC|weapon
 278200256|Blacktail AC|weapon
 278203456|Stingray (Separate Ways)|weapon
 278206656|Tactical Knife|weapon
