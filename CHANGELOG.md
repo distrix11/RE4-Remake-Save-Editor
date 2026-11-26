@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased (for 0.9.9)
+- **Seven more weapons** in **Add weapon…**: Broken Butterfly, Skull Shaker, Rocket Launcher (Special), Rocket Launcher (Infinite), Primal Knife, Kitchen Knife and Boot Knife, taken from saves where the game itself added them. The weapon library is also built from weapons in the storage now.
+- **Elite Knife** (Separate Ways) in **Add weapon…**: the knife that never breaks, a reward of the Merchant's requests of Separate Ways. It goes into the **storage**: checked in the game, the game removes it from the case when the editor puts it there, but keeps it in the storage (take it out at a typewriter).
+- A name for one more recipe of the Bolt Thrower (Recipe: Bolts (3)).
+- Fixed: the Kitchen Knife takes 1×2 cells (it was 1×3), as in the game.
+- **Equipped weapons can be deleted** (and put into the storage): their equip slot and quick slots are emptied, as the game does for quick slots. An item another item refers to (for example fitted to a weapon) is still refused.
+- **Case view**: the selected item shows its ammo and durability too, the upgrade levels, the gem sockets, and a **To storage** button: everything the list has, without searching the list.
+- **Right-click menu** on an item of the Case view: Rotate, Full upgrade, Upgrades, To storage, Copy, Delete.
+- **Add here**: a right click on an empty place of the Case view offers Add item here… and Add weapon here…; the new item goes onto that place (shifted or turned if it is needed to fit).
+- The page no longer jumps to the top after Delete, Copy or another change, or when an item of the case is selected.
+- A new picture for the Broken Butterfly: a revolver with a round cylinder (it looked like a pistol).
+
 ## 0.9.8 (pre-release)
 - **Storage**: the storage is shown; weapons move between it and the case, with their upgrades, and can be upgraded there.
 - **Gems**: set gems in the sockets of the crown, the lynx, the mask and the other treasures.

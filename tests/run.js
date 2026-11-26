@@ -118,6 +118,23 @@ async function online() {
       if (lib.length) { const r = await api('add-weapon', { name: main, lib: lib[0].itemId }); const w = r.inventories && r.inventories[0].items.filter((i) => String(i.itemId.value) === String(lib[0].itemId)).pop();
         check('new weapon from the library: ' + lib[0].name, !r.error && w && w.upg.every((u) => Number(u.level.value) === 0), r.error); }
     }
+    // "Add item here": the new item covers the chosen cell (the last free cell of the case)
+    if (main) {
+      let o = await api('open', { name: main }); const inv = o.inventories[0]; const [GW, GH] = inv.grid; const occ = new Set();
+      for (const i of inv.items) if (i.slot) for (let a = 0; a < i.fp[0]; a++) for (let b = 0; b < i.fp[1]; b++) occ.add((i.slot.x + a) + ',' + (i.slot.y + b));
+      let at = null; for (let x = GW - 1; x >= 0 && !at; x--) for (let y = GH - 1; y >= 0 && !at; y--) if (!occ.has(x + ',' + y) && !occ.has((x - 1) + ',' + y)) at = { x, y };
+      if (at) { const r = await api('add', { name: main, itemId: '114400000', count: 1, at }); const it = r.inventories && r.inventories[0].items[inv.items.length];
+        check('add item here: it covers the chosen cell', !r.error && r.placedAt === true && it && at.x >= it.slot.x && at.x < it.slot.x + it.fp[0] && at.y >= it.slot.y && at.y < it.slot.y + it.fp[1], r.error || JSON.stringify(it && it.slot)); }
+    }
+    // delete every weapon of the case, the equipped ones too: their equip and quick slots are emptied; the slot writes and reads back
+    if (main) {
+      let o = await api('open', { name: main }); const errs = []; let n = 0;
+      for (;;) { const w = o.inventories[0].items.find((i) => i.cls === 'WeaponItem' && i.upg); if (!w) break;
+        const r = await api('remove', { name: main, inv: 0, idx: w.idx }); if (r.error) { errs.push(w.name + ': ' + r.error); break; } o = r; n++; }
+      const r = await api('save', { name: main, target: 'game', force: true }); if (r.error) errs.push(r.error);
+      o = await api('open', { name: main }); if (o.error) errs.push(o.error);
+      check('all weapons deleted, equipped ones too (' + n + ')', !errs.length && n > 0, errs.join('; '));
+    }
     // merchant requests: complete, undo; restore from a backup gives the old file back; copy a slot
     const q = slots.find((f) => true);
     let o = await api('open', { name: q }); const open1 = (x) => x.reduce((n, r) => n + r.subs.filter((s) => s.type === 'Flag' && s.completed && Number(s.completed.value) !== 1).length, 0);

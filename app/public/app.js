@@ -204,9 +204,13 @@ function showClashes() {
   el.append(show, sort); el.hidden = false;
 }
 
+// the page stays where it was when the same tab is drawn again (after Delete, Copy, a change...); another tab or slot starts at the top
+let lastDrawn = '';
 function render() {
   showClashes();
   if (!data) return;
+  const here = cur + '|' + tab, y = here === lastDrawn ? window.scrollY : 0; lastDrawn = here;
+  view.style.minHeight = view.offsetHeight + 'px'; // no jump while the page is rebuilt
   view.innerHTML = '';
   const list = data.isSlot ? [['money', 'Money'], ['inv', 'Inventory'], ...(data.quests && data.quests.length ? [['quests', 'Merchant requests']] : []), ...(data.treasures ? [['treasures', 'Treasures']] : []), ...(data.isSlot ? [['achievements', 'Achievements']] : []), ['tree', 'Advanced']] : [['tree', 'File data']];
   const tabs = document.createElement('div'); tabs.className = 'tabs';
@@ -218,6 +222,7 @@ function render() {
   const body = document.createElement('div'); view.append(body);
   fx.view(body, [cur, tab, tab === 'inv' ? ui.inv + ui.view : ''].join('|'));
   if (tab === 'money') renderMoney(body); else if (tab === 'inv') renderInventory(body); else if (tab === 'quests') renderQuests(body); else if (tab === 'treasures') renderTreasures(body); else if (tab === 'achievements') renderAchievements(body); else if (!cfg.advancedAccepted) renderAdvancedGate(body); else renderTree(body);
+  view.style.minHeight = ''; window.scrollTo(0, y);
 }
 
 // ---------------------------------------------------------------- money
@@ -300,8 +305,8 @@ function renderInventory(root) {
   const sortSel = document.createElement('select');
   sortSel.innerHTML = [['game', 'Game order'], ['name', 'By name'], ['cat', 'By category'], ['count', 'By count'], ['id', 'By ID']].map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
   sortSel.value = ui.sort;
-  const add = document.createElement('button'); add.className = 'pri'; add.innerHTML = ic('plus') + 'Add item'; add.onclick = openAdd;
-  const addW = document.createElement('button'); addW.innerHTML = ic('plus') + 'Add weapon…'; addW.title = 'Add a new weapon, or copy one from your other slots'; addW.onclick = openWeapons;
+  const add = document.createElement('button'); add.className = 'pri'; add.innerHTML = ic('plus') + 'Add item'; add.onclick = () => openAdd();
+  const addW = document.createElement('button'); addW.innerHTML = ic('plus') + 'Add weapon…'; addW.title = 'Add a new weapon, or copy one from your other slots'; addW.onclick = () => openWeapons();
   bar.append(q, sel, sortSel, Object.assign(document.createElement('span'), { className: 'sp' }), ...(inv.index === 0 ? [addW] : []), add);
   root.append(bar);
 
@@ -374,6 +379,7 @@ function renderStorage(root) {
     if (it.upg) { const ub = document.createElement('button'); ub.className = 'sm icon'; ub.title = 'Weapon upgrades'; ub.innerHTML = ic('tools'); ub.onclick = () => { ui.upg['storage:' + i] = !ui.upg['storage:' + i]; render(); }; td.append(ub, ' '); }
     const b = document.createElement('button'); b.className = 'sm'; b.innerHTML = ic('case') + 'To the case';
     if (it.cls !== 'WeaponItem') { b.disabled = true; b.title = 'Only weapons are moved by the editor'; }
+    if (STORAGE_ONLY_IDS.includes(String(it.itemId.value))) { b.disabled = true; b.title = 'The game keeps this weapon only in the storage: take it out at a typewriter in the game'; }
     b.onclick = () => structural('from-storage', { idx: i }, nm + ' is in the case now');
     td.append(b); tr.append(td); t.append(tr);
     if (it.upg && ui.upg['storage:' + i]) t.append(upgRow({ index: 'storage' }, { ...it, idx: i }));
@@ -433,6 +439,7 @@ async function structural(op, body, okMsg) {
   try {
     const r = await api(op, { name: cur, ...body });
     applyFresh(r); setButtons(); render();
+    if (r.placedAt === false) okMsg += '\nIt does not fit at the chosen cell, so it went to the first free place.';
     toast(okMsg + (r.warn ? '\nWarning: the free spot was found approximately - check the layout in game.' : ''), r.warn ? '' : 'ok');
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -483,7 +490,8 @@ async function questDo(idx) {
 
 // ---------------------------------------------------------------- add dialog
 const add = { cat: 'ammo', q: '', sel: null };
-function openAdd() { $('#addModal').classList.add('on'); add.sel = null; drawAdd(); $('#addQ').focus(); }
+// at: the cell of the case {x, y} chosen with a right click in the Case view (the new item goes there if it fits)
+function openAdd(at) { add.at = at && at.x !== undefined ? at : null; $('#addModal').classList.add('on'); add.sel = null; drawAdd(); $('#addQ').focus(); }
 $('#addClose').onclick = () => $('#addModal').classList.remove('on');
 $('#addModal').onclick = (e) => { if (e.target.id === 'addModal') $('#addModal').classList.remove('on'); };
 $('#addQ').oninput = (e) => { add.q = e.target.value; drawAdd(); };
@@ -511,7 +519,7 @@ $('#addGo').onclick = async () => {
   if (!add.sel) return;
   const count = Number($('#addCount').value) || 1;
   $('#addModal').classList.remove('on');
-  await structural('add', { itemId: add.sel, count }, 'Item added');
+  await structural('add', { itemId: add.sel, count, ...(add.at ? { at: add.at } : {}) }, 'Item added');
 };
 
 // ---------------------------------------------------------------- Advanced: one-time warning (remembered in config.json)
@@ -531,19 +539,22 @@ function renderAdvancedGate(root) {
 const wpn = { list: [], sel: null };
 const slotNo = (f) => { const m = /^data(\d+)Slot\.bin$/.exec(f); return m ? Number(m[1]) : 0; };
 const isSW = (f) => slotNo(f) >= 100; // slots 100 and up are Separate Ways
-async function openWeapons() {
+async function openWeapons(at) {
+  wpn.at = at && at.x !== undefined ? at : null;
   $('#wpnModal').classList.add('on'); wpn.sel = null; $('#wpnGo').disabled = true; $('#wpnSel').textContent = 'Nothing selected';
   $('#wpnList').innerHTML = '<div class="empty">Looking through your other slots…</div>';
   try { wpn.lib = (await api('weapon-library', { name: cur })).weapons; wpn.list = (await api('weapon-sources', { name: cur })).weapons; drawWeapons(); }
   catch (e) { $('#wpnList').innerHTML = '<div class="empty">' + esc(e.message) + '</div>'; }
 }
-const FIT_TEXT = { ok: 'fits', turn: 'fits turned', none: 'no room' };
+// weapons the game keeps only in the storage (see STORAGE_ONLY in app/inventory.js)
+const STORAGE_ONLY_IDS = ['278208256'];
+const FIT_TEXT = { ok: 'fits', turn: 'fits turned', none: 'no room', storage: 'into the storage' };
 // one line of the "Add weapon" list: picture, name, whether it fits the case now
 function weaponRow(w, name, info) {
   const d = document.createElement('div'); d.className = 'pick wpick' + (wpn.sel === w ? ' on' : '') + (w.fit === 'none' ? ' full' : '');
   const art = w.cells ? itemArt(w.name, 'weapon', [Math.max(...w.cells), Math.min(...w.cells)], w.itemId).svg : null;
   d.innerHTML = '<span class="wpic">' + (art || '') + '</span><span class="wname">' + esc(name) + (w.note ? '<span class="wnote">' + esc(w.note) + '</span>' : '') + '</span>' +
-    '<span class="wmeta"><b class="fit-' + w.fit + '">' + FIT_TEXT[w.fit] + ' · ' + esc(w.size) + '</b><span class="dim mono">' + esc(info) + '</span></span>';
+    '<span class="wmeta"><b class="fit-' + w.fit + '">' + FIT_TEXT[w.fit] + (w.size ? ' · ' + esc(w.size) : '') + '</b><span class="dim mono">' + esc(info) + '</span></span>';
   d.onclick = () => {
     if (w.fit === 'none') {
       if (!w.slot && data.storage) { ask({ title: 'No room in the case', text: 'There is no free ' + w.size + ' space in the case for ' + name + '. Put it into the storage instead? You can take it out at the Merchant (or here) when there is room.', buttons: [{ id: 'no', label: 'Cancel' }, { id: 'st', label: 'Put into the storage', kind: 'pri' }] }).then((v) => { if (v === 'st') { $('#wpnModal').classList.remove('on'); structural('lib-to-storage', { lib: w.itemId }, name + ' is in the storage now (new, no upgrades)'); } }); return; }
@@ -572,8 +583,10 @@ $('#wpnGo').onclick = async () => {
   const w = wpn.sel; if (!w) return;
   if (w.note && !(await sure('Add ' + w.name + '?', w.note, 'Add anyway'))) return;
   $('#wpnModal').classList.remove('on');
-  if (!w.slot) { await structural('add-weapon', { lib: w.itemId }, 'Weapon added (new, no upgrades; use Full upgrade if you want)'); return; }
-  await structural('add-weapon', { from: w.slot, idx: w.idx }, 'Weapon added (a copy of the one in ' + slotTitle(w.slot) + ', with its upgrades)');
+  const at = wpn.at ? { at: wpn.at } : {};
+  if (w.storageOnly) { await structural('add-weapon', { lib: w.itemId }, w.name + ' is in the storage now: the game keeps it only there (take it out at a typewriter)'); return; }
+  if (!w.slot) { await structural('add-weapon', { lib: w.itemId, ...at }, 'Weapon added (new, no upgrades; use Full upgrade if you want)'); return; }
+  await structural('add-weapon', { from: w.slot, idx: w.idx, ...at }, 'Weapon added (a copy of the one in ' + slotTitle(w.slot) + ', with its upgrades)');
 };
 
 // ---------------------------------------------------------------- tree (advanced)

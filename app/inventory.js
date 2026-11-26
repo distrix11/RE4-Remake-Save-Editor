@@ -356,10 +356,18 @@ function removeItem(S, invIdx, idx) {
   const arr = itemList(S, inv); const id = arr.items[idx]; if (id === undefined) throw new Error('No such item');
   const entry = S.parsed.nodes[id];
   const guid = guidOf(S, entry);
-  if (guid) { // refuse to delete something that is equipped / on a shortcut: other places reference its GUID
-    let refs = 0; let at = -1;
-    while ((at = S.buf.indexOf(guid, at + 1)) >= 0) refs++;
-    if (refs > 1) throw new Error('This item is in use (equipped or on a quick slot) - unequip it in the game first');
+  if (guid) {
+    // the equip slot and the quick slots point to the item by its GUID: they are emptied first, as the game does
+    if (invIdx === 0) freeQuickSlots(S, guid);
+    // anything else of this inventory that still points to it (for example an attachment fitted to a weapon) is not ours to empty.
+    // Other places are left: the minecart keeps the weapon held before a ride (RailCarSaveData.PrevPlayerWeapon), and the starting
+    // inventory of the campaign (_InitialSettings) has its own copy of some items with the same GUID.
+    const own = F(S, itemObj(S, entry), '_ID'); let refs = false;
+    const walk = (nid) => { const n = S.parsed.nodes[nid]; if (!n || refs) return;
+      if (n.k === 'v') { if (n !== own && n.sz === 16 && S.buf.subarray(n.off, n.off + 16).equals(guid)) refs = true; return; }
+      for (const x of n.f || []) walk(x[1]); for (const x of n.items || []) walk(x); };
+    walk(inv.id);
+    if (refs) throw new Error('Another item refers to this one (for example it is fitted to a weapon). Change that in the game first.');
   }
   arr.items.splice(idx, 1); arr.cnt -= 1;
   rebuild(S);
@@ -367,6 +375,7 @@ function removeItem(S, invIdx, idx) {
 }
 function duplicateItem(S, invIdx, idx) {
   const m = model(S)[invIdx]; const it = m.items[idx]; if (!it) throw new Error('No such item');
+  if (STORAGE_ONLY.has(String(it.itemId.value))) throw new Error(STORAGE_ONLY_MSG);
   const spot = findSpot(m, it.fp);
   const arr = itemList(S, inventories(S)[invIdx]);
   const newId = cloneSubtree(S, arr.items[idx], arr.id);
@@ -490,14 +499,19 @@ const LOCKED_NOTE = {
   '275638656': 'Bonus weapon: the game may delete it unless you have unlocked it.',
   '278035456': 'Extra content (DLC): the game may delete it if you do not own it.',
 };
+// Weapons the game keeps only in the storage: put into the case by the editor they are gone when the slot loads, put into the storage
+// they stay (checked in the game with the Elite Knife of Separate Ways, a reward of the Extra Content Shop).
+const STORAGE_ONLY = new Set(['278208256']);
+const STORAGE_ONLY_MSG = 'The game keeps this weapon only in the storage (put into the case by the editor, it is gone when the slot loads). Take it out at a typewriter in the game.';
 function libraryList(separateWays) {
   return Object.entries(weaponLibrary()).filter(([, w]) => !!w.sw === !!separateWays).map(([id, w]) => {
     const cat = CATALOG[id];
-    return { itemId: id, name: cat ? cat.n : (w.name || 'Weapon (ID ' + id + ')'), upg: w.upg || [], note: LOCKED_NOTE[id] || null };
+    return { itemId: id, name: cat ? cat.n : (w.name || 'Weapon (ID ' + id + ')'), upg: w.upg || [], note: LOCKED_NOTE[id] || null, storageOnly: STORAGE_ONLY.has(id) };
   }).sort((x, y) => x.name.localeCompare(y.name));
 }
 // A fresh weapon from the library: no upgrades, no exclusive upgrade, nothing loaded.
 function addWeaponFromLibrary(dstS, itemId, separateWays) {
+  if (STORAGE_ONLY.has(String(itemId))) throw new Error(STORAGE_ONLY_MSG);
   const w = weaponLibrary()[String(itemId)];
   if (!w || !!w.sw !== !!separateWays) throw new Error('This weapon is not available for this campaign');
   const src = importTemplate(w.tree);
@@ -522,6 +536,20 @@ function moveItem(S, invIdx, idx, x, y, dir) {
   setEntry(S, entry, { slot: { x, y } });
   if (dir !== undefined) { const dn = F(S, entry, 'CurrDirection'); if (dn) writeValue(S.buf, dn, String(rot)); }
   return { ok: true };
+}
+// After an add: the first new item of the case (entries from index `from` on) goes onto the cell `at` {x, y}: with its corner there if it
+// fits, else shifted (or turned) so that it still covers that cell. Returns false when no such place is free (it stays where the add put it).
+function placeNewAt(S, from, at) {
+  const m = model(S)[0]; if (!m || !at) return false;
+  const idx = m.items.findIndex((i) => i.idx >= from && i.slot); if (idx < 0) return false;
+  const it = m.items[idx];
+  for (const dir of [it.dir, it.dir % 2 === 1 ? 0 : 1]) {
+    const fp = footprint(it.itemId.value, dir % 2 === 1);
+    for (let a = 0; a < fp[0]; a++) for (let c = 0; c < fp[1]; c++) {
+      try { moveItem(S, 0, it.idx, at.x - a, at.y - c, dir); return true; } catch { /* the next place that covers the cell */ }
+    }
+  }
+  return false;
 }
 // The look of the attaché case: the skin item chosen in the skin settings for the character of the slot (see skinCharacter). A skin the player does not own yet is added to the
 // "recipes, cases, charms" inventory first, so the game lists it as unlocked.
@@ -695,11 +723,13 @@ function putInStorage(S, srcS, itemNodeId) {
   arr.items.push(wrapId); arr.cnt += 1;
   rebuild(S);
 }
-// The case keeps the equipped weapon (EquipInfos) and the quick slots (ShortcutInfos) by the GUID of the item. When the game stores a
-// weapon it empties its quick slots (ID 0, ItemId -1, ItemCount 0xFFFFFFFF, seen in a real save); an equipped weapon must be changed in the game.
+// The case keeps the equipped weapons (EquipInfos: the gun, the knife) and the quick slots (ShortcutInfos) by the GUID of the item. When the
+// game stores a weapon it empties its quick slots (ID 0, ItemId -1, ItemCount 0xFFFFFFFF, seen in a real save). An empty equip slot is a
+// GUID of zeros (seen in a real save with no knife equipped): an equipped weapon that is deleted or stored leaves its equip slot empty.
 function freeQuickSlots(S, guid) {
   const inv = inventories(S)[0]; const same = (n) => n && n.sz === 16 && S.buf.subarray(n.off, n.off + 16).equals(guid);
-  const eq = F(S, inv, 'EquipInfos'); if (eq && eq.items && eq.items.some((id) => same(F(S, S.parsed.nodes[id], 'ID')))) throw new Error('This weapon is equipped - equip another weapon in the game first');
+  const eq = F(S, inv, 'EquipInfos');
+  if (eq && eq.items) for (const id of eq.items) { const g = F(S, S.parsed.nodes[id], 'ID'); if (same(g)) S.buf.fill(0, g.off, g.off + 16); }
   const sc = F(S, inv, 'ShortcutInfos'); if (!sc || !sc.items) return;
   for (const id of sc.items) {
     const o = S.parsed.nodes[id]; const g = F(S, o, 'ID'); if (!same(g)) continue;
@@ -711,7 +741,7 @@ function caseToStorage(S, idx) {
   const it = model(S)[0] && model(S)[0].items[idx]; if (!it) throw new Error('No such item');
   if (it.cls !== 'WeaponItem' || it.cat === 'throw') throw new Error('Only weapons can be put into the storage');
   const entry = caseEntry(S, idx); const guid = guidOf(S, entry);
-  if (guid) freeQuickSlots(S, guid); // as the game does when it stores a weapon: its quick slots are emptied; an equipped weapon is refused
+  if (guid) freeQuickSlots(S, guid); // as the game does when it stores a weapon: its quick slots are emptied (and its equip slot, if equipped)
   const itemId = itemObj(S, entry).id;
   // out of the case first (the GUID check of removeItem would see the copy in the storage), then into the storage in the same rebuild
   const arr = itemList(S, inventories(S)[0]); arr.items.splice(idx, 1); arr.cnt -= 1;
@@ -719,10 +749,12 @@ function caseToStorage(S, idx) {
   return { ok: true, name: it.name };
 }
 // a weapon of the storage goes into the case, to a free place (lying or turned)
-function storageToCase(S, sIdx) {
+// anyPlace: only for building the weapon library (scripts/build-weapon-library.js): the weapon is put at the top left even if it overlaps
+function storageToCase(S, sIdx, anyPlace) {
   const st = storage(S); const it = st && st[sIdx]; if (!it) throw new Error('No such item in the storage');
+  if (!anyPlace && STORAGE_ONLY.has(String(it.itemId.value))) throw new Error(STORAGE_ONLY_MSG);
   const dm = model(S)[0]; if (!dm || !dm.grid) throw new Error('There is no attaché case in this slot');
-  const place = weaponSpot(dm, it.itemId.value);
+  const place = weaponSpot(dm, it.itemId.value) || (anyPlace ? { spot: { x: 0, y: 0 }, dir: 0 } : null);
   if (!place) { const fp = footprint(it.itemId.value, false); throw new Error(`No free ${fp[1]}×${fp[0]} space in the case. Free up some room (or press Sort) first.`); }
   const tpl = pickTemplate(S, 0, it.itemId.value); // an entry of the case with a weapon: its frame (cell, direction) is used
   const arr = itemList(S, inventories(S)[0]);
@@ -759,6 +791,7 @@ const KNIFE_MAX = {
   '276437056': [1400, 1500, 1600, 1700, 1800], // Fighting
   '276445056': [1600, 1800, 2000, 2200, 2400], // Primal
   '276440256': [500], // Boot (no upgrades)
+  '276438656': [250], // Kitchen (no upgrades; as the game gave it)
   '278206656': { 4: 2200 }, // Tactical (Separate Ways): only the top level has been seen
 };
 function knifeMax(it) {
@@ -969,6 +1002,8 @@ function weaponStatus(S) {
 }
 
 module.exports = {
+  STORAGE_ONLY,
+  placeNewAt,
   gameStats, rangeStats, weaponStatus,
   treasures,
   CASE_DIMS, MAX_UPG, sortCase, weaponFit, listWeapons, addWeaponFrom, addWeaponFromLibrary, libraryList, exportTemplate, importTemplate, weaponLibrary, caseEntry, itemObj, writeLevel, weaponUpgradeNodes, setCaseSkin, setAllUpgrades, quests, completeQuest, CATALOG, CATEGORIES, model, overview, addItem, removeItem, duplicateItem,

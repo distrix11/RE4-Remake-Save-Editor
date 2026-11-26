@@ -56,6 +56,7 @@ function turnToFit(inside, bw, bh) {
 }
 
 function drawCase3D(holder, inv) {
+  const keepY = window.scrollY; holder.style.minHeight = holder.offsetHeight + 'px'; // drawn again in place: the page does not jump
   holder.innerHTML = '';
   // the game shows the case lying down: the save's rows run across the screen, its columns run down
   const [GW, GH] = inv.grid; const W = GH, H = GW;
@@ -82,6 +83,16 @@ function drawCase3D(holder, inv) {
     hit.style.cssText = `left:${c * cell}px;top:${r * cell}px;width:${cell}px;height:${cell}px`; foam.append(hit);
   }
   const ghost = document.createElement('div'); ghost.className = 'ghost3'; ghost.hidden = true; foam.append(ghost);
+  // right click on an empty cell: add an item or a weapon right there
+  if (inv.index === 0) foam.oncontextmenu = (e) => {
+    if (e.target.closest('.i3')) return;
+    const c = cellAt(e); if (!c) return;
+    e.preventDefault();
+    const at = { x: c[1], y: c[0] }; // save x = row on screen, y = column
+    const bi = document.createElement('button'); bi.innerHTML = ic('plus') + 'Add item here…'; bi.onclick = () => openAdd(at);
+    const bw = document.createElement('button'); bw.innerHTML = ic('plus') + 'Add weapon here…'; bw.onclick = () => openWeapons(at);
+    caseMenu(e.clientX, e.clientY, 'Empty place', [bi, bw]);
+  };
   const cellAt = (ev) => { const e = document.elementsFromPoint(ev.clientX, ev.clientY).find((n) => n.classList && n.classList.contains('cellhit')); return e ? [Number(e.dataset.c), Number(e.dataset.r)] : null; };
   // moves are done in the save's own coordinates: x = row on screen, y = column on screen
   const ovl3 = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
@@ -107,6 +118,11 @@ function drawCase3D(holder, inv) {
     else inner = `<span class="fallback">${ic(it.cat || 'box')}</span>`;
     el.innerHTML = '<div class="in">' + inner + (it.count && Number(it.count.value) > 1 ? '<span class="cn">' + it.count.value + '</span>' : '') + '</div>';
     if (it.cat !== 'weapon' && art.svg) turnToFit(el.querySelector('.in'), bw, bh); // weapons are handled above (art.turn)
+    // right click: select the item and show its actions next to the mouse
+    el.oncontextmenu = (e) => {
+      e.preventDefault(); ui.sel = it.idx; drawCase3D(holder, inv);
+      caseMenu(e.clientX, e.clientY, itemName(it) || 'Item #' + it.itemId.value, (caseKeys.cur && caseKeys.cur.menu) || []);
+    };
     el.onpointerdown = (e) => {
       if (e.button !== 0) return;
       e.preventDefault(); el.setPointerCapture(e.pointerId);
@@ -162,28 +178,71 @@ function drawCase3D(holder, inv) {
     const info = document.createElement('div');
     info.innerHTML = `<div class="iname">${esc(nm)}</div><div class="dim mono" style="font-size:11px">ID ${sel.itemId.value} · cell ${sel.slot.x},${sel.slot.y} · ${sel.fp[0]}×${sel.fp[1]} (estimate)</div>`;
     bar.append(info);
-    if (sel.count && fieldsOf(sel).count) { const l = document.createElement('label'); l.className = 'f'; l.style.width = '110px'; l.innerHTML = '<span>Count</span>'; l.append(field(sel.count, { width: '100%' })); bar.append(l); }
+    // the same numbers as in the list: count, ammo, durability
+    const show = fieldsOf(sel);
+    for (const [k, label] of [['count', 'Count'], ['ammo', 'Ammo'], ['durability', 'Durability']]) {
+      if (!show[k] || !sel[k]) continue;
+      const l = document.createElement('label'); l.className = 'f'; l.style.width = '110px'; l.innerHTML = '<span>' + label + '</span>'; l.append(field(sel[k], { width: '100%' })); bar.append(l);
+    }
     const rot = document.createElement('button'); rot.className = 'sm'; rot.innerHTML = ic('rotate') + 'Rotate';
     rot.onclick = () => {
       const nd = sel.dir % 2 === 1 ? 0 : 1; const nfp = [sel.fp[1], sel.fp[0]];
       if (!fits3(sel, sel.slot.x, sel.slot.y, nfp)) { toast('The rotated item does not fit here', 'err'); return; }
       return structural('move', { inv: inv.index, idx: sel.idx, x: sel.slot.x, y: sel.slot.y, dir: nd }, 'Item rotated');
     };
+    let fu = null;
     if (sel.upg) {
-      const fu = document.createElement('button'); fu.className = 'sm'; fu.innerHTML = ic('tools') + 'Full upgrade'; fu.title = 'Every normal upgrade of this weapon to the maximum (4)';
+      fu = document.createElement('button'); fu.className = 'sm'; fu.innerHTML = ic('tools') + 'Full upgrade'; fu.title = 'Every normal upgrade of this weapon to the maximum (4)';
       fu.onclick = () => structural('upgrade-all', { inv: inv.index, idx: sel.idx, level: 4 }, 'Weapon fully upgraded');
       bar.append(fu);
     }
+    const key = inv.index + ':' + sel.idx;
+    const ub = sel.upg ? document.createElement('button') : null;
+    if (ub) { ub.className = 'sm' + (ui.upg[key] ? ' on' : ''); ub.innerHTML = ic('tools') + 'Upgrades'; ub.title = 'Set every upgrade of this weapon'; ub.onclick = () => { ui.upg[key] = !ui.upg[key]; render(); }; }
+    const sb = inv.index === 0 && sel.cls === 'WeaponItem' && sel.cat !== 'throw' && data.storage ? document.createElement('button') : null;
+    if (sb) { sb.className = 'sm'; sb.innerHTML = ic('export') + 'To storage'; sb.title = 'Put this weapon into the storage'; sb.onclick = () => { ui.sel = null; return structural('to-storage', { idx: sel.idx }, nm + ' is in the storage now'); }; }
     const dup = document.createElement('button'); dup.className = 'sm'; dup.innerHTML = ic('copy') + 'Copy';
     dup.onclick = () => structural('dup', { inv: inv.index, idx: sel.idx }, 'Copy created');
+    if (UNIQUE.includes(sel.cat)) { dup.disabled = true; dup.title = 'There is only one of these in the game: it cannot be copied'; }
     const del = document.createElement('button'); del.className = 'sm danger'; del.innerHTML = ic('trash') + 'Delete';
     del.onclick = async () => { if (await confirmDelete(sel, nm)) { ui.sel = null; return structural('remove', { inv: inv.index, idx: sel.idx }, 'Removed'); } };
-    bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), rot, dup, del);
+    bar.append(Object.assign(document.createElement('span'), { className: 'sp' }), rot, ...(ub ? [ub] : []), ...(sb ? [sb] : []), dup, del);
     caseKeys.cur.rotate = rot.onclick; caseKeys.cur.remove = del.onclick;
+    caseKeys.cur.menu = [rot, fu, ub, sb, dup, del].filter(Boolean); // the right-click menu offers the same buttons
     rot.title = 'Key: R'; del.title = 'Key: Delete';
     bar.append(Object.assign(document.createElement('div'), { className: 'dim', textContent: 'Keys: R rotate · Delete remove · arrows move (past items in the way) · Esc deselect · Ctrl+Z undo', style: 'flex-basis:100%;font-size:12px' }));
   } else bar.innerHTML = '<span class="dim">Click an item to select it; drag it to move it.</span>';
   card.append(bar);
+  // upgrade levels and gem sockets of the selected item, as in the list
+  if (sel && ((sel.upg && ui.upg[inv.index + ':' + sel.idx]) || (sel.sockets && sel.sockets.length))) {
+    const t = document.createElement('table'); t.className = 'selmore';
+    if (sel.upg && ui.upg[inv.index + ':' + sel.idx]) t.append(upgRow(inv, sel));
+    if (sel.sockets && sel.sockets.length) t.append(gemRow(inv, sel));
+    card.append(t);
+  }
   holder.append(card);
+  holder.style.minHeight = ''; window.scrollTo(0, keepY);
   fx.caseDrawn(cur + '|' + inv.index, foam, lid, drawn);
+}
+
+// a small menu at the mouse with the buttons of the selected item (they keep their own actions and disabled state)
+function caseMenu(x, y, title, buttons) {
+  closeCaseMenu();
+  const m = document.createElement('div'); m.className = 'ctxmenu'; m.id = 'ctxmenu';
+  m.innerHTML = '<div class="ctxt">' + esc(title) + '</div>';
+  for (const b of buttons) {
+    const i = document.createElement('button'); i.innerHTML = b.innerHTML; i.disabled = b.disabled; i.title = b.title || '';
+    if (b.classList.contains('danger')) i.className = 'danger';
+    i.onclick = () => { closeCaseMenu(); b.click(); }; m.append(i);
+  }
+  document.body.append(m);
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.max(4, Math.min(x, innerWidth - r.width - 4)) + 'px'; m.style.top = Math.max(4, Math.min(y, innerHeight - r.height - 4)) + 'px';
+  setTimeout(() => { addEventListener('pointerdown', ctxAway, true); addEventListener('keydown', ctxKey, true); addEventListener('scroll', closeCaseMenu, true); addEventListener('blur', closeCaseMenu); });
+}
+function ctxAway(e) { if (!e.target.closest('#ctxmenu')) closeCaseMenu(); }
+function ctxKey(e) { if (e.key === 'Escape') { e.stopPropagation(); closeCaseMenu(); } }
+function closeCaseMenu() {
+  const m = document.getElementById('ctxmenu'); if (m) m.remove();
+  removeEventListener('pointerdown', ctxAway, true); removeEventListener('keydown', ctxKey, true); removeEventListener('scroll', closeCaseMenu, true); removeEventListener('blur', closeCaseMenu);
 }

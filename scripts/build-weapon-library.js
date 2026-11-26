@@ -18,6 +18,9 @@ const EXCLUDE = new Set([
   '278197056', // the Separate Ways weapon with the same upgrades: removed too
   '278214656', // the game refuses to load the slot ("incompatible save data")
 ]);
+// weapons only (grenades and eggs are weapon entries too: they have no upgrade blocks); the rocket launchers (2762…) and the boot,
+// kitchen and primal knives (2764…) have no upgrades either
+const keep = (it) => it.cls === 'WeaponItem' && (it.upg || /^276(2|4)/.test(String(it.itemId.value)));
 const found = new Map(); // itemId -> { sw, samples: [{S, idx, parts, dura}] }
 
 for (const a of args) {
@@ -25,10 +28,20 @@ for (const a of args) {
   for (const f of fs.readdirSync(dir).filter((x) => /^data\d+Slot\.bin$/.test(x))) {
     let S; try { const buf = LIME.unpack(fs.readFileSync(path.join(dir, f)), acc); S = { buf, parsed: parse(buf) }; } catch (e) { console.log('skip', f, e.message.slice(0, 50)); continue; }
     const sw = Number(/\d+/.exec(f)[0]) >= 100;
-    const m = INV.model(S)[0]; if (!m) continue;
+    let m = INV.model(S)[0]; if (!m) continue;
+    // weapons in the storage: each is moved into the case of its own copy of the save, so it has a case entry like the others
+    const st = INV.storage(S) || [];
+    for (let k = 0; k < st.length; k++) {
+      const id = String(st[k].itemId.value); if (st[k].cls !== 'WeaponItem' || m.items.some((x) => String(x.itemId.value) === id)) continue;
+      const S2 = { buf: Buffer.from(S.buf), parsed: parse(S.buf) };
+      try { INV.storageToCase(S2, k, true); } catch (e) { console.log('skip storage', id, e.message.slice(0, 60)); continue; }
+      const it = INV.model(S2)[0].items.slice(-1)[0];
+      if (!keep(it)) continue;
+      const e = found.get(id) || { sw, samples: [] }; if (e.sw !== sw) continue;
+      e.samples.push({ S: S2, idx: it.idx, dura: it.durability ? Number(it.durability.value) : null }); found.set(id, e);
+    }
     for (const it of m.items) {
-      // weapons only (grenades and eggs are weapon entries too: they have no upgrade blocks); the rocket launchers have no upgrades either
-      if (it.cls !== 'WeaponItem' || (!it.upg && !/^2762/.test(String(it.itemId.value)))) continue;
+      if (!keep(it)) continue;
       const id = String(it.itemId.value); const key = id;
       if (EXCLUDE.has(id)) continue;
       const e = found.get(key) || { sw, samples: [] };

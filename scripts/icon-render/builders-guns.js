@@ -183,7 +183,30 @@ export function makeGuns(THREE) {
   };
   G.handcannon = gun(4, 2, (k) => revolver(k, { W: 4, x0: 14, barrel: 370, metal: silver, grip: wood, brake: true }));
   G.killer7 = gun(3, 2, (k) => { revolver(k, { W: 3, x0: 14, barrel: 264, metal: metalDark, grip: black, brake: false }); k.rect(150, 66, 260, 82, 20, metal); k.ribs(162, 70, 6, 16, 8, 8, black, 12); });
-  G.butterfly = gun(3, 2, (k) => { revolver(k, { W: 3, x0: 20, barrel: 272, metal, grip: woodDark, brake: false }); k.rect(158, 68, 268, 80, 14, metalDark); k.rod(160, 88, 262, 88, 4, bright); k.pin(150, 56, 7, brass, 14); });
+  // top-break single-action revolver: round fluted cylinder, thin round barrel with a rib, hammer spur, curved wooden grip
+  G.butterfly = gun(3, 2, (k) => {
+    // frame with the top strap and the latch over the cylinder
+    k.part([[44, 62], [70, 50], [100, 50], [100, 114], [60, 112], [44, 96]], 22, metal, 0, [], 4); // behind the cylinder
+    k.rect(96, 48, 168, 56, 18, metal, 0, 2); // top strap
+    k.part([[96, 106], [152, 106], [150, 110], [126, 112], [96, 116]], 18, metal, 0, [], 2); // under the cylinder
+    k.rect(148, 56, 158, 106, 18, metal, 0, 2); // in front of the cylinder
+    k.part([[64, 50], [74, 40], [92, 40], [96, 50]], 18, metalDark); k.pin(84, 46, 4, bright, 10);
+    // the cylinder: five round chambers lying along the barrel, so it reads as a drum
+    for (const [y, r] of [[60, 6], [69, 11], [81, 14], [93, 11], [102, 6]]) k.rod(100, y, 148, y, r, greyDark, 0);
+    for (const y of [64, 75, 87, 98]) k.rod(102, y, 146, y, 2.4, black, 12);
+    k.rod(96, 81, 152, 81, 4, metalDark, 0);
+    // barrel, rib and front sight; ejector rod under it
+    k.rod(150, 68, 292, 68, 9, metal); k.rect(152, 54, 290, 61, 10, metalDark, 0, 2); k.part([[280, 54], [284, 44], [290, 54]], 6, metalDark);
+    k.rod(288, 68, 294, 68, 6, black, 4); k.rod(152, 86, 262, 86, 4.5, bright); k.rect(262, 80, 270, 92, 10, metalDark, 0, 2);
+    // hammer spur at the back
+    k.part([[50, 62], [40, 40], [30, 32], [36, 28], [52, 40], [66, 58]], 10, metalDark, 0, [], 2);
+    // trigger guard and trigger
+    k.part([[92, 110], [138, 108], [136, 124], [120, 142], [96, 142], [88, 126]], 12, metal, 0, [[[98, 116], [128, 114], [118, 134], [100, 134]]], 2);
+    k.part([[108, 110], [116, 110], [110, 130], [104, 128]], 6, metalDark);
+    // curved wooden grip and its screw
+    k.part([[48, 100], [88, 112], [80, 134], [72, 168, 80, 190], [46, 196], [22, 190], [14, 160, 28, 130], [38, 112]], 28, woodDark, 0, [], 9);
+    k.pin(52, 150, 6, bright, 16); k.pin(36, 184, 4, brass, 16);
+  });
 
   // ---------------------------------------------------------------- submachine guns
   G.tmp = gun(3, 2, (k) => {

@@ -531,7 +531,9 @@ const routes = {
     }
     return { results: out };
   },
-  'POST /api/add': async (b) => { const S = need(b.name); guard(S); const r = INV.addItem(S, { itemId: b.itemId, count: b.count }); S.dirty = true; return { ...r, ...fresh(S) }; },
+  // "Add … here" of the Case view: the new item goes to the clicked cell when it fits there
+  // (caseCount and placed are used by add and add-weapon)
+  'POST /api/add': async (b) => { const S = need(b.name); guard(S); const n = caseCount(S); const r = INV.addItem(S, { itemId: b.itemId, count: b.count }); S.dirty = true; return { ...r, ...placed(S, n, b.at), ...fresh(S) }; },
   'POST /api/remove': async (b) => { const S = need(b.name); guard(S); INV.removeItem(S, Number(b.inv), Number(b.idx)); S.dirty = true; return fresh(S); },
   // weapons found in the OTHER slots of the SAME campaign (as saved in the game folder): the least upgraded copy of every weapon.
   // The game removes weapons of the other campaign (a Handcannon put into a Separate Ways slot disappeared), so those are not offered.
@@ -541,6 +543,7 @@ const routes = {
     for (const f of fileList().map((x) => x.name).filter((n) => /^data\d+Slot\.bin$/.test(n) && n !== b.name && isSeparateWaysSlot(n) === isSeparateWaysSlot(b.name))) {
       let src; try { const buf = await unpackCached(f); src = { name: f, buf, parsed: parse(buf) }; } catch (e) { continue; }
       for (const w of INV.listWeapons(src)) {
+        if (INV.STORAGE_ONLY.has(String(w.itemId))) continue; // added from the library, into the storage
         const lv = w.upg.reduce((t, u) => t + u.level, 0), old = best.get(w.itemId);
         if (!old || lv < old.lv) best.set(w.itemId, { ...w, slot: f, lv });
       }
@@ -548,14 +551,16 @@ const routes = {
     return { weapons: [...best.values()].sort((x, y) => String(x.name || x.itemId).localeCompare(String(y.name || y.itemId))).map((w) => ({ ...w, ...INV.weaponFit(dst, w.itemId) })) };
   },
   // ready-made weapons (app/weapons.json) of the campaign of this slot
-  'POST /api/weapon-library': async (b) => { const S = need(b.name); return { weapons: INV.libraryList(isSeparateWaysSlot(b.name)).map((w) => ({ ...w, ...INV.weaponFit(S, w.itemId) })) }; },
+  'POST /api/weapon-library': async (b) => { const S = need(b.name); return { weapons: INV.libraryList(isSeparateWaysSlot(b.name)).map((w) => ({ ...w, ...INV.weaponFit(S, w.itemId), ...(w.storageOnly ? { fit: 'storage' } : {}) })) }; },
   'POST /api/add-weapon': async (b) => {
     const S = need(b.name); guard(S);
-    if (b.lib) { const r = INV.addWeaponFromLibrary(S, String(b.lib), isSeparateWaysSlot(b.name)); S.dirty = true; return { ...r, ...fresh(S) }; }
+    const n = caseCount(S);
+    if (b.lib && INV.STORAGE_ONLY.has(String(b.lib))) { const r = INV.libraryToStorage(S, String(b.lib), isSeparateWaysSlot(b.name)); S.dirty = true; return { ...r, ...fresh(S) }; }
+    if (b.lib) { const r = INV.addWeaponFromLibrary(S, String(b.lib), isSeparateWaysSlot(b.name)); S.dirty = true; return { ...r, ...placed(S, n, b.at), ...fresh(S) }; }
     if (!SAVE_RE.test(b.from || '') || !/Slot\.bin$/.test(b.from) || b.from === b.name) throw new Error('Invalid source slot');
     if (isSeparateWaysSlot(b.from) !== isSeparateWaysSlot(b.name)) throw new Error('The game removes weapons of the other campaign (Separate Ways and the main game do not share weapons), so this copy would be lost. Take the weapon from a slot of the same campaign.');
     const buf = await unpackCached(b.from); const src = { name: b.from, buf, parsed: parse(buf) };
-    const r = INV.addWeaponFrom(S, src, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) };
+    const r = INV.addWeaponFrom(S, src, Number(b.idx)); S.dirty = true; return { ...r, ...placed(S, n, b.at), ...fresh(S) };
   },
   'POST /api/to-storage': async (b) => { const S = need(b.name); guard(S); const r = INV.caseToStorage(S, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
   'POST /api/from-storage': async (b) => { const S = need(b.name); guard(S); const r = INV.storageToCase(S, Number(b.idx)); S.dirty = true; return { ...r, ...fresh(S) }; },
@@ -590,6 +595,11 @@ const routes = {
 };
 
 // Every request that changes the open file remembers how it was before, for "Undo". A request that fails half way is rolled back.
+function caseCount(S) { const m = INV.model(S)[0]; return m ? m.items.length : 0; }
+function placed(S, n, at) {
+  if (!at || !Number.isInteger(at.x) || !Number.isInteger(at.y)) return {};
+  return INV.placeNewAt(S, n, at) ? { placedAt: true } : { placedAt: false };
+}
 const UNDOABLE = new Set(['set', 'add', 'remove', 'dup', 'move', 'sort', 'case-skin', 'case-size', 'upgrade', 'upgrade-all', 'add-weapon', 'quest-complete', 'repair-knives', 'fill-stacks', 'upgrade-weapons', 'gem', 'to-storage', 'from-storage', 'lib-to-storage', 'revert'].map((n) => 'POST /api/' + n));
 const UNDO_STEPS = 30;
 async function withUndo(key, body) {

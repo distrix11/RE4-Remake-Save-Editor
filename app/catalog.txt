@@ -32,6 +32,7 @@
 278200256|Blacktail AC|weapon
 278203456|Stingray (Separate Ways)|weapon
 278206656|Tactical Knife|weapon
+278208256|Elite Knife|weapon
 278217856|Rifle SR M1903 (Separate Ways)|weapon
 278195456|Sawed-off W-870 (Separate Ways)|weapon
 278216256|Red9 (Separate Ways)|weapon
@@ -238,6 +239,7 @@
 123686400|Case: Classic (Separate Ways)|special|noadd
 123688000|Global Treasure Map|special|noadd
 124331200|Recipe: Bolts (2)|special|noadd
+124332800|Recipe: Bolts (3)|special|noadd
 124363200|Recipe: Mixed Herb (G+G+Y) (2)|special|noadd
 124366400|Recipe: Mixed Herb (G+R+Y) (2)|special|noadd
 124368000|Recipe: Mixed Herb (G+R+Y) (3)|special|noadd
