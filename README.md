@@ -13,17 +13,17 @@ It runs on your own computer, opens in your browser or its own window and never 
 > Editing saves can corrupt them. The editor makes a backup before every write, but keep your own copies too.
 
 > [!NOTE]
-> This is a pre-release (0.9.7). It has been tested on a limited set of saves; please report what you find.
+> This is a pre-release (0.9.8). It has been tested on a limited set of saves; please report what you find.
 
-**New in 0.9.7:** item sizes checked in the game (some items could be put on top of others and the game deleted them), a warning for items that overlap, a mini case on every slot card, a refresh button. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.7)
+**New in 0.9.8:** the storage of the Merchant (move weapons between it and the case, upgrade them there), gems in treasures, six more weapons in Add weapon (W-870, Striker, TMP, CQBR, Bolt Thrower, Rocket Launcher), eggs. [Release notes](https://github.com/distrix11/RE4-Remake-Save-Editor/releases/tag/v0.9.8)
 
 ## Features
 
 - <img src="icons/items/gold_bar.png" height="26" align="top"> **Money**: Pesetas and Spinel.
 - <img src="icons/items/case_gold.png" height="26" align="top"> **Inventory** (attaché case, key items, treasures, recipes/charms):
   search, category filter, sorting; edit counts, ammo, durability and item IDs;
-  **add** items from a catalog of ~220 items (grenades included), **duplicate**, **delete**;
-  **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; **Undo** (button or Ctrl+Z) takes back the last changes one by one, **Ctrl+S** saves to the game (after the summary), **Upgrade all weapons** fully upgrades the whole case, and the start screen shows a card for every slot.
+  **add** items from a catalog of ~220 items (grenades and eggs included, gems in the sockets of treasures), **duplicate**, **delete**;
+  **case size** selector; **grenades** can be added too; **Repair knives** and **Fill ammo stacks** buttons; a **Case view** (the case lying down, like in the game) where items are moved by dragging and rotated; **weapon upgrades** (levels 0-4, a **Full upgrade** button and the exclusive upgrade switch), **Add weapon…** (a new weapon from a built-in list, or a copy from another of your slots, with its picture and whether it fits the case now) and a **Sort** button that tidies the case; a **Storage** tab (the storage of the Merchant: move weapons between it and the case, upgrade them there); **Undo** (button or Ctrl+Z) takes back the last changes one by one, **Ctrl+S** saves to the game (after the summary), **Upgrade all weapons** fully upgrades the whole case, and the start screen shows a card for every slot.
 - <img src="icons/items/recipe.png" height="26" align="top"> **Merchant requests**: shows the goals of every request and can mark the goals as completed.
 - <img src="icons/items/crown.png" height="26" align="top"> **Treasures**: which treasure types you have obtained and how many world pickups are recorded per area (approximate).
 - <img src="icons/items/token_gold.png" height="26" align="top"> **Achievements**: reads your local Steam achievement cache (read-only) and shows progress hints computed from the save.
@@ -114,7 +114,7 @@ alignment recomputed. Nothing is written to the game folder without a backup.
 
 - Item sizes in the case are **estimates** inferred from real layouts; items may look different in game.
 - Weapon upgrade levels are limited to 0-4 (the highest seen in real saves). Some weapons have fewer upgrades; the editor does not know which.
-- **Add weapon…** offers new weapons (no upgrades, empty magazine) only for the weapons in its built-in list: not for the main-game W-870, Striker, TMP, CQBR, Broken Butterfly, Bolt Thrower, the rocket launchers and some knives. A weapon from another of your slots of the same campaign can be copied too. The game deletes weapons of the other campaign, bonus or DLC weapons you have not unlocked (for example the Chicago Sweeper), weapons that do not fit the case, and may delete a second copy of one you already carry. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
+- **Add weapon…** offers new weapons (no upgrades, empty magazine) only for the weapons in its built-in list (21 for the main game, 7 for Separate Ways): not yet for the Broken Butterfly, the special rocket launchers and some knives. A weapon from another of your slots of the same campaign can be copied too. The game deletes weapons of the other campaign, bonus or DLC weapons you have not unlocked (for example the Chicago Sweeper), weapons that do not fit the case, and may delete a second copy of one you already carry. The exclusive upgrade is a 0/1 switch and needs every other upgrade at 4.
 - Names of merchant requests are not stored in the save; the mapping is partly inferred and marked in the UI.
 - The item catalog is community-compiled and may contain mistakes.
 - Tested on a limited set of saves and one game version (see `docs/TESTING.md` for the in-game checklist). Game patches may change the save format.
